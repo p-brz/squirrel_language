@@ -30,7 +30,11 @@
         
         return strConcat;
     }
-
+    char * intToString(int value){
+        char tmp[30];
+        sprintf(tmp, "%d", value);
+        return strdup(tmp);
+    }
 
 %}
 
@@ -60,12 +64,14 @@
 program         : function_list                     { printf("%s\n", $1); } ;
 	
 /* *********************************** FUNCTIONS ********************************************** */
-function_list   : function                          { $$ = $1; }
+function_list   : function                          {   $$ = $1; }
 		            | function_list	function        {   const char * values[] = {$1, "\n", $2};
                                                         $$ = concat_n(3, values); };
 
-function        : type ID func_params block_body    {   const char * values[] = {$1, " ID ", $3, $4};
-                                                        $$ = concat_n(4, values); };
+function        : type ID                           {   $<sValue>$ = strdup(yylval.sValue);}
+                    func_params block_body          {   const char * idValue = $<sValue>3;
+                                                        const char * values[] = {$1, " ", idValue, " ", $4, $5};
+                                                        $$ = concat_n(6, values); };
 
 func_params     : LPAREN RPAREN                     { $$ = strdup("()"); };
 
@@ -88,16 +94,16 @@ statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";");}
 inline_statement : function_call                    { $$ = $1; }
                     | return_statement              { $$ = $1; };
 
-function_call    : PRINT LPAREN expr_list RPAREN    { $$ = concat(concat("PRINT (", $3), ")"); };
+function_call    : PRINT LPAREN expr_list RPAREN    { $$ = concat(concat("print(", $3), ")"); };
 
-return_statement : RETURN expr                      { $$ = concat("RETURN ", $2); };
+return_statement : RETURN expr                      { $$ = concat("return ", $2); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list        : /* Vazio */                      { $$ = "";}
                     | expr                          { $$ = $1;};
 
-expr             : NUMBER                           { $$ = strdup("NUMBER");} 
-                    | STRING                        { $$ = strdup("STRING"); };
+expr             : NUMBER                           { $$ = intToString(yylval.iValue);} 
+                    | STRING                        { $$ = strdup(yylval.sValue); };
 
 %%
 
