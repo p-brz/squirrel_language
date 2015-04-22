@@ -14,8 +14,8 @@
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}
 ";"                                 {return SEMICOLON;}
-\"(\\.|[^"])*\"                     {yylval.sValue = strcpy(yylval.sValue, yytext); return STRING;}
-[a-zA-Z][[a-zA-Z0-9]*               {yylval.sValue = yytext; return ID;}
+\"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
+[a-zA-Z][[a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
 
 . yyerror("invalid character");
 
