@@ -50,13 +50,16 @@
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
-%token SEMICOLON
+%token SEMICOLON COMMA
 
-%type <sValue> expr expr_list
-%type <sValue> type
+%token  PLUS MINUS TIMES DIVIDE MOD
+
 %type <sValue> inline_statement function_call io_command return_statement statement_list
 %type <sValue> block_body block_stmt_list
 %type <sValue> func_params function function_list
+%type <sValue> expr expr_list
+%type <sValue> binary_expr term operator
+%type <sValue> type
 
 %start program
 
@@ -84,9 +87,9 @@ block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = con
 block_stmt_list  : /* Vazio */                      {  $$ = ""; }
                     | statement_list                {  $$ = $1; };
 
-statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";");}
+statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";\n");}
                     | statement_list inline_statement SEMICOLON 
-                                                    {   char * line1 = concat($1, "\n");
+                                                    {   char * line1 = $1;
                                                         char * line2 = concat($2, ";\n");
                                                         $$ = concat(line1,line2); };
 
@@ -97,7 +100,7 @@ function_call    : ID LPAREN expr_list RPAREN       {   const char * values[] = 
                                                         $$ = concat_n(4, values); }
                     | io_command                    {   $$ = $1;};
 
-io_command       : PRINT LPAREN expr RPAREN         {   $$ = concat(concat("print(", $3), ")"); }
+io_command       : PRINT LPAREN expr_list RPAREN         {   $$ = concat(concat("print(", $3), ")"); }
                     | "read" LPAREN expr RPAREN     {   $$ = concat(concat("read(", $3), ")"); }
                     | "readchar" LPAREN RPAREN      {   $$ = strdup("readchar()"); }
                     | "readline" LPAREN RPAREN      {   $$ = strdup("readline()"); };
@@ -106,13 +109,26 @@ io_command       : PRINT LPAREN expr RPAREN         {   $$ = concat(concat("prin
 return_statement : RETURN expr                      {   $$ = concat("return ", $2); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
-expr_list        : /* Vazio */                      { $$ = "";}
-                    | expr                          { $$ = $1;};
+expr_list       : /* Vazio */                       { $$ = "";}
+                    | expr                          { $$ = $1;}
+                    | expr_list COMMA expr          { $$ = concat(concat($1, ","), $3);};
 
-expr             : NUMBER                           { $$ = intToString(yylval.iValue);} 
+expr            : binary_expr                       { $$ = $1;};
+
+binary_expr     : term                              { $$ = $1;}
+                    | binary_expr operator term     {   const char * values[] = {$1, $2, $3};
+                                                        $$ = concat_n(3, values);}
+                    
+
+term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
                     | STRING                        { $$ = strdup(yylval.sValue); }
                     | function_call                 { $$ = $1;};
 
+operator        :   PLUS                            { $$ = strdup("+");}
+                    | MINUS                         { $$ = strdup("-");}
+                    | TIMES                         { $$ = strdup("*");}
+                    | DIVIDE                        { $$ = strdup("/");}
+                    | MOD                           { $$ = strdup("%");};
 %%
 
 int main (void) {return yyparse ( );}

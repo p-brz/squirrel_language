@@ -11,9 +11,17 @@
 ")"                                 {return RPAREN;}
 "{"                                 {return LBRACE;}
 "}"                                 {return RBRACE;}
+
+"+"                                 {return(PLUS);}
+"-"                                 {return(MINUS);}
+"*"                                 {return(TIMES);}
+"/"                                 {return(DIVIDE);}
+"%"                                 {return(MOD);}
+
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}
 ";"                                 {return SEMICOLON;}
+","                                 {return COMMA;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
 [a-zA-Z][[a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
 
