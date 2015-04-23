@@ -24,6 +24,7 @@ um executável do compilador.
 
         yacc -d parser.y
     ou
+    
         bison --define=y.tab.h parser.y
 
 0. Gerar executável:
