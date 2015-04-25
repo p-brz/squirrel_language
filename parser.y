@@ -1,5 +1,41 @@
 %{
 #include <stdio.h>
+
+#include <string.h> //strlen, strcat, ...
+#include <stdlib.h> //malloc
+
+    char  * concat(const char * str1, const char * str2){
+        char * strConcat = malloc(strlen(str1) + strlen(str2) + 1);
+        
+        if(strConcat == NULL){
+            return "";
+        }
+        
+        strcpy(strConcat, str1);
+        strcat(strConcat, str2);
+        return strConcat;
+    }
+    char  * concat_n(int size, const char ** values){
+        if(size <= 0){
+            return "";
+        }
+        
+        char * strConcat = strdup(values[0]);
+        int i;
+        for(i=1; i < size; ++i){
+            char * new_concat = concat(strConcat, values[i]);
+            free(strConcat);
+            strConcat = new_concat;
+        }
+        
+        return strConcat;
+    }
+    char * intToString(int value){
+        char tmp[30];
+        sprintf(tmp, "%d", value);
+        return strdup(tmp);
+    }
+
 %}
 
 %union {
@@ -14,40 +50,85 @@
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
-%token SEMICOLON
+%token SEMICOLON COMMA
 
+%token  PLUS MINUS TIMES DIVIDE MOD
+
+%type <sValue> inline_statement function_call io_command return_statement statement_list
+%type <sValue> block_body block_stmt_list
+%type <sValue> func_params function function_list
+%type <sValue> expr expr_list
+%type <sValue> binary_expr term operator
+%type <sValue> type
 
 %start program
 
 %%
-program : function_list { printf("function_list\n"); } ;
+program         : function_list                     { printf("%s\n", $1); } ;
 	
-function_list : function { printf( "function\n" ); }
-		| function_list	function {};
+/* *********************************** FUNCTIONS ********************************************** */
+function_list   : function                          {   $$ = $1; }
+		            | function_list	function        {   const char * values[] = {$1, "\n", $2};
+                                                        $$ = concat_n(3, values); };
 
-function : type ID func_params block_body { printf("type ID func_params block_body\n"); };
+function        : type ID func_params block_body    {   
+                                                        const char * values[] = {$1, " ", $2, " ", $3, $4};
+                                                        $$ = concat_n(6, values); };
 
-type : INT { printf( "INT\n" ); };
+func_params     : LPAREN RPAREN                     { $$ = strdup("()"); };
 
-func_params : LPAREN RPAREN { printf("LPAREN RPAREN\n"); };
+/* ************************************* TYPES *********************************************** */
+type : INT  { $$ = strdup("INT"); };
 
-block_body : LBRACE block_stmt_list RBRACE { printf("LBRACE block_stmt_list RBRACE\n"); };
+/* *********************************** STATEMENTS ******************************************** */
+block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
+                                                        $$ = concat(begin_block, "}\n"); };
 
-block_stmt_list:  | statement_list { printf("  | statement_list\n"); };
+block_stmt_list  : /* Vazio */                      {  $$ = ""; }
+                    | statement_list                {  $$ = $1; };
 
-statement_list: inline_statement SEMICOLON | statement_list inline_statement SEMICOLON {
-printf( "inline_statement SEMICOLON | statement_list inline_statement SEMICOLON\n" ); };
+statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";\n");}
+                    | statement_list inline_statement SEMICOLON 
+                                                    {   char * line1 = $1;
+                                                        char * line2 = concat($2, ";\n");
+                                                        $$ = concat(line1,line2); };
 
-inline_statement : function_call | return_statement { printf("function_call | return_statement\n"); };
+inline_statement : function_call                    {   $$ = $1; }
+                    | return_statement              {   $$ = $1; };
 
-function_call : PRINT LPAREN expr_list RPAREN { printf("PRINT LPAREN expr_list RPAREN\n"); };
+function_call    : ID LPAREN expr_list RPAREN       {   const char * values[] = {$1, "(", $3, ")"};
+                                                        $$ = concat_n(4, values); }
+                    | io_command                    {   $$ = $1;};
 
-expr_list : | expr { printf(" | expr\n"); };
+io_command       : PRINT LPAREN expr_list RPAREN         {   $$ = concat(concat("print(", $3), ")"); }
+                    | "read" LPAREN expr RPAREN     {   $$ = concat(concat("read(", $3), ")"); }
+                    | "readchar" LPAREN RPAREN      {   $$ = strdup("readchar()"); }
+                    | "readline" LPAREN RPAREN      {   $$ = strdup("readline()"); };
 
-return_statement : RETURN expr { printf("RETURN expr\n"); };
 
-expr : NUMBER {printf("NUMBER\n");} | STRING { printf("STRING\n"); };
+return_statement : RETURN expr                      {   $$ = concat("return ", $2); };
 
+/* ********************************* EXPRESSIONS ********************************************* */
+expr_list       : /* Vazio */                       { $$ = "";}
+                    | expr                          { $$ = $1;}
+                    | expr_list COMMA expr          { $$ = concat(concat($1, ","), $3);};
+
+expr            : binary_expr                       { $$ = $1;};
+
+binary_expr     : term                              { $$ = $1;}
+                    | binary_expr operator term     {   const char * values[] = {$1, $2, $3};
+                                                        $$ = concat_n(3, values);}
+                    
+
+term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
+                    | STRING                        { $$ = strdup(yylval.sValue); }
+                    | function_call                 { $$ = $1;};
+
+operator        :   PLUS                            { $$ = strdup("+");}
+                    | MINUS                         { $$ = strdup("-");}
+                    | TIMES                         { $$ = strdup("*");}
+                    | DIVIDE                        { $$ = strdup("/");}
+                    | MOD                           { $$ = strdup("%");};
 %%
 
 int main (void) {return yyparse ( );}
