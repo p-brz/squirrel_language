@@ -129,6 +129,44 @@ operator        :   PLUS                            { $$ = strdup("+");}
                     | TIMES                         { $$ = strdup("*");}
                     | DIVIDE                        { $$ = strdup("/");}
                     | MOD                           { $$ = strdup("%");};
+                    
+                    /* ********************** BLOCK STATEMENTS *********************** */
+
+block_statement :         for       		{$$ = $1;}
+			| if       		{$$ = $1;}
+			| while     		{$$ = $1;}
+			| do_while  		{$$ = $1;} 
+			| try_catch 		{$$ = $1;}
+			| switch    		{$$ = $1;};
+
+
+for             :   "for" "(" std_statement ";" logical_expr ";" std_statement ")" block_body {};
+
+if 		: if_block				{}
+    		        | if_block "else" block_body	{}
+   			| if_block "else" if		{};
+
+if_block 	: "if" conditional_test block_body 	{};
+
+while 		: "while" conditional_test <block_body  {};
+
+do_while        : "do" block_body "while" conditional_test ";"   {};
+
+try_catch 	: "try" block_body "catch" block_body   {};
+
+switch          : "switch" "(" expr ")" "{" switch_body "}"  {};
+
+switch_body 	: when_list				{$$ = $1;}
+		| when_list default_block		{};
+
+when_list       : when_block				{$$ = $1;}
+	        | when_list when_block			{};
+
+when_block 	: "when" conditional_test block_body    {};
+
+default_block   : "default" block_body                  {};
+
+
 %%
 
 int main (void) {return yyparse ( );}
