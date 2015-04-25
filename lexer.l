@@ -6,7 +6,6 @@
 
 [ \t\n]                             ;
 [0-9]+                              {yylval.iValue = atoi(yytext); return NUMBER;}
-"int"                               {return INT;}
 "("                                 {return LPAREN;}
 ")"                                 {return RPAREN;}
 "{"                                 {return LBRACE;}
@@ -19,6 +18,7 @@
 "%"                                 {return(MOD);}
 
 "enum"                              {return ENUM;}
+"int"                               {return INT;}
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}
 ";"                                 {return SEMICOLON;}

@@ -63,30 +63,33 @@
 
 %type <sValue> inline_statement function_call io_command return_statement statement_list
 %type <sValue> block_body block_stmt_list
-%type <sValue> func_params function function_list
+%type <sValue> func_params function
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
-%type <sValue> enum_definition declaration
+%type <sValue> declaration declaration_list type_definition enum_definition
 
 %start program
 
 %%
-program         : declaration_list {  };
+program          : declaration_list                 { printf("%s\n", $1); };
 
-declaration_list : /*Vazio*/                        {}
-                    | declaration                   {printf("%s\n", $1);}
-                    | declaration_list declaration  {printf("%s\n", $2);};
+/*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
+    Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
+declaration_list :  declaration                     {   $$ = $1;}
+                    | declaration_list declaration  {   const char * values[] = {$1, "\n", $2};
+                                                        $$ = concat_n(3, values); };
 
-declaration     : enum_definition                   { $$ = $1; }
-                      | function_list               { $$ = $1; };
+declaration      : type_definition                  {   $$ = $1; }
+                      | function                    {   $$ = $1; };
 
+type_definition  : enum_definition                  {   $$ = $1;};
 	
 /* *********************************** FUNCTIONS ********************************************** */
-function_list   : function                          {   $$ = $1; }
-		            | function_list	function        {   const char * values[] = {$1, "\n", $2};
-                                                        $$ = concat_n(3, values); };
+//function_list   : function                          {   $$ = $1; }
+//		            | function_list	function        {   const char * values[] = {$1, "\n", $2};
+//                                                        $$ = concat_n(3, values); };
 
 function        : type ID func_params block_body    {   
                                                         const char * values[] = {$1, " ", $2, " ", $3, $4};
