@@ -18,6 +18,7 @@
 "/"                                 {return(DIVIDE);}
 "%"                                 {return(MOD);}
 
+"enum"                              {return ENUM;}
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}
 ";"                                 {return SEMICOLON;}

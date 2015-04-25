@@ -1,0 +1,5 @@
+enum Dias { Segunda, Terca, Quarta, Quinta, Sexta, Sabado, Domingo}
+
+int main(){
+    return 0;
+}

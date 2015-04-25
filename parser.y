@@ -15,6 +15,12 @@
         strcat(strConcat, str2);
         return strConcat;
     }
+    char  * concat3(const char * str1, const char * str2, const char * str3){
+        char * strCat1 = concat(str1, str2);
+        char * strCat2 = concat(strCat1, str3);
+        free(strCat1);
+        return strCat2;
+    }
     char  * concat_n(int size, const char ** values){
         if(size <= 0){
             return "";
@@ -47,6 +53,7 @@
 %token <sValue> ID
 %token <iValue> NUMBER
 %token INT
+%token ENUM
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
@@ -60,11 +67,21 @@
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
+%type <sValue> id_list
+%type <sValue> enum_definition declaration
 
 %start program
 
 %%
-program         : function_list                     { printf("%s\n", $1); } ;
+program         : declaration_list {  };
+
+declaration_list : /*Vazio*/                        {}
+                    | declaration                   {printf("%s\n", $1);}
+                    | declaration_list declaration  {printf("%s\n", $2);};
+
+declaration     : enum_definition                   { $$ = $1; }
+                      | function_list               { $$ = $1; };
+
 	
 /* *********************************** FUNCTIONS ********************************************** */
 function_list   : function                          {   $$ = $1; }
@@ -75,10 +92,19 @@ function        : type ID func_params block_body    {
                                                         const char * values[] = {$1, " ", $2, " ", $3, $4};
                                                         $$ = concat_n(6, values); };
 
-func_params     : LPAREN RPAREN                     { $$ = strdup("()"); };
+func_params     : LPAREN RPAREN                     {   $$ = strdup("()"); };
 
 /* ************************************* TYPES *********************************************** */
 type : INT  { $$ = strdup("INT"); };
+
+/* ********************************* TYPE DEFINITION ***************************************** */
+
+enum_definition  : ENUM ID LBRACE id_list RBRACE    {   const char * values[] = {"enum ", $2, "{", $4, "}"};
+                                                        $$ = concat_n(5, values);};
+
+id_list : ID                                        {$$ = $1;}
+            | id_list COMMA  ID                     {$$ = concat3($1, ",", $3);};
+        
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
@@ -117,7 +143,7 @@ expr            : binary_expr                       { $$ = $1;};
 
 binary_expr     : term                              { $$ = $1;}
                     | binary_expr operator term     {   const char * values[] = {$1, $2, $3};
-                                                        $$ = concat_n(3, values);}
+                                                        $$ = concat_n(3, values);};
                     
 
 term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
