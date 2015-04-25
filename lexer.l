@@ -18,6 +18,7 @@
 "%"                                 {return(MOD);}
 
 "enum"                              {return ENUM;}
+"struct"                            {return STRUCT;}
 "int"                               {return INT;}
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}

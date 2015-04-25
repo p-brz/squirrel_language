@@ -1,5 +1,8 @@
 enum Dias { Segunda, Terca, Quarta, Quinta, Sexta, Sabado, Domingo}
 
+struct Data{
+}
+
 int main(){
     return 0;
 }

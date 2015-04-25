@@ -53,7 +53,7 @@
 %token <sValue> ID
 %token <iValue> NUMBER
 %token INT
-%token ENUM
+%token ENUM STRUCT
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
@@ -68,7 +68,8 @@
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
-%type <sValue> declaration declaration_list type_definition enum_definition
+%type <sValue> declaration declaration_list
+%type <sValue> type_definition enum_definition struct_definition
 
 %start program
 
@@ -84,12 +85,10 @@ declaration_list :  declaration                     {   $$ = $1;}
 declaration      : type_definition                  {   $$ = $1; }
                       | function                    {   $$ = $1; };
 
-type_definition  : enum_definition                  {   $$ = $1;};
+type_definition  : enum_definition                  {   $$ = $1;}
+                      | struct_definition             {   $$ = $1;};
 	
 /* *********************************** FUNCTIONS ********************************************** */
-//function_list   : function                          {   $$ = $1; }
-//		            | function_list	function        {   const char * values[] = {$1, "\n", $2};
-//                                                        $$ = concat_n(3, values); };
 
 function        : type ID func_params block_body    {   
                                                         const char * values[] = {$1, " ", $2, " ", $3, $4};
@@ -102,11 +101,18 @@ type : INT  { $$ = strdup("INT"); };
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
-enum_definition  : ENUM ID LBRACE id_list RBRACE    {   const char * values[] = {"enum ", $2, "{", $4, "}"};
+enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = {"enum ", $2, "{", $4, "}"};
+                                                        $$ = concat_n(5, values);};
+                                                        
+struct_definition : STRUCT ID 
+                    LBRACE var_decl_list RBRACE     {   const char * values[] = {"struct ", $2, "{", "struct_body" , "}"};
                                                         $$ = concat_n(5, values);};
 
-id_list : ID                                        {$$ = $1;}
-            | id_list COMMA  ID                     {$$ = concat3($1, ",", $3);};
+id_list : ID                                        {   $$ = $1;}
+            | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
+            
+//var_decl_list depende de declaração de variáveis
+var_decl_list : /*TODO*/                            {};
         
 
 /* *********************************** STATEMENTS ******************************************** */
