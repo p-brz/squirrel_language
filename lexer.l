@@ -19,6 +19,8 @@
 
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
+"function"                          {return FUNCTION;}
+
 "int"                               {return INT;}
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}

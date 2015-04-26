@@ -53,7 +53,7 @@
 %token <sValue> ID
 %token <iValue> NUMBER
 %token INT
-%token ENUM STRUCT
+%token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
@@ -61,15 +61,16 @@
 
 %token  PLUS MINUS TIMES DIVIDE MOD
 
+%type <sValue> declaration declaration_list
+%type <sValue> type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> inline_statement function_call io_command return_statement statement_list
 %type <sValue> block_body block_stmt_list
 %type <sValue> func_params function
+%type <sValue> param_decl_list param_decl type_decl
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
-%type <sValue> declaration declaration_list
-%type <sValue> type_definition enum_definition struct_definition
 
 %start program
 
@@ -79,14 +80,15 @@ program          : declaration_list                 { printf("%s\n", $1); };
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
 declaration_list :  declaration                     {   $$ = $1;}
-                    | declaration_list declaration  {   const char * values[] = {$1, "\n", $2};
+                    | declaration_list declaration  {   const char * values[] = {$1, "\n\n", $2};
                                                         $$ = concat_n(3, values); };
 
 declaration      : type_definition                  {   $$ = $1; }
                       | function                    {   $$ = $1; };
 
 type_definition  : enum_definition                  {   $$ = $1;}
-                      | struct_definition             {   $$ = $1;};
+                      | struct_definition           {   $$ = $1;};
+                      | functiontype_definition     {   $$ = $1;};
 	
 /* *********************************** FUNCTIONS ********************************************** */
 
@@ -94,10 +96,19 @@ function        : type ID func_params block_body    {
                                                         const char * values[] = {$1, " ", $2, " ", $3, $4};
                                                         $$ = concat_n(6, values); };
 
-func_params     : LPAREN RPAREN                     {   $$ = strdup("()"); };
+func_params     : LPAREN param_decl_list RPAREN     {   $$ = concat3("(",$2,")"); };
+
+param_decl_list : /* Vazio*/                                {   $$ = "";}
+                      | param_decl                          {   $$ = $1;}
+                      | param_decl_list COMMA param_decl    {   $$ = concat3($1, ", ", $3);};
+
+param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);};
 
 /* ************************************* TYPES *********************************************** */
-type : INT  { $$ = strdup("INT"); };
+
+type_decl       : type                              {   $$ = $1;};
+
+type            : INT                               {   $$ = strdup("int"); };
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
@@ -105,15 +116,19 @@ enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = 
                                                         $$ = concat_n(5, values);};
                                                         
 struct_definition : STRUCT ID 
-                    LBRACE var_decl_list RBRACE     {   const char * values[] = {"struct ", $2, "{", "struct_body" , "}"};
+                    LBRACE var_decl_list RBRACE     {   const char * values[] = {"struct ", $2, "{", 
+                                                                                                "TODO: struct_body" , "}"};
                                                         $$ = concat_n(5, values);};
+                                                        
+functiontype_definition: 
+                    FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
+                                                        $$ = concat_n(5, values);}
 
 id_list : ID                                        {   $$ = $1;}
             | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
             
 //var_decl_list depende de declaração de variáveis
 var_decl_list : /*TODO*/                            {};
-        
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);

@@ -1,5 +1,9 @@
 enum Dias { Segunda, Terca, Quarta, Quinta, Sexta, Sabado, Domingo}
 
+function int FunctionType()
+
+function int FunctionWithParams(int a, int b)
+
 struct Data{
 }
 
