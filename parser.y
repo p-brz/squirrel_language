@@ -60,6 +60,7 @@
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
+%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block
 
 %start program
 
