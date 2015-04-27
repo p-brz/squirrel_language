@@ -54,7 +54,7 @@
 %token <iValue> NUMBER
 %token INT
 %token ENUM STRUCT FUNCTION
-%token LPAREN RPAREN LBRACE RBRACE
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token PRINT RETURN
 %token <sValue> STRING 
 %token SEMICOLON COMMA COLON
@@ -69,7 +69,7 @@
 %type <sValue> param_decl_list param_decl type_decl
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
-%type <sValue> type
+%type <sValue> type simple_type array_type
 %type <sValue> id_list
 %type <sValue> struct_constructor member_init member_init_list
 
@@ -109,8 +109,14 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : INT                               {   $$ = strdup("int"); }
+type            : simple_type                       {   $$ = $1; }
+                    | array_type                    {   $$ = $1; };
+
+simple_type     : INT                               {   $$ = strdup("int"); }
                     | ID                            {   $$ = $1; };
+
+array_type      : simple_type LBRACKET RBRACKET     {   $$ = concat($1, "[]"); };
+
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 

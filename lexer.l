@@ -10,6 +10,8 @@
 ")"                                 {return RPAREN;}
 "{"                                 {return LBRACE;}
 "}"                                 {return RBRACE;}
+"["                                 {return LBRACKET;}
+"]"                                 {return RBRACKET;}
 
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
@@ -28,7 +30,7 @@
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
-[a-zA-Z][[a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
+[a-zA-Z][a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
 
 . yyerror("invalid character");
 
