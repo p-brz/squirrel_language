@@ -24,6 +24,7 @@
 "int"                               {return INT;}
 "print"                             {return PRINT;}
 "return"                            {return RETURN;}
+":"                                 {return COLON;}
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}

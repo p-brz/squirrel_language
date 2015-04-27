@@ -57,7 +57,7 @@
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
-%token SEMICOLON COMMA
+%token SEMICOLON COMMA COLON
 
 %token  PLUS MINUS TIMES DIVIDE MOD
 
@@ -71,6 +71,7 @@
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
+%type <sValue> struct_constructor member_init member_init_list
 
 %start program
 
@@ -108,7 +109,8 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : INT                               {   $$ = strdup("int"); };
+type            : INT                               {   $$ = strdup("int"); }
+                    | ID                            {   $$ = $1; };
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
@@ -122,13 +124,24 @@ struct_definition : STRUCT ID
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
-                                                        $$ = concat_n(5, values);}
+                                                        $$ = concat_n(5, values);};
 
 id_list : ID                                        {   $$ = $1;}
             | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
             
 //var_decl_list depende de declaração de variáveis
 var_decl_list : /*TODO*/                            {};
+
+/* ********************************************************************************************* */
+
+struct_constructor  : ID LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
+                                                                    $$ = concat_n(4, valores);};
+
+member_init_list    :   /*vazio*/                               {   $$ = "";}
+                        | member_init                           {   $$ = $1;} 
+                        | member_init_list COMMA member_init    {   $$ = concat3($1, ", ", $3);};
+
+member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
@@ -172,7 +185,8 @@ binary_expr     : term                              { $$ = $1;}
 
 term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
                     | STRING                        { $$ = strdup(yylval.sValue); }
-                    | function_call                 { $$ = $1;};
+                    | function_call                 { $$ = $1;}
+                    | struct_constructor            { $$ = $1;};
 
 operator        :   PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}
