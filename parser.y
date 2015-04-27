@@ -60,7 +60,7 @@
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
-%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block
+%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block conditional_test
 
 %start program
 
@@ -141,31 +141,47 @@ block_statement :         for       		{$$ = $1;}
 			| switch    		{$$ = $1;};
 
 
-for             :   "for" "(" std_statement ";" logical_expr ";" std_statement ")" block_body {};
+for             :   "for" "(" std_statement ";" binary_expr ";" std_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
+                                                        $$ = concat_n(8, values);};
 
-if 		: if_block				{}
-    		        | if_block "else" block_body	{}
-   			| if_block "else" if		{};
+if 		: if_block				{$$ = $1}
+    		        | if_block "else" block_body	{const char * values[] = {$1, "else", $3};
+                                                        $$ = concat_n(3, values);}
+   			| if_block "else" if		{const char * values[] = {$1, "else", $3};
+                                                        $$ = concat_n(3, values);};
 
-if_block 	: "if" conditional_test block_body 	{};
+if_block 	: "if" conditional_test block_body 	{const char * values[] = {"if", $2, $3};
+                                                        $$ = concat_n(3, values);};
 
-while 		: "while" conditional_test <block_body  {};
+while 		: "while" conditional_test block_body  {const char * values[] = {"while", $2, $3};
+                                                        $$ = concat_n(3, values);};
 
-do_while        : "do" block_body "while" conditional_test ";"   {};
+do_while        : "do" block_body "while" conditional_test ";"   {const char * values[] = {"do",$2,"while", $4, ";"};
+                                                        $$ = concat_n(5, values);};
 
-try_catch 	: "try" block_body "catch" block_body   {};
+try_catch 	: "try" block_body "catch" block_body   {const char * values[] = {"try",$2,"catch", $4};
+                                                        $$ = concat_n(4, values);};
 
-switch          : "switch" "(" expr ")" "{" switch_body "}"  {};
+switch          : "switch" "(" expr ")" "{" switch_body "}"  {const char * values[] = {"switch (", $3, ") {", $6};
+                                                        $$ = concat_n(4, values);};
 
 switch_body 	: when_list				{$$ = $1;}
-		| when_list default_block		{};
+		| when_list default_block		{const char * values[] = {$1, $2};
+                                                        $$ = concat_n(2, values);};
 
 when_list       : when_block				{$$ = $1;}
-	        | when_list when_block			{};
+	        | when_list when_block			{const char * values[] = {$1, $2};
+                                                        $$ = concat_n(2, values);};
 
-when_block 	: "when" conditional_test block_body    {};
+when_block 	: "when" conditional_test block_body    {const char * values[] = {"when", $2, $3};
+                                                        $$ = concat_n(3, values);};
 
-default_block   : "default" block_body                  {};
+default_block   : "default" block_body                  {const char * values[] = {"default", $2};
+                                                        $$ = concat_n(2, values);};
+
+conditional_test : "(" binary_expr ")"			{const char * values[] = {"(", $2, ")"};
+                                                        $$ = concat_n(3, values);};
+
 
 
 %%
