@@ -58,7 +58,7 @@
 %token <sValue> STRING_LITERAL 
 %token SEMICOLON COMMA COLON DOT
 %token NAMESPACE
-%token PLUS MINUS TIMES DIVIDE MOD
+%token PLUS MINUS TIMES DIVIDE MOD OU OR BITOR BITAND EE AND PLUSPLUS MINUSMINUS SHIFTL SHIFTR EQUAL DIFERENT MINOR BIGGER MINOREQUAL BIGGEREQUAL
 
 %token ASSIGN
 %token CONST REF
@@ -75,7 +75,7 @@
 %type <sValue> param_decl_list param_decl type_decl
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term value
-%type <sValue> operator
+%type <sValue> operator assignment_op assignment inc_op unary_pre_op unary_pre_expr unary_pos_expr
 
 %type <sValue> attribute_list variables_decl name_decl_list name_decl
 %type <sValue> type_modifier_list type_modifier
@@ -196,7 +196,8 @@ statement_list   : inline_statement SEMICOLON                   {   $$ = concat(
 
 inline_statement : function_call                                {   $$ = $1; }
                     | return_statement                          {   $$ = $1; }
-                    | variables_decl                            {   $$ = $1; };
+                    | variables_decl                            {   $$ = $1; }
+                    | assignment                                {   $$ = $1; };
 
 function_call    : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); }
@@ -209,6 +210,8 @@ io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(
 
 
 return_statement : RETURN expr                                  {   $$ = concat("return ", $2); };
+
+assignment       : member assignment_op expr { $$ = concat3($1, $2, $3);};
 
 variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
  					                                                $$ = concat_n(3, values);}
@@ -239,10 +242,17 @@ expr_list       : /* Vazio */                       {   $$ = "";}
 
 expr            : binary_expr                       {   $$ = $1;};
 
-binary_expr     : term                              {   $$ = $1;}
-                    | binary_expr operator term     {   const char * values[] = {$1, $2, $3};
+binary_expr     : unary_pos_expr                              {   $$ = $1;}
+                    | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, $2, $3};
                                                         $$ = concat_n(3, values);};
-                    
+
+unary_pos_expr  : unary_pre_expr { $$ = $1; }
+                | unary_pre_expr inc_op { $$ = concat($1, $2);};
+
+unary_pre_expr  : term { $$ = $1; }
+                | unary_pre_op term { $$ = concat($1, $2); };
+                   
+
 
 term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
@@ -256,11 +266,33 @@ member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
 
 /* ********************************* OPERATORS ********************************************* */
+
+assignment_op   : ASSIGN { $$ = strdup("="); };
+
+inc_op : PLUSPLUS { $$ = strdup("++");}
+         | MINUSMINUS { $$ = strdup("--");};
+
+unary_pre_op : inc_op { $$ = $1; };
+
 operator        :   PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}
                     | TIMES                         { $$ = strdup("*");}
                     | DIVIDE                        { $$ = strdup("/");}
-                    | MOD                           { $$ = strdup("%");};
+                    | MOD                           { $$ = strdup("%");}
+		            | OU                       	    { $$ = strdup("||");}
+                    | OR                            { $$ = strdup("or");}
+                    | BITOR                         { $$ = strdup("|");}
+                    | BITAND                        { $$ = strdup("&");}
+	                | EE                            { $$ = strdup("&&");}
+                    | AND                           { $$ = strdup("and");}
+                    | SHIFTL                        { $$ = strdup("<<");}
+                    | SHIFTR                        { $$ = strdup(">>");}
+                    | EQUAL                         { $$ = strdup("==");}
+                    | DIFERENT               	    { $$ = strdup("!=");}
+        	        | MINOR                         { $$ = strdup("<");}
+                    | BIGGER                   	    { $$ = strdup(">");}
+        	        | MINOREQUAL         	        { $$ = strdup("<=");}
+                    | BIGGEREQUAL       	        { $$ = strdup(">=");};
 %%
 
 int main (void) {return yyparse ( );}

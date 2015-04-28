@@ -20,6 +20,22 @@
 "*"                                 {return(TIMES);}
 "/"                                 {return(DIVIDE);}
 "%"                                 {return(MOD);}
+"||"				    {return(OU);}
+"or"				    {return(OR);}
+"|"                                 {return(BITOR);}
+"&"				    {return(BITAND);}
+"&&"				    {return(EE);}
+"and"			 	    {return(AND);}
+"++"				    {return(PLUSPLUS);}
+"--"				    {return(MINUSMINUS);}
+"<<"				    {return(SHIFTL);}
+">>"				    {return(SHIFTR);}
+"=="			   	    {return(EQUAL);}
+"!="				    {return(DIFERENT);}
+"<"				    {return(MINOR);}
+">"				    {return(BIGGER);}
+"<="				    {return(MINOREQUAL);}
+">="				    {return(BIGGEREQUAL);}
 
 "const"				                {return(CONST);}
 "ref"			   	                {return(REF);}
