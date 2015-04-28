@@ -13,11 +13,16 @@
 "["                                 {return LBRACKET;}
 "]"                                 {return RBRACKET;}
 
+"="				    {return ASSIGN;}
+
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
 "*"                                 {return(TIMES);}
 "/"                                 {return(DIVIDE);}
 "%"                                 {return(MOD);}
+
+"const"				    {return(CONST);}
+"ref"			   	    {return(REF);}
 
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
