@@ -52,17 +52,19 @@
 
 %token <sValue> ID
 %token <iValue> NUMBER
-%token INT
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE
-%token PRINT RETURN
-%token <sValue> STRING 
+%token PRINT RETURN 
 %token SEMICOLON COMMA COLON
 
 %token  PLUS MINUS TIMES DIVIDE MOD
 
 %token ASSIGN
 %token CONST REF
+
+%token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
+
+
 
 %type <sValue> declaration declaration_list
 %type <sValue> type_definition enum_definition struct_definition functiontype_definition
@@ -80,6 +82,8 @@
 %type <sValue> struct_constructor member_init member_init_list
 
 %type <sValue> type_modifier_list type_modifier
+
+%type <sValue> simple_type array_type
 
 %start program
 
@@ -119,8 +123,23 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : INT                               {   $$ = strdup("int"); }
-                    | ID                            {   $$ = $1; };
+type            : simple_type                        {   $$ = $1; }
+                    | array_type                     {   $$ = $1; };
+
+simple_type : VOID      { $$ = strdup("void"); }
+              | BYTE    { $$ = strdup("byte"); }
+              | SHORT   { $$ = strdup("short"); }
+              | INT     { $$ = strdup("int");}
+              | LONG    { $$ = strdup("long"); } 
+              | FLOAT   { $$ = strdup("float"); }
+              | DOUBLE  { $$ = strdup("double"); }
+              | BOOLEAN { $$ = strdup("boolean"); }
+              | STRING  { $$ = strdup("string"); }
+              | OBJECT  { $$ = strdup("object"); }
+              | TYPE    { $$ = strdup("type"); }
+              | ID      { $$ = $1; };
+
+array_type   : { $$ = "";};
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
@@ -188,8 +207,8 @@ return_statement : RETURN expr                      {   $$ = concat("return ", $
 
 variables_decl   : type name_decl_list { const char *values[] = {$1, " ", $2};
  					      $$ = concat_n(3, values);}
-                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2};
- 					      $$ = concat_n(3, values);};
+                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2, " ", $3};
+ 					      $$ = concat_n(5, values);};
 
 name_decl_list   : name_decl { $$ = $1; }
 	           | name_decl_list COMMA name_decl { const char *values[] = {$1, ",", $3};

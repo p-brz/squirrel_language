@@ -22,6 +22,19 @@
 "const"				    {return(CONST);}
 "ref"			   	    {return(REF);}
 
+"void"				    {return(VOID);}
+"byte"				    {return(BYTE);}
+"short"				    {return(SHORT);}
+"int"				    {return(INT);}
+"long"				    {return(LONG);}
+"float"				    {return(FLOAT);}
+"double"			    {return(DOUBLE);}
+"boolean"			    {return(BOOLEAN);}
+"string"			    {return(STRING);}
+"object"		            {return(OBJECT);}
+"type"				    {return(TYPE);}
+
+
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
 "function"                          {return FUNCTION;}
