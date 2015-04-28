@@ -128,8 +128,8 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : simple_type                        {   $$ = $1; }
-                    | array_type                     {   $$ = $1; };
+type            : simple_type                       {   $$ = $1; }
+                    | array_type                    {   $$ = $1; };
 
 simple_type : VOID      { $$ = strdup("void"); }
               | BYTE    { $$ = strdup("byte"); }
@@ -142,7 +142,7 @@ simple_type : VOID      { $$ = strdup("void"); }
               | STRING  { $$ = strdup("string"); }
               | OBJECT  { $$ = strdup("object"); }
               | TYPE    { $$ = strdup("type"); }
-              | ID      { $$ = $1; };
+              | member  { $$ = $1; };
 
 array_type   : simple_type LBRACKET RBRACKET     {   $$ = concat($1, "[]"); };
 
@@ -247,7 +247,8 @@ term            : function_call                     {   $$ = $1;}
                     | value;
                     
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
-                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
+                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
+                    | member  /*Variáveis*/         {   $$ = $1; };
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};

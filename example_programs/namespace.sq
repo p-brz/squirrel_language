@@ -1,10 +1,19 @@
 namespace Application{
+    enum Values { A, B, C, D}
+    
+    const string helpMessage = "I dont how to use this program.";
+    
     void printHelp(){
-        print("I dont how to use this program.");
+        print(helpMessage);
     }
 }
 
 int main(){
     Application.printHelp();
+    
+    print("Repeating help message: ", Application.helpMessage);
+    
+    Application.Values algumValor = Application.Values.A;
+    
     return 0;
 }
