@@ -1,6 +1,9 @@
 int main ()
 {
-	int a = 4, b = 10, c = 1;
+	const int a = 4, b = 10, c = 1;
+	float f = 10;
+	const int abc;
+	
 
 	print("Otario");
 

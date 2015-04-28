@@ -24,6 +24,18 @@
 "const"				                {return(CONST);}
 "ref"			   	                {return(REF);}
 
+"void"                              {return(VOID);}
+"byte"                              {return(BYTE);}
+"short"                             {return(SHORT);}
+"int"                               {return(INT);}
+"long"                              {return(LONG);}
+"float"                             {return(FLOAT);}
+"double"                            {return(DOUBLE);}
+"boolean"                           {return(BOOLEAN);}
+"string"                            {return(STRING);}
+"object"                            {return(OBJECT);}
+"type"                              {return(TYPE);}
+
 "namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
@@ -36,8 +48,8 @@
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}
 "."                                 {return DOT;}
-\"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
-[a-zA-Z][a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
+\"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING_LITERAL;}
+[a-zA-Z][a-zA-Z0-9]*                {yylval.sValue = strdup(yytext); return ID;}
 
 . yyerror("invalid character");
 

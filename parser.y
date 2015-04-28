@@ -52,17 +52,20 @@
 
 %token <sValue> ID
 %token <iValue> NUMBER
-%token INT
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token PRINT RETURN
-%token <sValue> STRING 
+%token <sValue> STRING_LITERAL 
 %token SEMICOLON COMMA COLON DOT
 %token NAMESPACE
 %token PLUS MINUS TIMES DIVIDE MOD
 
 %token ASSIGN
 %token CONST REF
+
+%token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
+
+
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
@@ -71,16 +74,15 @@
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
 %type <sValue> expr expr_list
-%type <sValue> binary_expr term operator
+%type <sValue> binary_expr term value
+%type <sValue> operator
+
+%type <sValue> attribute_list variables_decl name_decl_list name_decl
+%type <sValue> type_modifier_list type_modifier
 %type <sValue> type simple_type array_type
 %type <sValue> id_list
 
-%type <sValue> attribute_list variables_decl name_decl_list name_decl
-
 %type <sValue> struct_constructor member_init member_init_list
-
-%type <sValue> type_modifier_list type_modifier
-
 %type <sValue> member
 
 %start program
@@ -126,13 +128,23 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : simple_type                       {   $$ = $1; }
-                    | array_type                    {   $$ = $1; };
+type            : simple_type                        {   $$ = $1; }
+                    | array_type                     {   $$ = $1; };
 
-simple_type     : INT                               {   $$ = strdup("int"); }
-                    | ID                            {   $$ = $1; };
+simple_type : VOID      { $$ = strdup("void"); }
+              | BYTE    { $$ = strdup("byte"); }
+              | SHORT   { $$ = strdup("short"); }
+              | INT     { $$ = strdup("int");}
+              | LONG    { $$ = strdup("long"); } 
+              | FLOAT   { $$ = strdup("float"); }
+              | DOUBLE  { $$ = strdup("double"); }
+              | BOOLEAN { $$ = strdup("boolean"); }
+              | STRING  { $$ = strdup("string"); }
+              | OBJECT  { $$ = strdup("object"); }
+              | TYPE    { $$ = strdup("type"); }
+              | ID      { $$ = $1; };
 
-array_type      : simple_type LBRACKET RBRACKET     {   $$ = concat($1, "[]"); };
+array_type   : simple_type LBRACKET RBRACKET     {   $$ = concat($1, "[]"); };
 
 
 /* ********************************* TYPE DEFINITION ***************************************** */
@@ -199,8 +211,8 @@ return_statement : RETURN expr                      {   $$ = concat("return ", $
 
 variables_decl   : type name_decl_list { const char *values[] = {$1, " ", $2};
  					      $$ = concat_n(3, values);}
-                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2};
- 					      $$ = concat_n(3, values);};
+                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2, " ", $3};
+ 					      $$ = concat_n(5, values);};
 
 name_decl_list   : name_decl { $$ = $1; }
 	           | name_decl_list COMMA name_decl { const char *values[] = {$1, ",", $3};
@@ -230,10 +242,12 @@ binary_expr     : term                              {   $$ = $1;}
                                                         $$ = concat_n(3, values);};
                     
 
-term            : NUMBER                            {   $$ = intToString(yylval.iValue);} 
-                    | STRING                        {   $$ = strdup(yylval.sValue); }
-                    | function_call                 {   $$ = $1;}
-                    | struct_constructor            {   $$ = $1;};
+term            : function_call                     {   $$ = $1;}
+                    | struct_constructor            {   $$ = $1;}
+                    | value;
+                    
+value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
+                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
