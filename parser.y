@@ -57,23 +57,29 @@
 %token LPAREN RPAREN LBRACE RBRACE
 %token PRINT RETURN
 %token <sValue> STRING 
-%token SEMICOLON COMMA
+%token SEMICOLON COMMA COLON
 
 %token  PLUS MINUS TIMES DIVIDE MOD
 
 %token ASSIGN
+%token CONST REF
 
 %type <sValue> declaration declaration_list
 %type <sValue> type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> inline_statement function_call io_command return_statement statement_list
-%type <sValue> block_body block_stmt_list
+%type <sValue> block_body block_stmt_list struct_body
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
-%type <sValue> var_decl_list variables_decl name_decl_list name_decl 
+
+%type <sValue> var_decl_list variables_decl name_decl_list name_decl
+
+%type <sValue> struct_constructor member_init member_init_list
+
+%type <sValue> type_modifier_list type_modifier
 
 %start program
 
@@ -113,7 +119,8 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 type_decl       : type                              {   $$ = $1;};
 
-type            : INT                               {   $$ = strdup("int"); };
+type            : INT                               {   $$ = strdup("int"); }
+                    | ID                            {   $$ = $1; };
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
@@ -121,9 +128,11 @@ enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = 
                                                         $$ = concat_n(5, values);};
                                                         
 struct_definition : STRUCT ID 
-                    LBRACE var_decl_list RBRACE     {   const char * values[] = {"struct ", $2, "{", 
+                    LBRACE struct_body RBRACE     {   const char * values[] = {"struct ", $2, "{", 
                                                                                                 "TODO: struct_body" , "}"};
                                                         $$ = concat_n(5, values);};
+struct_body       :  {$$ = "";}
+                    | var_decl_list { $$ = $1;};
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
@@ -136,6 +145,17 @@ id_list : ID                                        {   $$ = $1;}
 var_decl_list : variables_decl                      {   $$ = $1; }
                     | var_decl_list variables_decl  {   const char *values[] = {$1, ",", $2};
                             						    $$ = concat_n(3, values);};
+
+/* ********************************************************************************************* */
+
+struct_constructor  : ID LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
+                                                                    $$ = concat_n(4, valores);};
+
+member_init_list    :   /*vazio*/                               {   $$ = "";}
+                        | member_init                           {   $$ = $1;} 
+                        | member_init_list COMMA member_init    {   $$ = concat3($1, ", ", $3);};
+
+member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
@@ -184,7 +204,8 @@ name_decl 	 : ID { $$ = $1; }
 type_modifier_list : type_modifier { $$ = $1; }
                        | type_modifier_list type_modifier {const char *values[] = {$1, " ", $2}; $$ = concat_n(3, values);};
 
-type_modifier : CONST | REF {};
+type_modifier : CONST { $$ = strdup("const");}
+                | REF { $$ = strdup("ref");};
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                       { $$ = "";}
@@ -200,7 +221,8 @@ binary_expr     : term                              { $$ = $1;}
 
 term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
                     | STRING                        { $$ = strdup(yylval.sValue); }
-                    | function_call                 { $$ = $1;};
+                    | function_call                 { $$ = $1;}
+                    | struct_constructor            { $$ = $1;};
 
 operator        :   PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}
