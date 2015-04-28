@@ -1,0 +1,9 @@
+namespace Application{
+    void printHelp(){
+        print("I dont how to use this program.");
+    }
+}
+
+int main(){
+    return 0;
+}

@@ -58,14 +58,14 @@
 %token PRINT RETURN
 %token <sValue> STRING 
 %token SEMICOLON COMMA COLON
-
-%token  PLUS MINUS TIMES DIVIDE MOD
+%token NAMESPACE
+%token PLUS MINUS TIMES DIVIDE MOD
 
 %token ASSIGN
 %token CONST REF
 
 %type <sValue> declaration declaration_list
-%type <sValue> type_definition enum_definition struct_definition functiontype_definition
+%type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> inline_statement function_call io_command return_statement statement_list
 %type <sValue> block_body block_stmt_list struct_body
 %type <sValue> func_params function
@@ -94,12 +94,18 @@ declaration_list :  declaration                     {   $$ = $1;}
 
 declaration      : type_definition                  {   $$ = $1; }
                       | function                    {   $$ = $1; }
-                      | variables_decl SEMICOLON    {   const char * values[] = {$1, ";"}; $$ = concat_n(2, values); };
+                      | namespace                   {   $$ = $1; }
+                      | variables_decl SEMICOLON    {   $$ = concat($1, ";"); };
 
 
 type_definition  : enum_definition                  {   $$ = $1;}
                       | struct_definition           {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
+                      
+namespace        : NAMESPACE ID 
+                    LBRACE declaration_list RBRACE  {   const char * values[] = {"namespace ", $2, "{\n", $4, "\n}"};
+                                                        $$ = concat_n(5, values); };
+                                                        
 	
 /* *********************************** FUNCTIONS ********************************************** */
 

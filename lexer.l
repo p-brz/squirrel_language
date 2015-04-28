@@ -13,7 +13,7 @@
 "["                                 {return LBRACKET;}
 "]"                                 {return RBRACKET;}
 
-"="				    {return ASSIGN;}
+"="	                                {return ASSIGN;}
 
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
@@ -21,9 +21,10 @@
 "/"                                 {return(DIVIDE);}
 "%"                                 {return(MOD);}
 
-"const"				    {return(CONST);}
-"ref"			   	    {return(REF);}
+"const"				                {return(CONST);}
+"ref"			   	                {return(REF);}
 
+"namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
 "function"                          {return FUNCTION;}
