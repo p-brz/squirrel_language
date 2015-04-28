@@ -10,8 +10,10 @@
 ")"                                 {return RPAREN;}
 "{"                                 {return LBRACE;}
 "}"                                 {return RBRACE;}
+"["                                 {return LBRACKET;}
+"]"                                 {return RBRACKET;}
 
-"="				    {return ASSIGN;}
+"="	                                {return ASSIGN;}
 
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
@@ -19,8 +21,8 @@
 "/"                                 {return(DIVIDE);}
 "%"                                 {return(MOD);}
 
-"const"				    {return(CONST);}
-"ref"			   	    {return(REF);}
+"const"				                {return(CONST);}
+"ref"			   	                {return(REF);}
 
 "void"				    {return(VOID);}
 "byte"				    {return(BYTE);}
@@ -34,7 +36,7 @@
 "object"		            {return(OBJECT);}
 "type"				    {return(TYPE);}
 
-
+"namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
 "function"                          {return FUNCTION;}
@@ -46,7 +48,7 @@
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
-[a-zA-Z][[a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
+[a-zA-Z][a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
 
 . yyerror("invalid character");
 
