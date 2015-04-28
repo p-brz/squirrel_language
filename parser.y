@@ -144,7 +144,9 @@ simple_type : VOID      { $$ = strdup("void"); }
               | TYPE    { $$ = strdup("type"); }
               | member  { $$ = $1; };
 
-array_type   : simple_type LBRACKET RBRACKET     {   $$ = concat($1, "[]"); };
+array_type   : simple_type LBRACKET RBRACKET            {   $$ = concat($1, "[]"); }
+                | simple_type LBRACKET NUMBER RBRACKET  {   const char * values[] = {$1, "[", intToString($3),"]"};
+                                                            $$ = concat_n(4, values); };
 
 
 /* ********************************* TYPE DEFINITION ***************************************** */
@@ -165,8 +167,8 @@ functiontype_definition:
 id_list : ID                                        {   $$ = $1;}
             | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
             
-attribute_list  :  variables_decl SEMICOLON                      {   $$ = concat($1,";"); }
-                    | attribute_list variables_decl SEMICOLON    {   const char *values[] = {$1, "\n", $2, ";"};
+attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
+                    | attribute_list variables_decl SEMICOLON   {   const char *values[] = {$1, "\n", $2, ";"};
                             						                $$ = concat_n(4, values);};
 
 /* ********************************************************************************************* */
@@ -181,51 +183,51 @@ member_init_list    :   /*vazio*/                               {   $$ = "";}
 member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
-block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
-                                                        $$ = concat(begin_block, "}\n"); };
+block_body       : LBRACE block_stmt_list RBRACE                {   char * begin_block = concat("{\n", $2);
+                                                                    $$ = concat(begin_block, "}\n"); };
 
-block_stmt_list  : /* Vazio */                      {  $$ = ""; }
-                    | statement_list                {  $$ = $1; };
+block_stmt_list  : /* Vazio */                                  {   $$ = ""; }
+                    | statement_list                            {   $$ = $1; };
 
-statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";\n");}
-                    | statement_list inline_statement SEMICOLON 
-                                                    {   char * line1 = $1;
-                                                        char * line2 = concat($2, ";\n");
-                                                        $$ = concat(line1,line2); };
+statement_list   : inline_statement SEMICOLON                   {   $$ = concat($1, ";\n");}
+                    | statement_list inline_statement SEMICOLON {   char * line1 = $1;
+                                                                    char * line2 = concat($2, ";\n");
+                                                                    $$ = concat(line1,line2); };
 
-inline_statement : function_call                    {   $$ = $1; }
-                    | return_statement              {   $$ = $1; }
-                    | variables_decl                {   $$ = $1; };
+inline_statement : function_call                                {   $$ = $1; }
+                    | return_statement                          {   $$ = $1; }
+                    | variables_decl                            {   $$ = $1; };
 
-function_call    : member LPAREN expr_list RPAREN   {   const char * values[] = {$1, "(", $3, ")"};
-                                                        $$ = concat_n(4, values); }
-                    | io_command                    {   $$ = $1;};
+function_call    : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); }
+                    | io_command                                {   $$ = $1;};
 
-io_command       : PRINT LPAREN expr_list RPAREN         {   $$ = concat(concat("print(", $3), ")"); }
-                    | "read" LPAREN expr RPAREN     {   $$ = concat(concat("read(", $3), ")"); }
-                    | "readchar" LPAREN RPAREN      {   $$ = strdup("readchar()"); }
-                    | "readline" LPAREN RPAREN      {   $$ = strdup("readline()"); };
-
-
-return_statement : RETURN expr                      {   $$ = concat("return ", $2); };
-
-variables_decl   : type name_decl_list { const char *values[] = {$1, " ", $2};
- 					      $$ = concat_n(3, values);}
-                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2, " ", $3};
- 					      $$ = concat_n(5, values);};
-
-name_decl_list   : name_decl { $$ = $1; }
-	           | name_decl_list COMMA name_decl { const char *values[] = {$1, ",", $3};
-						      $$ = concat_n(3, values);};
+io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
+                    | "read" LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
+                    | "readchar" LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
+                    | "readline" LPAREN RPAREN                  {   $$ = strdup("readline()"); };
 
 
-name_decl 	 : ID { $$ = $1; }
-		   | ID ASSIGN expr { const char *values[] = {$1, "=", $3}; 
-				      $$ = concat_n(3, values);};
+return_statement : RETURN expr                                  {   $$ = concat("return ", $2); };
+
+variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
+ 					                                                $$ = concat_n(3, values);}
+                    | type_modifier_list type name_decl_list    {   const char *values[] = {$1, " ", $2, " ", $3};
+ 					                                                $$ = concat_n(5, values);};
+
+name_decl_list   : name_decl                                    {   $$ = $1; }
+	                | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
+						                                            $$ = concat_n(3, values);};
 
 
-type_modifier_list : type_modifier { $$ = $1; }
-                       | type_modifier_list type_modifier {const char *values[] = {$1, " ", $2}; $$ = concat_n(3, values);};
+name_decl 	    : ID                                            {   $$ = $1; }
+		            | ID ASSIGN expr                            {   const char *values[] = {$1, "=", $3}; 
+				                                                    $$ = concat_n(3, values);};
+
+
+type_modifier_list : type_modifier                              {   $$ = $1; }
+                       | type_modifier_list type_modifier       {   const char *values[] = {$1, " ", $2}; 
+                                                                    $$ = concat_n(3, values);};
 
 type_modifier : CONST { $$ = strdup("const");}
                 | REF { $$ = strdup("ref");};

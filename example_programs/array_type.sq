@@ -2,6 +2,7 @@ void printArray(int[] array){
 }
 
 int main(){
-
+    int[] emptyArray;
+    int[10] allocatedArray;
     return 0;
 }
