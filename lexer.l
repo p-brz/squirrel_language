@@ -35,6 +35,7 @@
 ":"                                 {return COLON;}
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}
+"."                                 {return DOT;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING;}
 [a-zA-Z][a-zA-Z0-9]*               {yylval.sValue = strdup(yytext); return ID;}
 

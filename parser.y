@@ -57,7 +57,7 @@
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token PRINT RETURN
 %token <sValue> STRING 
-%token SEMICOLON COMMA COLON
+%token SEMICOLON COMMA COLON DOT
 %token NAMESPACE
 %token PLUS MINUS TIMES DIVIDE MOD
 
@@ -80,6 +80,8 @@
 %type <sValue> struct_constructor member_init member_init_list
 
 %type <sValue> type_modifier_list type_modifier
+
+%type <sValue> member
 
 %start program
 
@@ -183,7 +185,7 @@ inline_statement : function_call                    {   $$ = $1; }
                     | return_statement              {   $$ = $1; }
                     | variables_decl                {   $$ = $1; };
 
-function_call    : ID LPAREN expr_list RPAREN       {   const char * values[] = {$1, "(", $3, ")"};
+function_call    : member LPAREN expr_list RPAREN   {   const char * values[] = {$1, "(", $3, ")"};
                                                         $$ = concat_n(4, values); }
                     | io_command                    {   $$ = $1;};
 
@@ -217,22 +219,26 @@ type_modifier : CONST { $$ = strdup("const");}
                 | REF { $$ = strdup("ref");};
 
 /* ********************************* EXPRESSIONS ********************************************* */
-expr_list       : /* Vazio */                       { $$ = "";}
-                    | expr                          { $$ = $1;}
-                    | expr_list COMMA expr          { $$ = concat(concat($1, ","), $3);};
+expr_list       : /* Vazio */                       {   $$ = "";}
+                    | expr                          {   $$ = $1;}
+                    | expr_list COMMA expr          {   $$ = concat(concat($1, ","), $3);};
 
-expr            : binary_expr                       { $$ = $1;};
+expr            : binary_expr                       {   $$ = $1;};
 
-binary_expr     : term                              { $$ = $1;}
+binary_expr     : term                              {   $$ = $1;}
                     | binary_expr operator term     {   const char * values[] = {$1, $2, $3};
                                                         $$ = concat_n(3, values);};
                     
 
-term            : NUMBER                            { $$ = intToString(yylval.iValue);} 
-                    | STRING                        { $$ = strdup(yylval.sValue); }
-                    | function_call                 { $$ = $1;}
-                    | struct_constructor            { $$ = $1;};
+term            : NUMBER                            {   $$ = intToString(yylval.iValue);} 
+                    | STRING                        {   $$ = strdup(yylval.sValue); }
+                    | function_call                 {   $$ = $1;}
+                    | struct_constructor            {   $$ = $1;};
 
+member          : ID                                {   $$ = $1;}
+                    | member DOT ID                 {   $$ = concat3($1,".",$3);};
+
+/* ********************************* OPERATORS ********************************************* */
 operator        :   PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}
                     | TIMES                         { $$ = strdup("*");}
