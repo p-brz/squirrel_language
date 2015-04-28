@@ -61,6 +61,8 @@
 
 %token  PLUS MINUS TIMES DIVIDE MOD
 
+%token ASSIGN
+
 %type <sValue> declaration declaration_list
 %type <sValue> type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> inline_statement function_call io_command return_statement statement_list
@@ -71,6 +73,7 @@
 %type <sValue> binary_expr term operator
 %type <sValue> type
 %type <sValue> id_list
+%type <sValue> var_decl_list variables_decl name_decl_list name_decl 
 
 %start program
 
@@ -84,10 +87,12 @@ declaration_list :  declaration                     {   $$ = $1;}
                                                         $$ = concat_n(3, values); };
 
 declaration      : type_definition                  {   $$ = $1; }
-                      | function                    {   $$ = $1; };
+                      | function                    {   $$ = $1; }
+                      | variables_decl SEMICOLON    {   const char * values[] = {$1, ";"}; $$ = concat_n(2, values); };
+
 
 type_definition  : enum_definition                  {   $$ = $1;}
-                      | struct_definition           {   $$ = $1;};
+                      | struct_definition           {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
 	
 /* *********************************** FUNCTIONS ********************************************** */
@@ -122,13 +127,15 @@ struct_definition : STRUCT ID
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
-                                                        $$ = concat_n(5, values);}
+                                                        $$ = concat_n(5, values);};
 
 id_list : ID                                        {   $$ = $1;}
             | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
             
 //var_decl_list depende de declaração de variáveis
-var_decl_list : /*TODO*/                            {};
+var_decl_list : variables_decl                      {   $$ = $1; }
+                    | var_decl_list variables_decl  {   const char *values[] = {$1, ",", $2};
+                            						    $$ = concat_n(3, values);};
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE    {   char * begin_block = concat("{\n", $2);
@@ -144,7 +151,8 @@ statement_list   : inline_statement SEMICOLON       { $$ = concat($1, ";\n");}
                                                         $$ = concat(line1,line2); };
 
 inline_statement : function_call                    {   $$ = $1; }
-                    | return_statement              {   $$ = $1; };
+                    | return_statement              {   $$ = $1; }
+                    | variables_decl                {   $$ = $1; };
 
 function_call    : ID LPAREN expr_list RPAREN       {   const char * values[] = {$1, "(", $3, ")"};
                                                         $$ = concat_n(4, values); }
@@ -157,6 +165,26 @@ io_command       : PRINT LPAREN expr_list RPAREN         {   $$ = concat(concat(
 
 
 return_statement : RETURN expr                      {   $$ = concat("return ", $2); };
+
+variables_decl   : type name_decl_list { const char *values[] = {$1, " ", $2};
+ 					      $$ = concat_n(3, values);}
+                   | type_modifier_list type name_decl_list { const char *values[] = {$1, " ", $2};
+ 					      $$ = concat_n(3, values);};
+
+name_decl_list   : name_decl { $$ = $1; }
+	           | name_decl_list COMMA name_decl { const char *values[] = {$1, ",", $3};
+						      $$ = concat_n(3, values);};
+
+
+name_decl 	 : ID { $$ = $1; }
+		   | ID ASSIGN expr { const char *values[] = {$1, "=", $3}; 
+				      $$ = concat_n(3, values);};
+
+
+type_modifier_list : type_modifier { $$ = $1; }
+                       | type_modifier_list type_modifier {const char *values[] = {$1, " ", $2}; $$ = concat_n(3, values);};
+
+type_modifier : CONST | REF {};
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                       { $$ = "";}
