@@ -5,6 +5,7 @@ function int FunctionType()
 function int FunctionWithParams(int a, int b)
 
 struct Data{
+    int dia, mes, ano;
 }
 
 int main(){

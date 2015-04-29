@@ -1,7 +1,7 @@
 namespace Application{
     enum Values { A, B, C, D}
     
-    const string helpMessage = "I dont how to use this program.";
+    const string helpMessage = "I dont know how to use this program.";
     
     void printHelp(){
         print(helpMessage);

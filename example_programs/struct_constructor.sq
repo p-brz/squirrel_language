@@ -1,4 +1,6 @@
 struct User{
+    string nome;
+    int id;
 }
 
 void printUser(User user){

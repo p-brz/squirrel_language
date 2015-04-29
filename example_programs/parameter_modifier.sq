@@ -1,0 +1,12 @@
+void changeParam(ref string outStr){
+    outStr = "new string";
+} 
+
+int main(string[] args){
+    string str = "abc";
+    changeParam(str);
+    
+    print(str);
+    
+    return 0;
+}
