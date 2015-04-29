@@ -94,6 +94,7 @@
 
 %type <sValue> inc_stmt lvalue_term clone_expr//index_access
 %type <sValue> call_expr
+%type <sValue> array_literal
 
 %start program
 
@@ -299,7 +300,7 @@ call_expr       :   io_command                                  {   $$ = $1;}
                         | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
-clone_expr      : CLONE LPAREN expr RPAREN         {   const char * values[] = {"clone", "(", $3, ")"};
+clone_expr      : CLONE LPAREN expr RPAREN          {   const char * values[] = {"clone", "(", $3, ")"};
                                                         $$ = concat_n(4, values); };
                                                                     
 lvalue_term     : member                            {  $$ = $1; };
@@ -309,6 +310,9 @@ lvalue_term     : member                            {  $$ = $1; };
                              
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
                     | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
+                    | array_literal                 {   $$ = $1; };
+                    
+array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]");};
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
