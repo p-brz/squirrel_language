@@ -65,7 +65,7 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
-%token CLONE
+%token CLONE LENGTH
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
@@ -279,7 +279,8 @@ term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
 		    | clone_expr		    {	$$ = $1;}
-                    | variable                      {   $$ = $1;};
+                    | variable                      {   $$ = $1;}
+		    | length_expr		    {	$$ = $1;};
 
 variable        : member                           {  $$ = $1; };
                    //| index_access {  };
@@ -289,6 +290,8 @@ value           : NUMBER                            {   $$ = intToString(yylval.
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
+
+length_expr	:  member DOT LENGTH
 
 /* ********************************* OPERATORS ********************************************* */
 

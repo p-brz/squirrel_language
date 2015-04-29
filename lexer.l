@@ -53,6 +53,7 @@
 "type"                              {return(TYPE);}
 
 "clone"				    {return(CLONE);}
+"length"			    {return(LENGTH);}
 
 "namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}
