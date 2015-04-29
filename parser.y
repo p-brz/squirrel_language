@@ -85,6 +85,8 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
+%type <sValue> inc_stmt variable //index_access
+
 %start program
 
 %%
@@ -197,7 +199,24 @@ statement_list   : inline_statement SEMICOLON                   {   $$ = concat(
 inline_statement : function_call                                {   $$ = $1; }
                     | return_statement                          {   $$ = $1; }
                     | variables_decl                            {   $$ = $1; }
-                    | assignment                                {   $$ = $1; };
+                    | assignment                                {   $$ = $1; }
+                    | inc_stmt                                  {   $$ = $1; };
+
+
+
+
+inc_stmt         : variable inc_op { $$ = concat($1, $2);}
+                    | inc_op variable { $$ = concat($1, $2);};
+
+variable         : member          {  $$ = $1; };
+                   //| index_access {  };
+/*
+index_access     : term LBRACKET expr RBRACKET            { const char *value[] = {$1, "[", $3, "]"}; 
+                                                            $$ = concat_n(4, value);}
+                 | term LBRACKET expr COLON expr RBRACKET { const char *value[] = {$1, "[", $3, ":", $5, "]"}; 
+                                                            $$ = concat_n(6, value);};
+
+*/
 
 function_call    : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); }
@@ -209,9 +228,10 @@ io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(
                     | "readline" LPAREN RPAREN                  {   $$ = strdup("readline()"); };
 
 
-return_statement : RETURN expr                                  {   $$ = concat("return ", $2); };
+return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
+                   | RETURN                                     {   $$ = strdup("return ");};
 
-assignment       : member assignment_op expr { $$ = concat3($1, $2, $3);};
+assignment       : variable assignment_op expr { $$ = concat3($1, $2, $3);};
 
 variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
  					                                                $$ = concat_n(3, values);}
@@ -244,7 +264,7 @@ expr            : binary_expr                       {   $$ = $1;};
 
 binary_expr     : unary_pos_expr                              {   $$ = $1;}
                     | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, $2, $3};
-                                                        $$ = concat_n(3, values);};
+                                                                  $$ = concat_n(3, values);};
 
 unary_pos_expr  : unary_pre_expr { $$ = $1; }
                 | unary_pre_expr inc_op { $$ = concat($1, $2);};
@@ -256,7 +276,7 @@ unary_pre_expr  : term { $$ = $1; }
 
 term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
-                    | value;
+                    | value                         {   $$ = $1;};
                     
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
                     | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
