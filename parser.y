@@ -80,13 +80,15 @@
 
 %type <sValue> attribute_list variables_decl name_decl_list name_decl
 %type <sValue> type_modifier_list type_modifier
-%type <sValue> type simple_type array_type
+%type <sValue> type simple_type array_type primitive_type
+
 %type <sValue> id_list
 
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt variable clone_expr //index_access
+%type <sValue> inc_stmt variable clone_expr//index_access
+%type <sValue> call_expr
 
 %start program
 
@@ -134,18 +136,20 @@ type_decl       : type                              {   $$ = $1;};
 type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
 
-simple_type : VOID      { $$ = strdup("void"); }
-              | BYTE    { $$ = strdup("byte"); }
-              | SHORT   { $$ = strdup("short"); }
-              | INT     { $$ = strdup("int");}
-              | LONG    { $$ = strdup("long"); } 
-              | FLOAT   { $$ = strdup("float"); }
-              | DOUBLE  { $$ = strdup("double"); }
-              | BOOLEAN { $$ = strdup("boolean"); }
-              | STRING  { $$ = strdup("string"); }
-              | OBJECT  { $$ = strdup("object"); }
-              | TYPE    { $$ = strdup("type"); }
-              | member  { $$ = $1; };
+simple_type : primitive_type    { $$ = $1; }
+              | member          { $$ = $1; };
+              
+primitive_type : VOID       { $$ = strdup("void"); }
+                  | BYTE    { $$ = strdup("byte"); }
+                  | SHORT   { $$ = strdup("short"); }
+                  | INT     { $$ = strdup("int");}
+                  | LONG    { $$ = strdup("long"); } 
+                  | FLOAT   { $$ = strdup("float"); }
+                  | DOUBLE  { $$ = strdup("double"); }
+                  | BOOLEAN { $$ = strdup("boolean"); }
+                  | STRING  { $$ = strdup("string"); }
+                  | OBJECT  { $$ = strdup("object"); }
+                  | TYPE    { $$ = strdup("type"); };
 
 array_type   : simple_type LBRACKET RBRACKET            {   $$ = concat($1, "[]"); }
                 | simple_type LBRACKET NUMBER RBRACKET  {   const char * values[] = {$1, "[", intToString($3),"]"};
@@ -268,22 +272,29 @@ binary_expr     : unary_pos_expr                              {   $$ = $1;}
                                                                   $$ = concat_n(3, values);};
 
 unary_pos_expr  : unary_pre_expr { $$ = $1; }
-                | unary_pre_expr inc_op { $$ = concat($1, $2);};
+                    | unary_pre_expr inc_op { $$ = concat($1, $2);};
 
 unary_pre_expr  : term { $$ = $1; }
-                | unary_pre_op term { $$ = concat($1, $2); };
+                    | unary_pre_op term { $$ = concat($1, $2); };
                    
-
-
 term            :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
-                    | function_call                 {   $$ = $1;}
+                    | call_expr                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
                     | clone_expr		            {	$$ = $1;}
                     | variable                      {   $$ = $1;};
 
-clone_expr       : CLONE LPAREN expr RPAREN         {   const char * values[] = {"clone", "(", $3, ")"};
-                                                        $$ = concat_n(4, values); }
+call_expr       :   io_command                                  {   $$ = $1;}
+                        | member_call                           {   $$ = $1; }
+                        | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); }
+                        | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); };
+//  Um cast pode ser também um member_call 
+//                    | member_call ...;
+
+clone_expr      : CLONE LPAREN expr RPAREN         {   const char * values[] = {"clone", "(", $3, ")"};
+                                                        $$ = concat_n(4, values); };
                                                                     
 variable        : member                            {  $$ = $1; };
                    //| index_access {  };

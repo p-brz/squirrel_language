@@ -1,0 +1,14 @@
+struct MyType{
+    int someInt;
+}
+
+int main(string[] args){
+    object intObj    = 10;
+    object structObj = MyType{someInt : 100};
+    object arrayObj  = args;
+       
+    print("primitive_type cast: ", int(intObj));
+    print("array_type cast: ", string[](arrayObj));
+
+    return 0;
+}
