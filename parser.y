@@ -65,7 +65,7 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
-
+%token CLONE
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
@@ -85,7 +85,7 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt variable //index_access
+%type <sValue> inc_stmt variable clone_expr //index_access
 
 %start program
 
@@ -218,6 +218,9 @@ index_access     : term LBRACKET expr RBRACKET            { const char *value[] 
 
 */
 
+clone_expr     : CLONE LPAREN expr RPAREN {};
+
+
 function_call    : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); }
                     | io_command                                {   $$ = $1;};
@@ -276,7 +279,8 @@ unary_pre_expr  : term { $$ = $1; }
 
 term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
-                    | value                         {   $$ = $1;};
+                    | value                         {   $$ = $1;}
+		    | clone_expr		    {	$$ = $1;};
                     
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
                     | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
