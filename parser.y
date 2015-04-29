@@ -278,7 +278,7 @@ unary_pre_expr  : term { $$ = $1; }
 term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
-		    | clone_expr		    {	$$ = $1;};
+		    | clone_expr		    {	$$ = $1;}
                     | variable                      {   $$ = $1;};
 
 variable        : member                           {  $$ = $1; };
