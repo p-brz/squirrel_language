@@ -3,6 +3,7 @@ void printArray(int[] array){
 
 int main(){
     int[] emptyArray = [10, 11, 12];
-    int[10] allocatedArray;
+    int[] allocatedArray = [10];
+    
     return 0;
 }

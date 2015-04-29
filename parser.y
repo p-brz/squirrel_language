@@ -158,9 +158,7 @@ primitive_type : VOID       { $$ = strdup("void"); }
                   | OBJECT  { $$ = strdup("object"); }
                   | TYPE    { $$ = strdup("type"); };
 
-array_type   : simple_type LBRACKET RBRACKET            {   $$ = concat($1, "[]"); }
-                | simple_type LBRACKET NUMBER RBRACKET  {   const char * values[] = {$1, "[", intToString($3),"]"};
-                                                            $$ = concat_n(4, values); };
+array_type   : simple_type LBRACKET RBRACKET            {   $$ = concat($1, "[]"); };
 
 
 /* ********************************* TYPE DEFINITION ***************************************** */
@@ -213,8 +211,6 @@ inline_statement : function_call                                {   $$ = $1; }
                     | variables_decl                            {   $$ = $1; }
                     | assignment                                {   $$ = $1; }
                     | inc_stmt                                  {   $$ = $1; };
-
-
 
 
 inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
