@@ -136,7 +136,8 @@ param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);
 
 /* ************************************* TYPES *********************************************** */
 
-type_decl       : type                              {   $$ = $1;};
+type_decl       : type                              {   $$ = $1;}
+                    | type_modifier_list type       {   $$ = concat3($1, " ", $2);};
 
 type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
