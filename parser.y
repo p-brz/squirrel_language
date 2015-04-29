@@ -55,12 +55,12 @@
 %token  PLUS MINUS TIMES DIVIDE MOD
 
 %type <sValue> inline_statement function_call io_command return_statement statement_list
-%type <sValue> block_body block_stmt_list
+%type <sValue> block_body block_stmt_list block_statement std_statement for_statement for_expr
 %type <sValue> func_params function function_list
 %type <sValue> expr expr_list
 %type <sValue> binary_expr term operator
 %type <sValue> type
-%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block conditional_test
+%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block conditional_test if_block
 
 %start program
 
@@ -141,8 +141,13 @@ block_statement :         for       		{$$ = $1;}
 			| switch    		{$$ = $1;};
 
 
-for             :   "for" "(" std_statement ";" binary_expr ";" std_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
-                                                        $$ = concat_n(8, values);};
+for             :   "for" "(" for_statement ";" for_expr ";" for_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
+                                                        					$$ = concat_n(8, values);};
+for_statement   :                               {$$ = " "}
+			| std_statement         {$$ = $1};
+
+for_expr        :                               {$$ = " "}
+			| binary_expr           {$$ = $1};
 
 if 		: if_block				{$$ = $1}
     		        | if_block "else" block_body	{const char * values[] = {$1, "else", $3};
