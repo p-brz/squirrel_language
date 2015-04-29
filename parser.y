@@ -208,8 +208,6 @@ inline_statement : function_call                                {   $$ = $1; }
 inc_stmt         : variable inc_op { $$ = concat($1, $2);}
                     | inc_op variable { $$ = concat($1, $2);};
 
-variable         : member          {  $$ = $1; };
-                   //| index_access {  };
 /*
 index_access     : term LBRACKET expr RBRACKET            { const char *value[] = {$1, "[", $3, "]"}; 
                                                             $$ = concat_n(4, value);}
@@ -276,11 +274,14 @@ unary_pre_expr  : term { $$ = $1; }
 
 term            : function_call                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
-                    | value                         {   $$ = $1;};
-                    
+                    | value                         {   $$ = $1;}
+                    | variable                      {   $$ = $1;};
+
+variable         : member                           {  $$ = $1; };
+                   //| index_access {  };
+                             
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
-                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
-                    | member  /*Variáveis*/         {   $$ = $1; };
+                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
