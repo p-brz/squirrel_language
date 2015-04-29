@@ -65,7 +65,7 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
-
+%token CLONE
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
@@ -86,7 +86,7 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt variable //index_access
+%type <sValue> inc_stmt variable clone_expr //index_access
 
 %start program
 
@@ -217,7 +217,7 @@ index_access     : term LBRACKET expr RBRACKET            { const char *value[] 
 
 */
 
-function_call    : member_call                                  {   $$ = $1;}
+function_call    : member_call                                  { $$ = $1;}
                     | io_command                                {   $$ = $1;};
                     
 member_call      : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
@@ -275,13 +275,17 @@ unary_pre_expr  : term { $$ = $1; }
                    
 
 
-term            :   LPAREN expr RPAREN              {$$ = concat3("(",$2,")");}
+term            :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
                     | function_call                 {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
+                    | clone_expr		            {	$$ = $1;}
                     | variable                      {   $$ = $1;};
 
-variable        : member                           {  $$ = $1; };
+clone_expr       : CLONE LPAREN expr RPAREN         {   const char * values[] = {"clone", "(", $3, ")"};
+                                                        $$ = concat_n(4, values); }
+                                                                    
+variable        : member                            {  $$ = $1; };
                    //| index_access {  };
                              
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 

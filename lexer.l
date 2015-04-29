@@ -52,6 +52,8 @@
 "object"                            {return(OBJECT);}
 "type"                              {return(TYPE);}
 
+"clone"				    {return(CLONE);}
+
 "namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}
 "struct"                            {return STRUCT;}
