@@ -69,7 +69,8 @@
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
-%type <sValue> inline_statement function_call io_command return_statement statement_list
+%type <sValue> inline_statement return_statement statement_list
+%type <sValue> function_call member_call io_command
 %type <sValue> block_body block_stmt_list struct_body
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
@@ -216,9 +217,11 @@ index_access     : term LBRACKET expr RBRACKET            { const char *value[] 
 
 */
 
-function_call    : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
-                                                                    $$ = concat_n(4, values); }
+function_call    : member_call                                  {   $$ = $1;}
                     | io_command                                {   $$ = $1;};
+                    
+member_call      : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); };
 
 io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
                     | "read" LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
@@ -272,12 +275,13 @@ unary_pre_expr  : term { $$ = $1; }
                    
 
 
-term            : function_call                     {   $$ = $1;}
+term            :   LPAREN expr RPAREN              {$$ = concat3("(",$2,")");}
+                    | function_call                 {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
                     | variable                      {   $$ = $1;};
 
-variable         : member                           {  $$ = $1; };
+variable        : member                           {  $$ = $1; };
                    //| index_access {  };
                              
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
