@@ -52,7 +52,8 @@
 "object"                            {return(OBJECT);}
 "type"                              {return(TYPE);}
 
-"clone"                             {return(CLONE);}
+"clone"				    {return(CLONE);}
+"length"			    {return(LENGTH);}
 
 "namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}

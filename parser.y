@@ -65,7 +65,7 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
-%token CLONE
+%token CLONE LENGTH
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
@@ -92,7 +92,7 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt lvalue_term clone_expr//index_access
+%type <sValue> inc_stmt lvalue_term clone_expr length_expr//index_access
 %type <sValue> call_expr
 %type <sValue> array_literal
 
@@ -291,7 +291,8 @@ rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")")
                     | call_expr                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
-                    | clone_expr		            {	$$ = $1;};
+		            | clone_expr		    {	$$ = $1;}
+		            | length_expr		    {	$$ = $1;};
 
 call_expr       :   io_command                                  {   $$ = $1;}
                         | member_call                           {   $$ = $1; }
@@ -316,6 +317,8 @@ array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
+
+length_expr	:  member DOT LENGTH
 
 /* ********************************* OPERATORS ********************************************* */
 
