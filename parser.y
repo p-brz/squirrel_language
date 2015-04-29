@@ -69,14 +69,19 @@
 
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
-%type <sValue> inline_statement return_statement statement_list
-%type <sValue> function_call member_call io_command
+%type <sValue> assignment inline_statement return_statement statement_list
+
 %type <sValue> block_body block_stmt_list struct_body
+%type <sValue> function_call member_call io_command
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
+
 %type <sValue> expr expr_list
-%type <sValue> binary_expr term value
-%type <sValue> operator assignment_op assignment inc_op unary_pre_op unary_pre_expr unary_pos_expr
+%type <sValue> binary_expr
+%type <sValue> unary_pre_expr unary_pos_expr
+%type <sValue> term rvalue_term value
+
+%type <sValue> operator assignment_op inc_op unary_pre_op
 
 %type <sValue> attribute_list variables_decl name_decl_list name_decl
 %type <sValue> type_modifier_list type_modifier
@@ -87,7 +92,7 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt variable clone_expr//index_access
+%type <sValue> inc_stmt lvalue_term clone_expr//index_access
 %type <sValue> call_expr
 
 %start program
@@ -210,8 +215,8 @@ inline_statement : function_call                                {   $$ = $1; }
 
 
 
-inc_stmt         : variable inc_op { $$ = concat($1, $2);}
-                    | inc_op variable { $$ = concat($1, $2);};
+inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
+                    | inc_op lvalue_term { $$ = concat($1, $2);};
 
 /*
 index_access     : term LBRACKET expr RBRACKET            { const char *value[] = {$1, "[", $3, "]"}; 
@@ -236,7 +241,7 @@ io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(
 return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
                    | RETURN                                     {   $$ = strdup("return ");};
 
-assignment       : variable assignment_op expr { $$ = concat3($1, $2, $3);};
+assignment       : lvalue_term assignment_op expr { $$ = concat3($1, $2, $3);};
 
 variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
  					                                                $$ = concat_n(3, values);}
@@ -277,12 +282,14 @@ unary_pos_expr  : unary_pre_expr { $$ = $1; }
 unary_pre_expr  : term { $$ = $1; }
                     | unary_pre_op term { $$ = concat($1, $2); };
                    
-term            :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
+term            : rvalue_term                       {   $$ = $1;}
+                    | lvalue_term                      {   $$ = $1;};
+                   
+rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
                     | call_expr                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
-                    | clone_expr		            {	$$ = $1;}
-                    | variable                      {   $$ = $1;};
+                    | clone_expr		            {	$$ = $1;};
 
 call_expr       :   io_command                                  {   $$ = $1;}
                         | member_call                           {   $$ = $1; }
@@ -296,8 +303,10 @@ call_expr       :   io_command                                  {   $$ = $1;}
 clone_expr      : CLONE LPAREN expr RPAREN         {   const char * values[] = {"clone", "(", $3, ")"};
                                                         $$ = concat_n(4, values); };
                                                                     
-variable        : member                            {  $$ = $1; };
-                   //| index_access {  };
+lvalue_term     : member                            {  $$ = $1; };
+                      //Esta regra permite acessar membros de structs geradas em uma expressão. Ex.: MyStruct{}.my_member
+                    | rvalue_term DOT member        {  $$ = concat3($1,".",$3);};
+//                   | index_access {  };
                              
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
                     | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
