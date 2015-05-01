@@ -4,6 +4,7 @@
 
 %%
 
+\[(\ |\t)*\]                        {return ARRAY_SYMBOL;}
 [ \t\n]                             ;
 [0-9]+                              {yylval.iValue = atoi(yytext); return NUMBER;}
 "("                                 {return LPAREN;}

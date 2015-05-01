@@ -1,0 +1,28 @@
+struct SomeStruct{
+    int[] numbers; 
+}
+
+int[ ] arrayFunction(){
+    return [10,11,12];
+}
+
+int[][] matrixFunction(){
+    return [[1,2,3],[4,5,6],[7,8,9]];
+}
+
+int main(string[] args){
+    int v1 = arrayFunction()[0];
+    int v2 = matrixFunction()[0][1];
+    
+    SomeStruct someStruct1 = SomeStruct{numbers : arrayFunction()};
+    
+    int v3 = someStruct1.numbers[2];
+    int v4 = SomeStruct{numbers : arrayFunction()}[1];
+    
+    print("v1: ", v1);
+    print("v2: ", v2);
+    print("v3: ", v3);
+    print("v4: ", v4);
+    
+    return 0;
+}

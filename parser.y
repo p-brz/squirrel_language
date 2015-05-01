@@ -54,6 +54,7 @@
 %token <iValue> NUMBER
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
+%token ARRAY_SYMBOL
 %token PRINT RETURN
 %token <sValue> STRING_LITERAL 
 %token SEMICOLON COMMA COLON DOT
@@ -94,7 +95,7 @@
 
 %type <sValue> inc_stmt lvalue_term clone_expr length_expr//index_access
 %type <sValue> call_expr
-%type <sValue> array_literal
+%type <sValue> array_literal index_access
 
 %start program
 
@@ -144,7 +145,7 @@ type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
 
 simple_type : primitive_type    { $$ = $1; }
-              | member          { $$ = $1; };
+                | member          { $$ = $1; };
               
 primitive_type : VOID       { $$ = strdup("void"); }
                   | BYTE    { $$ = strdup("byte"); }
@@ -158,8 +159,7 @@ primitive_type : VOID       { $$ = strdup("void"); }
                   | OBJECT  { $$ = strdup("object"); }
                   | TYPE    { $$ = strdup("type"); };
 
-array_type   : simple_type LBRACKET RBRACKET            {   $$ = concat($1, "[]"); };
-
+array_type   : type ARRAY_SYMBOL       {   $$ = concat($1, "[]"); };
 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
@@ -185,7 +185,7 @@ attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat(
 
 /* ********************************************************************************************* */
 
-struct_constructor  : ID LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
+struct_constructor  : member LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
                                                                     $$ = concat_n(4, valores);};
 
 member_init_list    :   /*vazio*/                               {   $$ = "";}
@@ -297,16 +297,18 @@ call_expr       :   io_command                                  {   $$ = $1;}
                         | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
-clone_expr      : CLONE LPAREN expr RPAREN          {   const char * values[] = {"clone", "(", $3, ")"};
-                                                        $$ = concat_n(4, values); };
-                                                                    
-lvalue_term     : member                            {  $$ = $1; };
-                      //Esta regra permite acessar membros de structs geradas em uma expressão. Ex.: MyStruct{}.my_member
-                    | rvalue_term DOT member        {  $$ = concat3($1,".",$3);};
-//                   | index_access {  };
-                             
+clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); };
+lvalue_term    :  member                        { $$ = $1;}
+                | index_access                  { $$ = $1;}
+                | rvalue_term DOT member        { $$ = concat3($1, ".", $3);}
+                | index_access DOT member       { $$ = concat3($1, ".", $3);};
+
+index_access    : term LBRACKET expr RBRACKET   { const char * values[] = {$1, "[", $3, "]"};
+                                                  $$ = concat_n(4, values);};
+
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
-                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); };
+                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
                     | array_literal                 {   $$ = $1; };
                     
 array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]");};
