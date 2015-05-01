@@ -52,7 +52,7 @@
 
 %token <sValue> ID
 %token <iValue> NUMBER
-%token <sValue> REAL_LITERAL
+%token <sValue> REAL_LITERAL BOOLEAN_LITERAL
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token ARRAY_SYMBOL
@@ -321,6 +321,7 @@ index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = 
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
                     | REAL_LITERAL                  {   $$ = strdup($1); }
                     | STRING_LITERAL                {   $$ = strdup($1); }
+                    | BOOLEAN_LITERAL               {   $$ = strdup($1); }
                     | array_literal                 {   $$ = $1; };
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}

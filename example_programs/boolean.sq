@@ -1,0 +1,6 @@
+int main(){
+    boolean val1 = true, val2 = false;
+    boolean boolArray = [true, false, true, false];
+    
+    return 0;
+}
