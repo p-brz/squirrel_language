@@ -45,10 +45,10 @@
 %}
 
 %union {
-	int    iValue; 	/* integer value */
-	char   cValue; 	/* char value */
-	char * sValue;  /* string value */
-	};
+    int    iValue;     /* integer value */
+    char   cValue;     /* char value */
+    char * sValue;  /* string value */
+    };
 
 %token <sValue> ID
 %token <iValue> NUMBER
@@ -121,7 +121,7 @@ namespace        : NAMESPACE ID
                     LBRACE declaration_list RBRACE  {   const char * values[] = {"namespace ", $2, "{\n", $4, "\n}"};
                                                         $$ = concat_n(5, values); };
                                                         
-	
+    
 /* *********************************** FUNCTIONS ********************************************** */
 
 function        : type ID func_params block_body    {   const char * values[] = {$1, " ", $2, " ", $3, $4};
@@ -133,7 +133,7 @@ param_decl_list : /* Vazio*/                                {   $$ = "";}
                       | param_decl                          {   $$ = $1;}
                       | param_decl_list COMMA param_decl    {   $$ = concat3($1, ", ", $3);};
 
-param_decl      : type_decl ID                      {   $$ = concat3($1," ",$2);};
+param_decl      : type_decl ID                              {   $$ = concat3($1," ",$2);};
 
 /* ************************************* TYPES *********************************************** */
 
@@ -169,8 +169,8 @@ enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = 
 struct_definition : STRUCT ID 
                     LBRACE struct_body RBRACE       {   const char * values[] = {"struct ", $2, "{\n", $4 , "\n}"};
                                                         $$ = concat_n(5, values);};
-struct_body       :  {$$ = "";}
-                    | attribute_list { $$ = $1;};
+struct_body       : /*Vazio*/            {  $$ = "";}
+                        | attribute_list {  $$ = $1;};
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
@@ -181,7 +181,7 @@ id_list : ID                                        {   $$ = $1;}
             
 attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
                     | attribute_list variables_decl SEMICOLON   {   const char *values[] = {$1, "\n", $2, ";"};
-                            						                $$ = concat_n(4, values);};
+                                                                    $$ = concat_n(4, values);};
 
 /* ********************************************************************************************* */
 
@@ -224,7 +224,7 @@ index_access     : term LBRACKET expr RBRACKET            { const char *value[] 
 
 */
 
-function_call    : member_call                                  { $$ = $1;}
+function_call    : member_call                                  {   $$ = $1;}
                     | io_command                                {   $$ = $1;};
                     
 member_call      : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
@@ -242,18 +242,18 @@ return_statement : RETURN expr                                  {   $$ = concat(
 assignment       : lvalue_term assignment_op expr { $$ = concat3($1, $2, $3);};
 
 variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
- 					                                                $$ = concat_n(3, values);}
+                                                                     $$ = concat_n(3, values);}
                     | type_modifier_list type name_decl_list    {   const char *values[] = {$1, " ", $2, " ", $3};
- 					                                                $$ = concat_n(5, values);};
+                                                                     $$ = concat_n(5, values);};
 
 name_decl_list   : name_decl                                    {   $$ = $1; }
-	                | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
-						                                            $$ = concat_n(3, values);};
+                    | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
+                                                                    $$ = concat_n(3, values);};
 
 
-name_decl 	    : ID                                            {   $$ = $1; }
-		            | ID ASSIGN expr                            {   const char *values[] = {$1, "=", $3}; 
-				                                                    $$ = concat_n(3, values);};
+name_decl         : ID                                          {   $$ = $1; }
+                    | ID ASSIGN expr                            {   const char *values[] = {$1, "=", $3}; 
+                                                                    $$ = concat_n(3, values);};
 
 
 type_modifier_list : type_modifier                              {   $$ = $1; }
@@ -274,21 +274,21 @@ binary_expr     : unary_pos_expr                              {   $$ = $1;}
                     | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, $2, $3};
                                                                   $$ = concat_n(3, values);};
 
-unary_pos_expr  : unary_pre_expr { $$ = $1; }
-                    | unary_pre_expr inc_op { $$ = concat($1, $2);};
+unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
+                    | unary_pre_expr inc_op         {   $$ = concat($1, $2);};
 
-unary_pre_expr  : term { $$ = $1; }
-                    | unary_pre_op term { $$ = concat($1, $2); };
+unary_pre_expr  : term                              {   $$ = $1; }
+                    | unary_pre_op term             {   $$ = concat($1, $2); };
                    
 term            : rvalue_term                       {   $$ = $1;}
-                    | lvalue_term                      {   $$ = $1;};
+                    | lvalue_term                   {   $$ = $1;};
                    
 rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
                     | call_expr                     {   $$ = $1;}
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
-		            | clone_expr		    {	$$ = $1;}
-		            | length_expr		    {	$$ = $1;};
+                    | clone_expr                    {   $$ = $1;}
+                    | length_expr                   {   $$ = $1;};
 
 call_expr       :   io_command                                  {   $$ = $1;}
                         | member_call                           {   $$ = $1; }
@@ -314,14 +314,14 @@ array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
 
-length_expr	:  member DOT LENGTH
+length_expr        :  member DOT LENGTH             {   $$ = concat($1,".length");};
 
 /* ********************************* OPERATORS ********************************************* */
 
 assignment_op   : ASSIGN { $$ = strdup("="); };
 
-inc_op : PLUSPLUS { $$ = strdup("++");}
-         | MINUSMINUS { $$ = strdup("--");};
+inc_op : PLUSPLUS       { $$ = strdup("++");}
+         | MINUSMINUS   { $$ = strdup("--");};
 
 unary_pre_op : inc_op { $$ = $1; };
 
@@ -330,20 +330,20 @@ operator        :   PLUS                            { $$ = strdup("+");}
                     | TIMES                         { $$ = strdup("*");}
                     | DIVIDE                        { $$ = strdup("/");}
                     | MOD                           { $$ = strdup("%");}
-		            | OU                       	    { $$ = strdup("||");}
+                    | OU                            { $$ = strdup("||");}
                     | OR                            { $$ = strdup("or");}
                     | BITOR                         { $$ = strdup("|");}
                     | BITAND                        { $$ = strdup("&");}
-	                | EE                            { $$ = strdup("&&");}
+                    | EE                            { $$ = strdup("&&");}
                     | AND                           { $$ = strdup("and");}
                     | SHIFTL                        { $$ = strdup("<<");}
                     | SHIFTR                        { $$ = strdup(">>");}
                     | EQUAL                         { $$ = strdup("==");}
-                    | DIFERENT               	    { $$ = strdup("!=");}
-        	        | MINOR                         { $$ = strdup("<");}
-                    | BIGGER                   	    { $$ = strdup(">");}
-        	        | MINOREQUAL         	        { $$ = strdup("<=");}
-                    | BIGGEREQUAL       	        { $$ = strdup(">=");};
+                    | DIFERENT                      { $$ = strdup("!=");}
+                    | MINOR                         { $$ = strdup("<");}
+                    | BIGGER                        { $$ = strdup(">");}
+                    | MINOREQUAL                    { $$ = strdup("<=");}
+                    | BIGGEREQUAL                   { $$ = strdup(">=");};
 %%
 
 int main (void) {return yyparse ( );}
