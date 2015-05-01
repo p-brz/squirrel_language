@@ -52,6 +52,7 @@
 
 %token <sValue> ID
 %token <iValue> NUMBER
+%token <sValue> REAL_LITERAL
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token ARRAY_SYMBOL
@@ -93,9 +94,9 @@
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> inc_stmt lvalue_term clone_expr length_expr//index_access
+%type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
 %type <sValue> call_expr
-%type <sValue> array_literal index_access
+%type <sValue> array_literal index_access 
 
 %start program
 
@@ -288,7 +289,8 @@ rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")")
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = $1;}
                     | clone_expr                    {   $$ = $1;}
-                    | length_expr                   {   $$ = $1;};
+                    | length_expr                   {   $$ = $1;}
+                    | slice_expr                    {   $$ = $1;};
 
 call_expr       :   io_command                                  {   $$ = $1;}
                         | member_call                           {   $$ = $1; }
@@ -299,24 +301,33 @@ call_expr       :   io_command                                  {   $$ = $1;}
 
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
-lvalue_term    :  member                        { $$ = $1;}
-                | index_access                  { $$ = $1;}
-                | rvalue_term DOT member        { $$ = concat3($1, ".", $3);}
-                | index_access DOT member       { $$ = concat3($1, ".", $3);};
 
-index_access    : term LBRACKET expr RBRACKET   { const char * values[] = {$1, "[", $3, "]"};
-                                                  $$ = concat_n(4, values);};
+length_expr     :  member DOT LENGTH                            {   $$ = concat($1,".length");};
+
+slice_expr      : term 
+                    LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {$1, "[ ", $3, " : ", $5, " ]"};
+                                                                    $$ = concat_n(6, values);};
+opt_expr        : /*Vazio*/   { $$ = "";}
+                    | expr  { $$ = $1;};
+                                                                                       
+lvalue_term     :  member                           { $$ = $1;}
+                    | index_access                  { $$ = $1;}
+                    | rvalue_term DOT member        { $$ = concat3($1, ".", $3);}
+                    | index_access DOT member       { $$ = concat3($1, ".", $3);};
+
+index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = {$1, "[", $3, "]"};
+                                                        $$ = concat_n(4, values);};
 
 value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
-                    | STRING_LITERAL                {   $$ = strdup(yylval.sValue); }
+                    | REAL_LITERAL                  {   $$ = strdup($1); }
+                    | STRING_LITERAL                {   $$ = strdup($1); }
                     | array_literal                 {   $$ = $1; };
                     
-array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]");};
+array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
+                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");};
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
-
-length_expr        :  member DOT LENGTH             {   $$ = concat($1,".length");};
 
 /* ********************************* OPERATORS ********************************************* */
 
