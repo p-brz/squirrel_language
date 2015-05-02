@@ -209,7 +209,7 @@ statement_list   : inline_statement SEMICOLON                   {   $$ = concat(
                                                                     char * line2 = concat($2, ";\n");
                                                                     $$ = concat(line1,line2); };
 
-inline_statement : function_call                                {   $$ = $1; }
+std_statement : function_call                                {   $$ = $1; }
                     | return_statement                          {   $$ = $1; }
                     | variables_decl                            {   $$ = $1; }
                     | assignment                                {   $$ = $1; }
@@ -362,7 +362,7 @@ block_statement :         for       		{printf("%s", $1);}
 for             :   "for" "(" for_statement ";" for_expr ";" for_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
                                                         					$$ = concat_n(8, values);};
 for_statement   :                               {$$ = " "}
-			| inline_statement         {$$ = $1};
+			| std_statement         {$$ = $1};
 
 for_expr        :                               {$$ = " "}
 			| binary_expr           {$$ = $1};
