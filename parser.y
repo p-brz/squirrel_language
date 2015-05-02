@@ -71,7 +71,7 @@
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> assignment inline_statement return_statement statement_list
 
-%type <sValue> block_body block_stmt_list struct_body block_statement std_statement for_statement for_expr
+%type <sValue> block_body block_stmt_list struct_body block_statement for_statement for_expr
 %type <sValue> function_call member_call io_command
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
@@ -351,18 +351,18 @@ operator        :   PLUS                            { $$ = strdup("+");}
                     | BIGGEREQUAL       	        { $$ = strdup(">=");};
                  /* ********************** BLOCK STATEMENTS *********************** */
 
-block_statement :         for       		{$$ = $1;}
-			| if       		{$$ = $1;}
-			| while     		{$$ = $1;}
-			| do_while  		{$$ = $1;} 
-			| try_catch 		{$$ = $1;}
-			| switch    		{$$ = $1;};
+block_statement :         for       		{printf("%s", $1);}
+			| if       		{printf("%s", $1);}
+			| while     		{printf("%s", $1);}
+			| do_while  		{printf("%s", $1);} 
+			| try_catch 		{printf("%s", $1);}
+			| switch    		{printf("%s", $1);};
 
 
 for             :   "for" "(" for_statement ";" for_expr ";" for_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
                                                         					$$ = concat_n(8, values);};
 for_statement   :                               {$$ = " "}
-			| std_statement         {$$ = $1};
+			| inline_statement         {$$ = $1};
 
 for_expr        :                               {$$ = " "}
 			| binary_expr           {$$ = $1};
@@ -405,6 +405,38 @@ default_block   : "default" block_body                  {const char * values[] =
 conditional_test : "(" binary_expr ")"			{const char * values[] = {"(", $2, ")"};
                                                         $$ = concat_n(3, values);};
 
+inline_statement :     assignment                          {$$ = $1}
+		|   variables_decl			{$$ = $1}
+		|   function_call			{$$ = $1};
+
+function_call    : member_call                                  {   $$ = $1;}
+                    | io_command                                {   $$ = $1;};
+                    
+member_call      : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
+                                                                    $$ = concat_n(4, values); };
+io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
+                    | "read" LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
+                    | "readchar" LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
+                    | "readline" LPAREN RPAREN                  {   $$ = strdup("readline()"); };
+return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
+                   | RETURN                                     {   $$ = strdup("return ");};
+assignment       : lvalue_term assignment_op expr { $$ = concat3($1, $2, $3);};
+variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
+                                                                     $$ = concat_n(3, values);}
+                    | type_modifier_list type name_decl_list    {   const char *values[] = {$1, " ", $2, " ", $3};
+                                                                     $$ = concat_n(5, values);};
+name_decl_list   : name_decl                                    {   $$ = $1; }
+                    | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
+                                                                    $$ = concat_n(3, values);};
+name_decl         : ID                                          {   $$ = $1; }
+                    | ID ASSIGN expr                            {   const char *values[] = {$1, "=", $3}; 
+                                                                    $$ = concat_n(3, values);};
+type_modifier_list : type_modifier                              {   $$ = $1; }
+                       | type_modifier_list type_modifier       {   const char *values[] = {$1, " ", $2}; 
+                                                                    $$ = concat_n(3, values);};
+type_modifier : CONST { $$ = strdup("const");}
+                | REF { $$ = strdup("ref");};
+							
 %%
 
 int main (void) {return yyparse ( );}
