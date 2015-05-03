@@ -1,0 +1,17 @@
+int main(){
+    int counter = 0;
+    for(int i=0; i < 10; ++i){
+        counter++;
+    }
+    print("counter == 10? ", counter == 10);
+    
+    while(counter < 10){
+        print("Isso não deve ser executado!");
+    }
+    
+    do{
+        print("Isto deve ser executado 1 vez!");
+    }while(counter < 10);
+    
+    return 0;
+}

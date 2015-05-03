@@ -1,0 +1,19 @@
+void bombFunction(){
+    print("Lancando exceção...");
+    throw;
+    print("Esta mensagem não será exibida.");
+}
+
+int main(string[] args){
+    try{
+        bombFunction();
+        print("Isto não deve ser executado.");
+    }
+    catch{
+        print("Mas isto sim.");
+    }
+    
+    print("E isto aqui também");
+    
+    return 0;
+}

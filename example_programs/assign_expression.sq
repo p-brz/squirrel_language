@@ -12,7 +12,7 @@ int main ()
 
 	a += a + 10;
 
-	printf("O valor é: ", a++);
+	print("O valor é: ", a++);
 
 	return 0;
 }

@@ -2,12 +2,22 @@ int main ()
 {
 	int a = 10;
 
+	print("a = 10 \n", a);
+	
 	a = -a + 10 * a++;
-	a = !a;
-	a = not a;
+	print("a = -a + 10 * a++ \n", a);
+	
 	a = ~a;
+	print("a = ~a \n", a);
 	
 	a = -a + a - 20 * a--;
+	print("a = -a + a - 20 * a-- \n", a);
+		
+	boolean b = !true;
+	print("b = !true \n",b);
+	
+	b = not b;
+    print("b = not b \n", b);
 
 	return 0;
 }

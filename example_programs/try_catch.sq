@@ -1,0 +1,20 @@
+struct Message{
+    string title;
+    string content;
+}
+
+int main(){
+    object structObj = Struct{  title : "Hello World!", 
+                                content : "Lorem ipsum dolor sit amet."};
+    
+    try{
+        print("Tentando converter uma struct, armazenada em um objeto, para um inteiro.");
+        int algumInteiro = Message(structObj);
+        
+        print("Esta instrução nunca deverá ser executada.");
+    }
+    catch{
+        print("...era de se esperar que isto não desse certo.");
+    }
+    return 0;
+}
