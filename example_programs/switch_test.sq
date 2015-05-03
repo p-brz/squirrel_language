@@ -1,0 +1,50 @@
+boolean verifyResponse(const string response){
+    switch(response){
+        when(switch_value == "S" || switch_value == "s"){
+            print("Que legal. Valeu!");
+            return true;
+        }
+        when(switch_value == "N" || switch_value == "n"){
+            print("Ah, que pena. Quem sabe da próxima vez.");
+            return true;
+        }
+        default{
+            print("Foi mal, mas eu não entendi o que você quis dizer. Eu só entendo 'S' ou 'N'.");
+            print("Vou perguntar de novo.");
+        }
+    }
+    return false;
+}
+
+int main(){
+    for(int i=0; i < 10; ++i){
+        switch(){
+            print("i é: ", i);
+            when(i==0){
+                print("Este bloco deve ser executado apenas quando i == 0");
+            }
+            when(i >=0 and i<3){
+                print("Este bloco não deve ser executado quando i == 0 (devido ao bloco anterior).");
+                print("porém, ele irá executar quando i for 1 ou 2.");
+            }
+            when(i > 5 and i < 10){
+                print("Este bloco irá executar se i for 6,7,8 ou 9");
+            }
+            default{
+                print("Este bloco será executado nos casos restantes. Ou seja, quando i for 3, 4 ou 5");
+            }
+        }
+    }
+    
+    boolean finishRead = false;
+    do{
+        print("Você achou esse programa legal(S/N)?");
+        string response = readline();
+        
+        finishRead = verifyResponse(response);
+    }while(!finishRead);
+
+    print("tchau!");
+    
+    return 0;
+}
