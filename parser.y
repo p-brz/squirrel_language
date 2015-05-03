@@ -318,7 +318,7 @@ array_literal   :   LBRACKET expr_list RBRACKET     {   $$ = concat3("[", $2, "]
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};
 
-length_expr	:  member DOT LENGTH
+length_expr	:  member DOT LENGTH { const char *value[] = {$1, ".", "length"}; $$ = concat_n(3, value);};
 
 /* ********************************* OPERATORS ********************************************* */
 

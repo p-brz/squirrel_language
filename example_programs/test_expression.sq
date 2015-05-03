@@ -1,11 +1,8 @@
-int main ()
+int main()
 {
-	int b = 10;
+	int[10] x;
 
-	b = 20 + 66 + 24;
-	
-	print("b: ", b);
-	print("(10 - 1) * 2: ", (10 - 1) * 2);
+	x.length;
 
 	return 0;
 }
