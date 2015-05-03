@@ -1,0 +1,7 @@
+int main()
+{
+	int[] x = [10,10,10];
+    print("x.length: ", x.lenght);
+
+	return 0;
+}

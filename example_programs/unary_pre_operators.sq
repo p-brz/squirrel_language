@@ -1,0 +1,13 @@
+int main ()
+{
+	int a = 10;
+
+	a = -a + 10 * a++;
+	a = !a;
+	a = not a;
+	a = ~a;
+	
+	a = -a + a - 20 * a--;
+
+	return 0;
+}

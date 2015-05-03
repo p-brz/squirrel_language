@@ -14,7 +14,7 @@ def configure(conf):
 	#isto talvez só seja necessário no windows (?)
 	conf.env.LIB_FLEX = ['fl']
 	# muda o nome do arquivo ".h" para y.tab.h
-	conf.env.BISONFLAGS = ['--defines=y.tab.h']
+	conf.env.BISONFLAGS = ['--defines=y.tab.h', '-v']
     
 def build(bld):
 	bld(

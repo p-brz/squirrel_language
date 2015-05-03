@@ -1,0 +1,15 @@
+struct User{
+    string nome;
+    int id;
+}
+
+void printUser(User user){
+}
+
+int main(){
+    printUser(User{});
+    printUser(User{nome : "Lorem"});
+    printUser(User{nome : "Ipsum", id: 10});
+    
+    return 0;
+}
