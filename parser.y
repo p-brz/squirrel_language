@@ -55,7 +55,7 @@
 %token <sValue> REAL_LITERAL BOOLEAN_LITERAL
 %token ENUM STRUCT FUNCTION
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
-%token ARRAY_SYMBOL
+%token ARRAY_SYMBOL NEW
 %token PRINT RETURN
 %token <sValue> STRING_LITERAL 
 %token SEMICOLON COMMA COLON DOT
@@ -339,7 +339,10 @@ value           : NUMBER                            {   $$ = intToString(yylval.
                     | array_literal                 {   $$ = $1; };
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
-                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");};
+                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
+                    | NEW type 
+                        LBRACKET expr RBRACKET      {   const char * values[] = {"new ", $2, "[", $4, "]"};
+                                                        $$ = concat_n(5, values);};
 
 member          : ID                                {   $$ = $1;}
                     | member DOT ID                 {   $$ = concat3($1,".",$3);};

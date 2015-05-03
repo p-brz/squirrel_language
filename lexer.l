@@ -45,6 +45,8 @@
 "<="                                {return(MINOREQUAL);}
 ">="                                {return(BIGGEREQUAL);}
 
+"new"                               {return NEW;}
+
 "typeof"                            {return(TYPEOF);}
 "caststo"                           {return(CASTSTO);}
 "typename"                          {return(TYPENAME);}
