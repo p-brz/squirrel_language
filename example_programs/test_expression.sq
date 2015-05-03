@@ -1,8 +1,8 @@
 int main()
 {
-	int[10] x;
+	int[] x = [10,10,10];
 
-	x.length;
+    print("x.length: ", x.lenght);
 
 	return 0;
 }

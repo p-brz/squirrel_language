@@ -99,7 +99,7 @@
 %type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
 %type <sValue> call_expr
 %type <sValue> array_literal index_access 
-%type <sValue> type_or_expr type_expr non_user_type
+%type <sValue> type_or_expr type_expr
 
 %start program
 
