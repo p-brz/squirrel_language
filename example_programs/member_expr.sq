@@ -1,0 +1,33 @@
+struct SomeStruct{
+    int value;
+    string[] names;
+}
+
+SomeStruct structFunction(){
+    return SomeStruct{value:0};
+}
+
+SomeStruct[] structArrayFunction(){
+    return [SomeStruct{value:1}, SomeStruct{value:2}, SomeStruct{value:3}];
+}
+
+SomeStruct[] structsWithNames(){
+    SomeStruct reference = SomeStruct{value:100, names : ["nome1", "nome2", "nome3"]};
+    return [clone(reference), clone(reference)];
+}
+
+int main(){
+    SomeStruct[] structArray = structArrayFunction();
+
+    int v1 = structArray[0].value;
+    int v2 = structArrayFunction()[1].value;
+    int v3 = structFunction().value;
+    string name = structsWithNames()[1].names[1];
+    
+    print("v1: ", v1);
+    print("v2: ", v2);
+    print("v3: ", v3);
+    print("name: ", name);
+    
+    return 0;
+}

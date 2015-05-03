@@ -2,7 +2,11 @@ void printArray(int[] array){
 }
 
 int main(){
-    int[] emptyArray = [10, 11, 12];
-    int[10] allocatedArray;
+    int[] array1 = [10, 11, 12];
+    int[] array2 = [10];
+    
+    print("tamanho array1:", array.length);
+    print("tamanho array2:", array2.length);
+    
     return 0;
 }

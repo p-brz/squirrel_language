@@ -1,0 +1,50 @@
+void printFloatArray(float[] arr){
+
+}
+void printFloatMatrix(float[] arr){
+
+}
+
+int main(string[] args){
+    float[] realNumbers = [ 0.1, 10, 11.000007];
+    float[][] matrix = [[0, 100.1], [10], [0],[0, 11]];
+    
+    float[] sliceArray     = realNumbers[0 : 2];
+    float[] fullSlice      = realNumbers[:];
+    float[] afterTheFirst  = realNumbers[1:];
+    float[] untilTheSecond = realNumbers[:2];
+    float[] emptySlice1    = realNumbers[0:0];
+    float[] emptySlice2    = realNumbers[1:1];
+    float[] emptySlice3    = realNumbers[100:200];
+    float[] emptySlice4    = realNumbers[2:1];
+    
+    float[][] matrixSlice = matrix[1:3];
+    float[][] fullMatrix  = matrix[0:4];
+    float[][] fullMatrix2 = matrix[0:matrix.length];
+    float[][] firstRow    = matrix[0:1];
+    float[][] lastTwoRows = matrix[2:4];
+    
+    float[][] sliceOfSlice = matrix[0:3][1:3];
+    float[] sliceOfSliceIndex = matrix[0:3][1][0:1];
+    
+    printFloatArray(sliceArray);
+    printFloatArray(fullSlice);
+    printFloatArray(afterTheFirst);
+    printFloatArray(untilTheSecond);
+    printFloatArray(emptySlice1);
+    printFloatArray(emptySlice2);
+    printFloatArray(emptySlice3);
+    printFloatArray(emptySlice4);
+    
+    printFloatMatrix(matrixSlice);
+    printFloatMatrix(fullMatrix);
+    printFloatMatrix(fullMatrix2);
+    printFloatMatrix(firstRow);
+    printFloatMatrix(lastTwoRows);
+    
+    printFloatMatrix(sliceOfSlice);
+
+    printFloatArray(sliceOfSliceIndex);
+    
+    return 0;
+}
