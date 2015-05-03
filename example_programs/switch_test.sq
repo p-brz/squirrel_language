@@ -18,8 +18,8 @@ boolean verifyResponse(const string response){
 
 int main(){
     for(int i=0; i < 10; ++i){
+        print("i é: ", i);
         switch(){
-            print("i é: ", i);
             when(i==0){
                 print("Este bloco deve ser executado apenas quando i == 0");
             }

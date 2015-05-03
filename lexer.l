@@ -85,9 +85,26 @@
 "struct"                            {return STRUCT;}
 "function"                          {return FUNCTION;}
 
-"int"                               {return INT;}
 "print"                             {return PRINT;}
+"readline"                          {return READLINE;}
+"readchar"                          {return READCHAR;}
+"read"                              {return READ;}
+
+"for"                               {return FOR;}
+"if"                                {return IF;}
+"else"                              {return ELSE;}
+"do"                                {return DO;}
+"while"                             {return WHILE;}
+"switch_value"                      {return SWITCH_VALUE;}
+"switch"                            {return SWITCH;}
+"when"                              {return WHEN;}
+"default"                           {return DEFAULT;}
+"try"                               {return TRY;}
+"catch"                             {return CATCH;}
+"throw"                             {return THROW;}
 "return"                            {return RETURN;}
+"break"                             {return BREAK;}
+
 ":"                                 {return COLON;}
 ";"                                 {return SEMICOLON;}
 ","                                 {return COMMA;}

@@ -36,6 +36,10 @@
         
         return strConcat;
     }
+    char  * concat4(const char * str1, const char * str2, const char * str3, const char * str4){
+        const char * values[] = {str1, str2, str3, str4};        
+        return concat_n(4, values);
+    }
     char * intToString(int value){
         char tmp[30];
         sprintf(tmp, "%d", value);
@@ -53,13 +57,16 @@
 %token <sValue> ID
 %token <iValue> NUMBER
 %token <sValue> REAL_LITERAL BOOLEAN_LITERAL
-%token ENUM STRUCT FUNCTION
-%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
-%token ARRAY_SYMBOL NEW
-%token PRINT RETURN
 %token <sValue> STRING_LITERAL 
+
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token SEMICOLON COMMA COLON DOT
+%token ARRAY_SYMBOL NEW
+
+%token ENUM STRUCT FUNCTION
 %token NAMESPACE
+
+%token PRINT READ READCHAR READLINE
 
 %token PLUS MINUS TIMES DIVIDE MOD OU OR BITOR BITAND EE AND PLUSPLUS MINUSMINUS SHIFTL SHIFTR EQUAL DIFERENT MINOR BIGGER MINOREQUAL BIGGEREQUAL EXCLAMATION TIO NOT
 
@@ -69,16 +76,22 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
+%token TYPEOF TYPENAME CASTSTO
 
 %token CLONE LENGTH
 
+%token FOR IF ELSE WHILE DO WHEN TRY CATCH SWITCH SWITCH_VALUE DEFAULT 
+%token RETURN BREAK THROW
+
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
-%type <sValue> assignment inline_statement return_statement statement_list
+%type <sValue> statement_list statement inline_statement std_statement block_statement 
+%type <sValue> assignment return_statement
 
-%type <sValue> block_body block_stmt_list struct_body block_statement for_statement for_expr
+%type <sValue> block_body block_stmt_list struct_body 
+%type <sValue> for_statement for_header for_expr
+%type <sValue> switch_header
 
-%token TYPEOF TYPENAME CASTSTO
 
 %type <sValue> function_call member_call io_command
 %type <sValue> func_params function
@@ -208,25 +221,27 @@ member_init_list    :   /*vazio*/                               {   $$ = "";}
 member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
-block_body       : LBRACE block_stmt_list RBRACE                {   char * begin_block = concat("{\n", $2);
+block_body      : LBRACE block_stmt_list RBRACE                {   char * begin_block = concat("{\n", $2);
                                                                     $$ = concat(begin_block, "}\n"); };
 
-block_stmt_list  : /* Vazio */                                  {   $$ = ""; }
+block_stmt_list : /* Vazio */                                  {   $$ = ""; }
                     | statement_list                            {   $$ = $1; };
 
-statement_list   : statement	                         {   $$ = concat($1, "\n");}
-                    | statement_list statement		 {   char * line1 = $1;
-                                                                    char * line2 = concat($2, ";\n");
-                                                                    $$ = concat(line1,line2); };
-statement 	 : block_statement {}
-		   | inline_statement SEMICOLON {};
+statement_list  : statement	                         {   $$ = concat($1, "\n");}
+                    | statement_list statement		 {   $$ = concat3($1,$2,"\n"); };
+                                                                    
+statement       : block_statement                               {   $$ = $1;}
+		            | inline_statement SEMICOLON                {   $$ = concat($1, ";");};
 
-inline_statement : function_call                                {   $$ = $1; }
+inline_statement : std_statement                                {   $$ = $1;}
                     | return_statement                          {   $$ = $1; }
+                    | THROW                                     {   $$ = strdup("throw"); }
+                    | BREAK                                     {   $$ = strdup("break"); };
+
+std_statement    : function_call                                {   $$ = $1; }
                     | variables_decl                            {   $$ = $1; }
                     | assignment                                {   $$ = $1; }
                     | inc_stmt                                  {   $$ = $1; };
-
 
 inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
                     | inc_op lvalue_term { $$ = concat($1, $2);};
@@ -246,14 +261,14 @@ member_call      : member LPAREN expr_list RPAREN               {   const char *
                                                                     $$ = concat_n(4, values); };
 
 io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
-                    | "read" LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
-                    | "readchar" LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
-                    | "readline" LPAREN RPAREN                  {   $$ = strdup("readline()"); };
+                    | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
+                    | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
+                    | READLINE LPAREN RPAREN                  {   $$ = strdup("readline()"); };
 
 
 return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
                    | RETURN                                     {   $$ = strdup("return ");};
-
+                   
 assignment       : lvalue_term assignment_op expr { $$ = concat3($1, $2, $3);};
 
 variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
@@ -346,7 +361,8 @@ value           : NUMBER                            {   $$ = intToString(yylval.
                     | REAL_LITERAL                  {   $$ = strdup($1); }
                     | STRING_LITERAL                {   $$ = strdup($1); }
                     | BOOLEAN_LITERAL               {   $$ = strdup($1); }
-                    | array_literal                 {   $$ = $1; };
+                    | array_literal                 {   $$ = $1; }
+                    | SWITCH_VALUE                  {   $$ = strdup("switch_value");};
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
                     | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
@@ -399,59 +415,59 @@ operator        :   PLUS                            { $$ = strdup("+");}
 
                  /* ********************** BLOCK STATEMENTS *********************** */
 
-block_statement :         for       		{printf("%s", $1);}
-			| if       		{printf("%s", $1);}
-			| while     		{printf("%s", $1);}
-			| do_while  		{printf("%s", $1);} 
-			| try_catch 		{printf("%s", $1);}
-			| switch    		{printf("%s", $1);};
+block_statement : for       		{$$ = $1;}
+			        | if       		{$$ = $1;}
+			        | while         {$$ = $1;}
+			        | do_while      {$$ = $1;} 
+			        | try_catch     {$$ = $1;}
+			        | switch        {$$ = $1;};
 
 
-for             :   "for" "(" for_statement ";" for_expr ";" for_statement ")" block_body {const char * values[] = {"for(",$3,";", $5, ";",$7 ,")",$9 };
-                                                        					$$ = concat_n(8, values);};
-for_statement   :                               {$$ = " "}
-			| /*std_statement*/inc_stmt         {$$ = $1};
+for             : FOR for_header block_body     {$$ = concat3("for", $2, $3);};
+                                                        					
+for_header      : LPAREN 
+                    for_statement SEMICOLON 
+                    for_expr      SEMICOLON 
+                    for_statement 
+                  RPAREN                        {   const char * values[] = {"(",$2,";", $4, ";",$6 ,")"};
+                                                    $$ = concat_n(7, values);};
+                                        
+                                                    
+for_statement   : /*Vazio*/                     {$$ = "";}
+			        | std_statement             {$$ = $1;};
 
-for_expr        :                               {$$ = " "}
-			| binary_expr           {$$ = $1};
+for_expr        : /*Vazio*/                     {$$ = " ";}
+			        | binary_expr               {$$ = $1;};
 
-if 		: if_block				{$$ = $1}
-    		        | if_block "else" block_body	{const char * values[] = {$1, "else", $3};
-                                                        $$ = concat_n(3, values);}
-   			| if_block "else" if		{const char * values[] = {$1, "else", $3};
-                                                        $$ = concat_n(3, values);};
+if 		        : if_block				        { $$ = $1;}
+    		        | if_block ELSE block_body	{ $$ = concat3($1, "\nelse ", $3);}
+   			        | if_block ELSE if		    { $$ = concat3($1, "\nelse ", $3);};
 
-if_block 	: "if" conditional_test block_body 	{const char * values[] = {"if", $2, $3};
-                                                        $$ = concat_n(3, values);};
+if_block 	    : IF conditional_test block_body 	        {   $$ = concat3("if", $2, $3);};
 
-while 		: "while" conditional_test block_body  {const char * values[] = {"while", $2, $3};
-                                                        $$ = concat_n(3, values);};
+while 		    : WHILE conditional_test block_body         {   $$ = concat3("while", $2, $3);};
 
-do_while        : "do" block_body "while" conditional_test ";"   {const char * values[] = {"do",$2,"while", $4, ";"};
-                                                        $$ = concat_n(5, values);};
+do_while        : DO block_body 
+                    WHILE conditional_test SEMICOLON        {   const char * values[] = {"do",$2," while", $4, ";"};
+                                                                $$ = concat_n(5, values);};
 
-try_catch 	: "try" block_body "catch" block_body   {const char * values[] = {"try",$2,"catch", $4};
-                                                        $$ = concat_n(4, values);};
+try_catch 	    : TRY block_body CATCH block_body           {   $$ = concat4("try",$2,"catch", $4);};
 
-switch          : "switch" "(" expr ")" "{" switch_body "}"  {const char * values[] = {"switch (", $3, ") {", $6};
-                                                        $$ = concat_n(4, values);};
+switch          : switch_header LBRACE switch_body RBRACE   {   $$ = concat4($1, "{\n", $3, "\n}");};
 
-switch_body 	: when_list				{$$ = $1;}
-		| when_list default_block		{const char * values[] = {$1, $2};
-                                                        $$ = concat_n(2, values);};
+switch_header   : SWITCH LPAREN opt_expr RPAREN             {   $$ = concat3("switch(", $3, ")");};
 
-when_list       : when_block				{$$ = $1;}
-	        | when_list when_block			{const char * values[] = {$1, $2};
-                                                        $$ = concat_n(2, values);};
+switch_body 	: when_list				                    {   $$ = $1;}
+		            | when_list default_block		        {   $$ = concat($1, $2);};
 
-when_block 	: "when" conditional_test block_body    {const char * values[] = {"when", $2, $3};
-                                                        $$ = concat_n(3, values);};
+when_list       : when_block				                {   $$ = $1;}
+	                | when_list when_block			        {   $$ = concat($1, $2);};
 
-default_block   : "default" block_body                  {const char * values[] = {"default", $2};
-                                                        $$ = concat_n(2, values);};
+when_block 	    : WHEN conditional_test block_body          {   $$ = concat3("when", $2, $3);};
 
-conditional_test : "(" binary_expr ")"			{const char * values[] = {"(", $2, ")"};
-                                                        $$ = concat_n(3, values);};
+default_block   : DEFAULT block_body                        {   $$ = concat("default", $2);};
+
+conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")");};
 %%
 
 int main (void) {return yyparse ( );}
