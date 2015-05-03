@@ -22,17 +22,16 @@
 "]"                                 {return RBRACKET;}
 
 "="                                 {return ASSIGN;}
-"+="				    {return ASSIGNPLUS;}
-"-="				    {return ASSIGNMINUS;}
-"/="				    {return ASSIGNDIVIDE;}
-"%="				    {return ASSIGNMOD;}
-"~="				    {return ASSIGNTIO;}
-"|="			  	    {return ASSIGNBITOR;}
-"&="				    {return ASSIGNBITAND;}
+"+="                                {return ASSIGNPLUS;}
+"-="                                {return ASSIGNMINUS;}
+"/="                                {return ASSIGNDIVIDE;}
+"%="                                {return ASSIGNMOD;}
+"|="                                {return ASSIGNBITOR;}
+"&="                                {return ASSIGNBITAND;}
 
-"!"				    {return EXCLAMATION;}
-"~"				    {return TIO;}
-"not"				    {return NOT;}
+"!"                                 {return EXCLAMATION;}
+"not"                               {return NOT;}
+"~"                                 {return TIO;}
 
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
