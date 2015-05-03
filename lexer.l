@@ -10,6 +10,10 @@
 [1-9][0-9]*"."[0-9]+                {yylval.sValue = yytext; return REAL_LITERAL;}
 0                                   {yylval.iValue = atoi(yytext); return NUMBER;}
 [1-9][0-9]*                         {yylval.iValue = atoi(yytext); return NUMBER;}
+
+"true"                              {yylval.sValue = yytext; return BOOLEAN_LITERAL;}
+"false"                             {yylval.sValue = yytext; return BOOLEAN_LITERAL;}
+
 "("                                 {return LPAREN;}
 ")"                                 {return RPAREN;}
 "{"                                 {return LBRACE;}
@@ -52,6 +56,12 @@
 "<="                                {return(MINOREQUAL);}
 ">="                                {return(BIGGEREQUAL);}
 
+"new"                               {return NEW;}
+
+"typeof"                            {return(TYPEOF);}
+"caststo"                           {return(CASTSTO);}
+"typename"                          {return(TYPENAME);}
+
 "const"                             {return(CONST);}
 "ref"                               {return(REF);}
 
@@ -67,8 +77,8 @@
 "object"                            {return(OBJECT);}
 "type"                              {return(TYPE);}
 
-"clone"				    {return(CLONE);}
-"length"			    {return(LENGTH);}
+"clone"                             {return(CLONE);}
+"length"                            {return(LENGTH);}
 
 "namespace"                         {return NAMESPACE;}
 "enum"                              {return ENUM;}

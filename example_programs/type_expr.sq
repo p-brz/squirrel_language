@@ -1,0 +1,16 @@
+enum Moeda{Cara, Coroa}
+
+int main(){
+    type t1 = typeof(int);
+    type t2 = typeof(1 * 0.5);
+        
+    print("t1: ", typename(t1));
+    print("t2: ", typename(t2));
+    print("enum Moeda: ", typename(Moeda));
+
+    print("t1 casts to t2 ? ", t1 caststo(t2) );
+    print("enum Moeda casts to string? ", Moeda caststo(string) );
+    print("boolean caststo ( 1 caststo(double) )? ", boolean caststo( 1 caststo(double) ) );
+
+    return 0;
+}
