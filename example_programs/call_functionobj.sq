@@ -1,0 +1,41 @@
+function void PrintFunction()
+
+struct StructWithFunction{
+    PrintFunction f;
+}
+
+void printA(){
+    print("A");
+}
+void printB(){
+    print("B");
+}
+void printC(){
+    print("C");
+}
+void printD(){
+    print("D");
+}
+void printE(){
+    printE("E");
+}
+
+PrintFunction functionFactory(){
+    return printE;
+}
+
+
+int main(){
+    PrintFunction[] functionArray = [printA, printB, printC];
+
+    StructWithFunction printable = StructWithFunction{f : printD};
+
+    (functionArray[2])();
+    functionArray[0]();
+    functionArray[1]();
+    functionArray[2]();
+    printable.f();
+    functionFactory()();
+
+    return 0;
+}

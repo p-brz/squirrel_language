@@ -36,6 +36,12 @@
         
         return strConcat;
     }
+    
+    char  * concat4(const char * str1, const char * str2, const char * str3, const char * str4){
+        const char * values[] = {str1, str2, str3, str4};
+        
+        return concat_n(4, values);
+    }
     char * intToString(int value){
         char tmp[30];
         sprintf(tmp, "%d", value);
@@ -76,7 +82,7 @@
 %type <sValue> assignment inline_statement return_statement statement_list
 
 %type <sValue> block_body block_stmt_list struct_body
-%type <sValue> function_call member_call io_command
+%type <sValue> function_call lvalue_call io_command
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
 
@@ -220,18 +226,11 @@ inline_statement : function_call                                {   $$ = $1; }
 inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
                     | inc_op lvalue_term { $$ = concat($1, $2);};
 
-/*
-index_access     : term LBRACKET expr RBRACKET            { const char *value[] = {$1, "[", $3, "]"}; 
-                                                            $$ = concat_n(4, value);}
-                 | term LBRACKET expr COLON expr RBRACKET { const char *value[] = {$1, "[", $3, ":", $5, "]"}; 
-                                                            $$ = concat_n(6, value);};
-
-*/
-
-function_call    : member_call                                  {   $$ = $1;}
-                    | io_command                                {   $$ = $1;};
+function_call    : lvalue_call                                  {   $$ = $1;}
+                    | io_command                                {   $$ = $1;}
+                    | rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
                     
-member_call      : member LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
+lvalue_call      : lvalue_term LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
 io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
@@ -306,8 +305,8 @@ rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")")
                     | length_expr                   {   $$ = $1;}
                     | slice_expr                    {   $$ = $1;};
 
-call_expr       :   io_command                                  {   $$ = $1;}
-                        | member_call                           {   $$ = $1; }
+call_expr       :   function_call                               {   $$ = $1; }
+                        /* Casts*/
                         | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); }
                         | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
