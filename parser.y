@@ -60,9 +60,9 @@
 %token <sValue> STRING_LITERAL 
 %token SEMICOLON COMMA COLON DOT
 %token NAMESPACE
-%token PLUS MINUS TIMES DIVIDE MOD OU OR BITOR BITAND EE AND PLUSPLUS MINUSMINUS SHIFTL SHIFTR EQUAL DIFERENT MINOR BIGGER MINOREQUAL BIGGEREQUAL
+%token PLUS MINUS TIMES DIVIDE MOD OU OR BITOR BITAND EE AND PLUSPLUS MINUSMINUS SHIFTL SHIFTR EQUAL DIFERENT MINOR BIGGER MINOREQUAL BIGGEREQUAL EXCLAMATION TIO NOT
 
-%token ASSIGN
+%token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNDIVIDE ASSIGNMOD ASSIGNTIO ASSIGNBITOR ASSIGNBITAND
 %token CONST REF
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
@@ -331,12 +331,23 @@ member          : ID                                {   $$ = $1;}
 
 /* ********************************* OPERATORS ********************************************* */
 
-assignment_op   : ASSIGN { $$ = strdup("="); };
+assignment_op   : ASSIGN 		{ $$ = strdup("=");}
+		 |ASSIGNPLUS 		{ $$ = strdup("+=");}
+		 |ASSIGNMINUS 		{ $$ = strdup("-=");}
+		 |ASSIGNDIVIDE 		{ $$ = strdup("/=");}
+		 |ASSIGNMOD	 	{ $$ = strdup("%=");}
+		 |ASSIGNTIO 		{ $$ = strdup("~=");}
+		 |ASSIGNBITOR 		{ $$ = strdup("|=");}
+		 |ASSIGNBITAND 		{ $$ = strdup("&=");};
 
 inc_op : PLUSPLUS       { $$ = strdup("++");}
          | MINUSMINUS   { $$ = strdup("--");};
 
-unary_pre_op : inc_op { $$ = $1; };
+unary_pre_op : inc_op { $$ = $1; }
+	            |EXCLAMATION	{ $$ = strdup("!");}
+	            |NOT 		{ $$ = strdup("not");}
+ 	            |TIO		{ $$ = strdup("~");}
+	            |MINUS 		{ $$ = strdup("-");};
 
 operator        :   PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}

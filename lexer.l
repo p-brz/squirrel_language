@@ -18,6 +18,17 @@
 "]"                                 {return RBRACKET;}
 
 "="                                 {return ASSIGN;}
+"+="				    {return ASSIGNPLUS;}
+"-="				    {return ASSIGNMINUS;}
+"/="				    {return ASSIGNDIVIDE;}
+"%="				    {return ASSIGNMOD;}
+"~="				    {return ASSIGNTIO;}
+"|="			  	    {return ASSIGNBITOR;}
+"&="				    {return ASSIGNBITAND;}
+
+"!"				    {return EXCLAMATION;}
+"~"				    {return TIO;}
+"not"				    {return NOT;}
 
 "+"                                 {return(PLUS);}
 "-"                                 {return(MINUS);}
