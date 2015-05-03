@@ -67,6 +67,8 @@
 
 %token VOID BYTE SHORT INT LONG FLOAT DOUBLE BOOLEAN STRING OBJECT TYPE
 
+%token TYPEOF TYPENAME CASTSTO
+
 %token CLONE LENGTH
 
 %type <sValue> declaration declaration_list
@@ -97,6 +99,7 @@
 %type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
 %type <sValue> call_expr
 %type <sValue> array_literal index_access 
+%type <sValue> type_or_expr type_expr non_user_type
 
 %start program
 
@@ -269,11 +272,22 @@ expr_list       : /* Vazio */                       {   $$ = "";}
                     | expr                          {   $$ = $1;}
                     | expr_list COMMA expr          {   $$ = concat(concat($1, ","), $3);};
 
-expr            : binary_expr                       {   $$ = $1;};
+expr            : binary_expr                       {   $$ = $1;}
+                    | type_expr                     {   $$ = $1;};
 
 binary_expr     : unary_pos_expr                              {   $$ = $1;}
                     | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, $2, $3};
                                                                   $$ = concat_n(3, values);};
+                                                                  
+type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   $$ = concat3("typeof(", $3, ")");}
+                    | TYPENAME LPAREN type_or_expr RPAREN     {   $$ = concat3("typename(", $3, ")");}
+                    | type_or_expr 
+                        CASTSTO LPAREN type_or_expr RPAREN    {   const char * values[] = {$1, " caststo(", $4, ")"};
+                                                                  $$ = concat_n(4, values);};
+
+type_or_expr    :   expr                                      {   $$ = $1;}
+                    | array_type                              {   $$ = $1;}
+                    | primitive_type                          {   $$ = $1;};
 
 unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
                     | unary_pre_expr inc_op         {   $$ = concat($1, $2);};

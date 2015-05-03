@@ -45,6 +45,10 @@
 "<="                                {return(MINOREQUAL);}
 ">="                                {return(BIGGEREQUAL);}
 
+"typeof"                            {return(TYPEOF);}
+"caststo"                           {return(CASTSTO);}
+"typename"                          {return(TYPENAME);}
+
 "const"                             {return(CONST);}
 "ref"                               {return(REF);}
 
