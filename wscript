@@ -19,7 +19,8 @@ def configure(conf):
 def build(bld):
 	bld(
 		features = 'c cprogram',
-		source = ['lexer.l','parser.y'],
+		source = ['lexer.l','parser.y'] + bld.path.ant_glob('src/**/*.c'),
+		includes = ['src'],
 		target = PARSER_NAME,
 		use='FLEX')
 		

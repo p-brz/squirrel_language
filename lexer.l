@@ -8,8 +8,8 @@
 [ \t\n]                             ;
 0\.[0-9]+                           {yylval.sValue = yytext; return REAL_LITERAL;}
 [1-9][0-9]*"."[0-9]+                {yylval.sValue = yytext; return REAL_LITERAL;}
-0                                   {yylval.iValue = atoi(yytext); return NUMBER;}
-[1-9][0-9]*                         {yylval.iValue = atoi(yytext); return NUMBER;}
+0                                   {yylval.sValue = yytext; return NUMBER;}
+[1-9][0-9]*                         {yylval.sValue = yytext; return NUMBER;}
 
 "true"                              {yylval.sValue = yytext; return BOOLEAN_LITERAL;}
 "false"                             {yylval.sValue = yytext; return BOOLEAN_LITERAL;}

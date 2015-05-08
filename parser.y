@@ -4,58 +4,17 @@
 #include <string.h> //strlen, strcat, ...
 #include <stdlib.h> //malloc
 
-    char  * concat(const char * str1, const char * str2){
-        char * strConcat = malloc(strlen(str1) + strlen(str2) + 1);
-        
-        if(strConcat == NULL){
-            return "";
-        }
-        
-        strcpy(strConcat, str1);
-        strcat(strConcat, str2);
-        return strConcat;
-    }
-    char  * concat3(const char * str1, const char * str2, const char * str3){
-        char * strCat1 = concat(str1, str2);
-        char * strCat2 = concat(strCat1, str3);
-        free(strCat1);
-        return strCat2;
-    }
-    char  * concat_n(int size, const char ** values){
-        if(size <= 0){
-            return "";
-        }
-        
-        char * strConcat = strdup(values[0]);
-        int i;
-        for(i=1; i < size; ++i){
-            char * new_concat = concat(strConcat, values[i]);
-            free(strConcat);
-            strConcat = new_concat;
-        }
-        
-        return strConcat;
-    }
-    char  * concat4(const char * str1, const char * str2, const char * str3, const char * str4){
-        const char * values[] = {str1, str2, str3, str4};
-        return concat_n(4, values);
-    }
-    char * intToString(int value){
-        char tmp[30];
-        sprintf(tmp, "%d", value);
-        return strdup(tmp);
-    }
+#include "squirrel.h"
 
 %}
 
 %union {
-    int    iValue;     /* integer value */
-    char   cValue;     /* char value */
     char * sValue;  /* string value */
+    Expression * eValue;
     };
 
 %token <sValue> ID
-%token <iValue> NUMBER
+%token <sValue> NUMBER
 %token <sValue> REAL_LITERAL BOOLEAN_LITERAL
 %token <sValue> STRING_LITERAL 
 
@@ -98,7 +57,9 @@
 %type <sValue> func_params function
 %type <sValue> param_decl_list param_decl type_decl
 
-%type <sValue> expr expr_list
+%type <eValue> expr_list
+
+%type <sValue> expr
 %type <sValue> binary_expr
 %type <sValue> unary_pre_expr unary_pos_expr
 %type <sValue> term rvalue_term value
@@ -242,13 +203,13 @@ inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
                     | inc_op lvalue_term { $$ = concat($1, $2);};
 
 function_call    : lvalue_call                                  {   $$ = $1;}
-                    | io_command                                {   $$ = $1;}
-                    | rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
+                      |io_command                                {   $$ = $1;};
+                    //| rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
                     
-lvalue_call      : lvalue_term LPAREN expr_list RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
+lvalue_call      : lvalue_term LPAREN expr /*expr_list*/ RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
-io_command       : PRINT LPAREN expr_list RPAREN                {   $$ = concat(concat("print(", $3), ")"); }
+io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", sq_exprToStr($3), ")");}
                     | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
                     | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
                     | READLINE LPAREN RPAREN                  {   $$ = strdup("readline()"); };
@@ -282,9 +243,9 @@ type_modifier : CONST { $$ = strdup("const");}
                 | REF { $$ = strdup("ref");};
 
 /* ********************************* EXPRESSIONS ********************************************* */
-expr_list       : /* Vazio */                       {   $$ = "";}
-                    | expr                          {   $$ = $1;}
-                    | expr_list COMMA expr          {   $$ = concat(concat($1, ","), $3);};
+expr_list       : /* Vazio */                                   {   $$ = NULL;}
+                    | NUMBER /*expr*/                           {   $$ = sq_createExpression(type_int, $1);};
+                    //| expr_list COMMA NUMBER/*expr*/            {   $$ = concat(concat($1, ","), $3);};
 
 expr            : binary_expr                       {   $$ = $1;}
                     | type_expr                     {   $$ = $1;};
@@ -346,15 +307,15 @@ lvalue_term     :  member                           { $$ = $1;}
 index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = {$1, "[", $3, "]"};
                                                         $$ = concat_n(4, values);};
 
-value           : NUMBER                            {   $$ = intToString(yylval.iValue);} 
+value           : NUMBER                            {   $$ = strdup($1); } 
                     | REAL_LITERAL                  {   $$ = strdup($1); }
                     | STRING_LITERAL                {   $$ = strdup($1); }
                     | BOOLEAN_LITERAL               {   $$ = strdup($1); }
-                    | array_literal                 {   $$ = $1; };
+                    | array_literal                 {   $$ = $1; }
                     | SWITCH_VALUE                  {   $$ = strdup("switch_value");};
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
-                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
+                    //| LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
                     | NEW type 
                         LBRACKET expr RBRACKET      {   const char * values[] = {"new ", $2, "[", $4, "]"};
                                                         $$ = concat_n(5, values);};
@@ -456,7 +417,6 @@ when_block 	    : WHEN conditional_test block_body          {   $$ = concat3("wh
 default_block   : DEFAULT block_body                        {   $$ = concat("default", $2);};
 
 conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")");};
-
 %%
 
 int main (void) {return yyparse ( );}
