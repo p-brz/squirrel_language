@@ -5,6 +5,9 @@
 #include <stdlib.h> //malloc
 
 #include "squirrel.h"
+#include "hashtable.h"
+
+hashtable * symbolTable;
 
 %}
 
@@ -218,7 +221,11 @@ io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("
 return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
                    | RETURN                                     {   $$ = strdup("return ");};
 
-assignment       : lvalue_term assignment_op expr               {   const char *values[] = {$1, " ", $2, " ", $3};
+assignment       : lvalue_term assignment_op expr               {   void * lValueTerm = hashtable_get(symbolTable, $1);
+                                                                    if(lValueTerm != NULL){
+                                                                        printf("On assignment, found var: %s \n", $1);
+                                                                    }
+                                                                    const char *values[] = {$1, " ", $2, " ", $3};
                                                                     $$ = concat_n(5, values);
                                                                 };
 
@@ -231,8 +238,10 @@ name_decl_list   : name_decl                                    {   $$ = $1; }
                     | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
                                                                     $$ = concat_n(3, values);};
 
-name_decl         : ID                                          {   $$ = $1; }
-                    | ID ASSIGN expr                            {   const char *values[] = {$1, " = ", $3}; 
+name_decl         : ID                                          {   hashtable_set(symbolTable, $1, "variable"); 
+                                                                    $$ = $1; }
+                    | ID ASSIGN expr                            {   hashtable_set(symbolTable, $1, "variable");
+                                                                    const char *values[] = {$1, " = ", $3}; 
                                                                     $$ = concat_n(3, values);};
 
 type_modifier_list : type_modifier                              {   $$ = $1; }
@@ -419,6 +428,9 @@ default_block   : DEFAULT block_body                        {   $$ = concat("def
 conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")");};
 %%
 
-int main (void) {return yyparse ( );}
+int main (void) {
+    symbolTable = hashtable_create();
+    return yyparse ( );
+}
 
 int yyerror (char *s) {fprintf (stderr, "%s\n", s);}

@@ -1,4 +1,4 @@
-#ifndef SQUIRREL_H	
+#ifndef SQUIRREL_H
 #define SQUIRREL_H
 
 char  * concat(const char * str1, const char * str2);
@@ -10,7 +10,7 @@ char  * intToString(int value);
 
 typedef enum {type_int} sq_type;
 
-typedef struct Expression{
+typedef struct {
     sq_type type;
     char *expr;
 }Expression;

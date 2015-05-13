@@ -1,4 +1,5 @@
 %{
+  #include "squirrel.h"
   #include "y.tab.h"
 %}
 
