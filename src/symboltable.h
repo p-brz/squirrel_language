@@ -45,6 +45,7 @@ typedef struct {
 
 typedef struct {
     TableRow * type;
+    bool isConst;
     //?escopo
 }VariableRow;
 
@@ -78,6 +79,9 @@ typedef struct TableRow{
 //Construtor de table row 
 //TODO: incluir valor de TableRow (TableRowValue)
 TableRow * sq_TableRow(Category category);
+
+/** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
+hashtable * sq_createSymbolTable();
 
 /** Insere na tabela de símbolos (symbolTable) uma lista de nomes de variáveis (nameDeclList), 
     declaradas com um mesmo tipo (type)*/

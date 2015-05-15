@@ -497,7 +497,7 @@ conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")"
 %%
 
 int main (void) {
-    symbolTable = hashtable_create();
+    symbolTable = sq_createSymbolTable();
     
     int exitCode =  yyparse ( );
     
