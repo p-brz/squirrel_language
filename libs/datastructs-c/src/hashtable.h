@@ -1,3 +1,6 @@
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
+
 /* This file was automatically generated.  Do not edit! */
 typedef struct hashtable hashtable;
 void hashtable_destroy(hashtable *t);
@@ -20,3 +23,5 @@ struct hashtable_entry {
 	void* value;
 };
 #define INTERFACE 0
+
+#endif

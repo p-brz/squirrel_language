@@ -6,15 +6,72 @@
 
 #include "squirrel.h"
 #include "hashtable.h"
+#include "arraylist.h"
 
 hashtable * symbolTable;
+
+char * tableRowToString(TableRow * row){
+    switch(row->category){
+        case categ_primitiveType:
+            return cpyString("primitive");
+        case categ_structType:
+            return cpyString("struct");
+        case categ_functionType:
+            return cpyString("function type");
+        case categ_enumType:
+            return cpyString("enum");
+        case categ_function:
+            return cpyString("function");
+        case categ_variable:
+            return cpyString("variable");
+        case categ_namespace:
+            return cpyString("namespace");
+        default:
+            return NULL;
+    }
+    
+}
+
+void dumpRow(char * key, void * value){
+    printf("%s \t-->\t ", key);
+    if(value == NULL){
+        printf("NULL");
+    }
+    else{
+        TableRow * row = (TableRow *)value;
+        char * rowStr = tableRowToString(row);
+        if(rowStr != NULL){
+            printf("%s",rowStr);
+            free(rowStr);
+        }
+    }
+    
+    printf("\n");
+}
+void dumpSymbolTable(){
+    printf("\n\n-----------------HASHTABLE-----------------\n");
+    if(symbolTable != NULL){
+        int i;
+        for(i=0; i < symbolTable->capacity; ++i){
+            char * key = symbolTable->body[i].key;
+            if(key != NULL){
+                void * value = symbolTable->body[i].value;
+                dumpRow(key, value);
+            }
+        } 
+    
+    }
+}
+
 
 %}
 
 %union {
     char * sValue;  /* string value */
     Expression * eValue;
-    };
+    NameList * namesValue;
+    NameDeclItem * nameDeclValue;    
+};
 
 %token <sValue> ID
 %token <sValue> NUMBER
@@ -54,7 +111,6 @@ hashtable * symbolTable;
 %type <sValue> for_statement for_header for_expr
 %type <sValue> switch_header
 
-
 %type <sValue> function_call lvalue_call io_command
 
 %type <sValue> func_params function
@@ -69,7 +125,7 @@ hashtable * symbolTable;
 
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
-%type <sValue> attribute_list variables_decl name_decl_list name_decl
+%type <sValue> attribute_list variables_decl
 %type <sValue> type_modifier_list type_modifier
 %type <sValue> type simple_type array_type primitive_type
 
@@ -85,10 +141,14 @@ hashtable * symbolTable;
 %type <sValue> array_literal index_access 
 %type <sValue> type_or_expr type_expr
 
+%type <namesValue> name_decl_list
+%type <nameDeclValue> name_decl
+//%type <sValue> name_decl_list name_decl
+
 %start program
 
 %%
-program          : declaration_list                 { printf("%s\n", $1); };
+program          : declaration_list                 { printf("%s\n", $1); dumpSymbolTable();};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -229,20 +289,28 @@ assignment       : lvalue_term assignment_op expr               {   void * lValu
                                                                     $$ = concat_n(5, values);
                                                                 };
 
-variables_decl   : type name_decl_list                          {   const char *values[] = {$1, " ", $2};
-                                                                     $$ = concat_n(3, values);}
-                    | type_modifier_list type name_decl_list    {   const char *values[] = {$1, " ", $2, " ", $3};
-                                                                     $$ = concat_n(5, values);};
+variables_decl   : type name_decl_list                          {   
+                                                                    sq_declareVariables(symbolTable, type_void, $2);
+                                                                    $$ = concat3($1, " ", joinList($2,", ", sq_NameDeclToString));
+                                                                    destroyList($2);
+                                                                }
+                    | type_modifier_list type name_decl_list    {   
+                                                                     sq_declareVariables(symbolTable, type_void, $3); 
+                                                                     char * listStr = joinList($3, ", ", sq_NameDeclToString);
+                                                                     const char *values[] = {$1, " ", $2, " ", listStr};
+                                                                     $$ = concat_n(5, values);
+                                                                     free(listStr); 
+                                                                     destroyList($3);   
+                                                                };
 
-name_decl_list   : name_decl                                    {   $$ = $1; }
-                    | name_decl_list COMMA name_decl            {   const char *values[] = {$1, ",", $3};
-                                                                    $$ = concat_n(3, values);};
+name_decl_list   : name_decl                                    {   $$ = createList($1);}
+                    | name_decl_list COMMA name_decl            {   $$ = appendList($1, $3);};
 
-name_decl         : ID                                          {   hashtable_set(symbolTable, $1, "variable"); 
-                                                                    $$ = $1; }
-                    | ID ASSIGN expr                            {   hashtable_set(symbolTable, $1, "variable");
-                                                                    const char *values[] = {$1, " = ", $3}; 
-                                                                    $$ = concat_n(3, values);};
+name_decl         : ID                                          {   $$ = sq_NameDeclItem($1, NULL); }
+                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression(type_void, $3));
+                                                                    //const char *values[] = {$1, " = ", $3}; 
+                                                                    //$$ = concat_n(3, values);
+                                                                    };
 
 type_modifier_list : type_modifier                              {   $$ = $1; }
                        | type_modifier_list type_modifier       {   const char *values[] = {$1, " ", $2}; 
@@ -253,7 +321,7 @@ type_modifier : CONST { $$ = strdup("const");}
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                                   {   $$ = NULL;}
-                    | NUMBER /*expr*/                           {   $$ = sq_createExpression(type_int, $1);};
+                    | NUMBER /*expr*/                           {   $$ = sq_Expression(type_int, $1);};
                     //| expr_list COMMA NUMBER/*expr*/            {   $$ = concat(concat($1, ","), $3);};
 
 expr            : binary_expr                       {   $$ = $1;}
@@ -430,7 +498,13 @@ conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")"
 
 int main (void) {
     symbolTable = hashtable_create();
-    return yyparse ( );
+    
+    int exitCode =  yyparse ( );
+    
+    hashtable_destroy(symbolTable);
+    symbolTable = NULL;
+    
+    return exitCode;
 }
 
 int yyerror (char *s) {fprintf (stderr, "%s\n", s);}
