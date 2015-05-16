@@ -72,22 +72,25 @@ typedef union {
 } TableRowValue;
 
 typedef struct TableRow{
+    char * name; //mesmo ponteiro da chave (permite acessar nome a partir de referência à TableRow)
     Category category;
     TableRowValue value;
 } TableRow;
 
 //Construtor de table row 
 //TODO: incluir valor de TableRow (TableRowValue)
-TableRow * sq_TableRow(Category category);
+TableRow * sq_TableRow(char * name, Category category);
 
 /** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
 hashtable * sq_createSymbolTable();
 
+TableRow * sq_findType(hashtable * symbolTable, const char * name);
+
 /** Insere na tabela de símbolos (symbolTable) uma lista de nomes de variáveis (nameDeclList), 
     declaradas com um mesmo tipo (type)*/
-void sq_declareVariables(hashtable * symbolTable, char * typeName, arraylist * nameDeclList);
+void sq_declareVariables(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList);
 
 /** Similar a sq_declareVariables, mas cria variáveis são marcadas const isConst = true*/
-void sq_declareConstants(hashtable * symbolTable, char * typeName, arraylist * nameDeclList);
+void sq_declareConstants(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList);
 
 #endif

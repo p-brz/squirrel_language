@@ -15,7 +15,9 @@ char * varToString(TableRow * row){
     if(row->value.variableValue.isConst){
         constStr = "const ";
     }
-    return concat(constStr, "variable");
+    TableRow * type = row->value.variableValue.type;
+    const char * typename = (type == NULL) ? "<?>" : type->name;
+    return concat3(constStr, typename, " variable");
 }
 
 char * tableRowToString(TableRow * row){

@@ -2,10 +2,20 @@
 #include "compiler_helper.h"
 #include "string_helpers.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
-void putVariable(hashtable * symbolTable, char * typename, NameDeclItem * item, bool isConst);
-void declareVariables(hashtable * symbolTable, char * typename, arraylist * nameDeclList, bool isConst);
-void putPrimitive(hashtable * symbolTable, char * typeName);
+void putVariable(hashtable * symbolTable, const char * typename, NameDeclItem * item, bool isConst);
+void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst);
+void putPrimitive(hashtable * symbolTable, const char * typeName);
+bool isType(TableRow * row){
+    if(row != NULL){
+        return row->category == categ_primitiveType
+                || row->category == categ_structType
+                || row->category == categ_functionType
+                || row->category == categ_enumType;
+    }
+    return false;
+}
 
 hashtable * sq_createSymbolTable(){
     hashtable * symbolTable = hashtable_create();
@@ -24,22 +34,31 @@ hashtable * sq_createSymbolTable(){
     return symbolTable;
 }
 
-TableRow * sq_TableRow(Category category){
+TableRow * sq_TableRow(char * name, Category category){
     TableRow * row = (TableRow *)malloc(sizeof(TableRow));
     row->category = category;
+    row->name = name;
     
     return row;
 }
 
-void sq_declareVariables(hashtable * symbolTable, char * typeName, arraylist * nameDeclList){
+TableRow * sq_findType(hashtable * symbolTable, const char * name){
+    TableRow * row = (TableRow *)hashtable_get(symbolTable, (char * )name);
+    if(row == NULL || !isType(row)){
+        return NULL;
+    }
+    return row;
+}
+
+void sq_declareVariables(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList){
     declareVariables(symbolTable, typeName, nameDeclList, false);
 }
 
-void sq_declareConstants(hashtable * symbolTable, char * typeName, arraylist * nameDeclList){
+void sq_declareConstants(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList){
     declareVariables(symbolTable, typeName, nameDeclList, true);
 }
 
-void declareVariables(hashtable * symbolTable, char * typename, arraylist * nameDeclList, bool isConst){
+void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){
     int i;
 	void* value;
 	//arraylist_iterate gera um for para iterar sobre a lista (ver arraylist.h)
@@ -49,13 +68,15 @@ void declareVariables(hashtable * symbolTable, char * typename, arraylist * name
 	}
 }
 
-void putVariable(hashtable * symbolTable, char * typename, NameDeclItem * item, bool isConst){
-    TableRow * row = sq_TableRow(categ_variable);
+void putVariable(hashtable * symbolTable, const char * typename, NameDeclItem * item, bool isConst){
+    TableRow * row = sq_TableRow(item->name, categ_variable);
     row->value.variableValue.isConst = isConst;
+    row->value.variableValue.type = sq_findType(symbolTable, typename);
     //TODO: o nome a ser colocado deve incluir escopo
     hashtable_set(symbolTable, item->name, row);
 }
-void putPrimitive(hashtable * symbolTable, char * typeName){
-    TableRow * row = sq_TableRow(categ_primitiveType);
-    hashtable_set(symbolTable, cpyString(typeName), row);
+void putPrimitive(hashtable * symbolTable, const char * typeName){
+    char * name = cpyString(typeName);
+    TableRow * row = sq_TableRow(name, categ_primitiveType);
+    hashtable_set(symbolTable, name, row);
 }
