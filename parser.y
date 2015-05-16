@@ -10,6 +10,14 @@
 
 hashtable * symbolTable;
 
+char * varToString(TableRow * row){
+    const char * constStr = "";
+    if(row->value.variableValue.isConst){
+        constStr = "const ";
+    }
+    return concat(constStr, "variable");
+}
+
 char * tableRowToString(TableRow * row){
     switch(row->category){
         case categ_primitiveType:
@@ -23,7 +31,7 @@ char * tableRowToString(TableRow * row){
         case categ_function:
             return cpyString("function");
         case categ_variable:
-            return cpyString("variable");
+            return varToString(row);
         case categ_namespace:
             return cpyString("namespace");
         default:
@@ -290,15 +298,16 @@ assignment       : lvalue_term assignment_op expr               {   void * lValu
                                                                 };
 
 variables_decl   : type name_decl_list                          {   
-                                                                    sq_declareVariables(symbolTable, type_void, $2);
+                                                                    sq_declareVariables(symbolTable, $1, $2);
                                                                     $$ = concat3($1, " ", joinList($2,", ", sq_NameDeclToString));
                                                                     destroyList($2);
                                                                 }
-                    | type_modifier_list type name_decl_list    {   
-                                                                     sq_declareVariables(symbolTable, type_void, $3); 
+                                                                
+                      /* Assumindo que variáveis podem ter apenas modificador CONST*/
+                    | CONST type name_decl_list                 {   
+                                                                     sq_declareConstants(symbolTable, $2, $3); 
                                                                      char * listStr = joinList($3, ", ", sq_NameDeclToString);
-                                                                     const char *values[] = {$1, " ", $2, " ", listStr};
-                                                                     $$ = concat_n(5, values);
+                                                                     $$ = concat4("const ", $2, " ", listStr);
                                                                      free(listStr); 
                                                                      destroyList($3);   
                                                                 };

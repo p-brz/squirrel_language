@@ -64,11 +64,11 @@ typedef struct  {
 } FieldValue;
 
 typedef union {
-    StructTypeRow structValue;
-    EnumTypeRow enumValue;
-    FunctionRow functionValue;
-    VariableRow variableValue;
-    NamespaceRow namespaceValue;
+    StructTypeRow   structValue;
+    EnumTypeRow     enumValue;
+    FunctionRow     functionValue;
+    VariableRow     variableValue;
+    NamespaceRow    namespaceValue;
 } TableRowValue;
 
 typedef struct TableRow{
@@ -85,6 +85,9 @@ hashtable * sq_createSymbolTable();
 
 /** Insere na tabela de símbolos (symbolTable) uma lista de nomes de variáveis (nameDeclList), 
     declaradas com um mesmo tipo (type)*/
-void sq_declareVariables(hashtable * symbolTable, sq_type type, arraylist * nameDeclList);
+void sq_declareVariables(hashtable * symbolTable, char * typeName, arraylist * nameDeclList);
+
+/** Similar a sq_declareVariables, mas cria variáveis são marcadas const isConst = true*/
+void sq_declareConstants(hashtable * symbolTable, char * typeName, arraylist * nameDeclList);
 
 #endif

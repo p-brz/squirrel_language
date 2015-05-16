@@ -3,7 +3,8 @@
 #include "string_helpers.h"
 #include <stdlib.h>
 
-void putVariable(hashtable * symbolTable, sq_type type, NameDeclItem * item);
+void putVariable(hashtable * symbolTable, char * typename, NameDeclItem * item, bool isConst);
+void declareVariables(hashtable * symbolTable, char * typename, arraylist * nameDeclList, bool isConst);
 void putPrimitive(hashtable * symbolTable, char * typeName);
 
 hashtable * sq_createSymbolTable(){
@@ -30,18 +31,27 @@ TableRow * sq_TableRow(Category category){
     return row;
 }
 
-void sq_declareVariables(hashtable * symbolTable, sq_type type, arraylist * nameDeclList){
+void sq_declareVariables(hashtable * symbolTable, char * typeName, arraylist * nameDeclList){
+    declareVariables(symbolTable, typeName, nameDeclList, false);
+}
+
+void sq_declareConstants(hashtable * symbolTable, char * typeName, arraylist * nameDeclList){
+    declareVariables(symbolTable, typeName, nameDeclList, true);
+}
+
+void declareVariables(hashtable * symbolTable, char * typename, arraylist * nameDeclList, bool isConst){
     int i;
 	void* value;
 	//arraylist_iterate gera um for para iterar sobre a lista (ver arraylist.h)
 	arraylist_iterate(nameDeclList, i, value) {
 	    NameDeclItem * item = (NameDeclItem *) value;
-	    putVariable(symbolTable, type, item);
+	    putVariable(symbolTable, typename, item, isConst);
 	}
 }
 
-void putVariable(hashtable * symbolTable, sq_type type, NameDeclItem * item){
+void putVariable(hashtable * symbolTable, char * typename, NameDeclItem * item, bool isConst){
     TableRow * row = sq_TableRow(categ_variable);
+    row->value.variableValue.isConst = isConst;
     //TODO: o nome a ser colocado deve incluir escopo
     hashtable_set(symbolTable, item->name, row);
 }
