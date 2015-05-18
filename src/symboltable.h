@@ -50,9 +50,9 @@ typedef struct {
     //?escopo
 }VariableRow;
 
-typedef struct NamespaceRow{
-    struct NamespaceRow * parent;
-} NamespaceRow;
+//typedef struct NamespaceRow{
+//    struct NamespaceRow * parent;
+//} NamespaceRow;
 
 typedef struct  {
     TableRow *type; //TODO: substituir por typename
@@ -69,7 +69,7 @@ typedef union {
     EnumTypeRow     enumValue;
     FunctionRow     functionValue;
     VariableRow     variableValue;
-    NamespaceRow    namespaceValue;
+//    NamespaceRow    namespaceValue;
 } TableRowValue;
 
 typedef struct TableRow{
@@ -106,6 +106,8 @@ void sq_declareFunctionType(hashtable * symbolTable, const char * returnType, co
 void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
 
 void sq_declareStruct(hashtable * symbolTable, const char * structName, AttributeList * attributeList);
+
+void sq_declareNamespace(hashtable * symbolTable, const char * namespaceName);
 
 char * sq_ParamValueStringConverter(void * value);
 

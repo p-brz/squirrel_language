@@ -142,7 +142,8 @@ type_definition  : enum_definition                  {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
                       
 namespace        : NAMESPACE ID 
-                    LBRACE declaration_list RBRACE  {   const char * values[] = {"namespace ", $2, "{\n", $4, "\n}"};
+                    LBRACE declaration_list RBRACE  {   sq_declareNamespace(symbolTable, $2);
+                                                        const char * values[] = {"namespace ", $2, "{\n", $4, "\n}"};
                                                         $$ = concat_n(5, values); };
                                                         
     

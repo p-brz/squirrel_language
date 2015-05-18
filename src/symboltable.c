@@ -122,6 +122,13 @@ void sq_declareStruct(hashtable * symbolTable, const char * structName, Attribut
     putRow(symbolTable, structName, categ_structType, rowValue);
 }
 
+void sq_declareNamespace(hashtable * symbolTable, const char * namespaceName){
+    putRow(symbolTable, namespaceName, categ_namespace, EmptyRowValue());
+}
+
+
+
+
 void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){
     int i;
 	void* value;
