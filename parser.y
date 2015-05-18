@@ -5,23 +5,41 @@
 #include <stdlib.h> //malloc
 
 #include "squirrel.h"
-#include "hashtable.h"
-#include "arraylist.h"
+#include "dump_table.h"
 
 hashtable * symbolTable;
 
-void dumpSymbolTable();
+
+char * AttributeDeclStringConverter(void * value){
+    if(value == NULL){
+        return cpyString("");
+    }
+    AttributeDecl * attributeDecl = (AttributeDecl *)value;
+    char * nameDeclListStr = joinList(attributeDecl->namesList, ", ", NULL);
+    char * result = concat3(attributeDecl->type, " ", nameDeclListStr);
+    free(nameDeclListStr);
+    return result;
+}
+
+char * attributeListToString(AttributeList * attributeList){
+    char * listStr =  joinList(attributeList, ";\n", AttributeDeclStringConverter);
+    char * result = concat(listStr, ";");//último ';' não é adicionado por joinList
+    free(listStr);
+    return result;
+}
 
 %}
 
 %union {
-    char * sValue;  /* string value */
-    Expression * eValue;
-    NameDeclList * NameDeclList_Value;
-    NameDeclItem * nameDeclValue;
-    NameList * NameList_Value; 
-    Parameter * ParamValue; 
-    ParamList * ParamListValue;
+    char             * sValue;  /* string value */
+    Expression       * eValue;
+    NameDeclList     * NameDeclList_Value;
+    NameDeclItem     * nameDeclValue;
+    NameList         * NameList_Value; 
+    Parameter        * ParamValue; 
+    ParamList        * ParamListValue;
+    AttributeDecl    * AttributeDeclValue;
+    AttributeList    * AttributeListValue;
 };
 
 %token <sValue> ID
@@ -58,7 +76,7 @@ void dumpSymbolTable();
 %type <sValue> statement_list statement inline_statement std_statement block_statement 
 %type <sValue> assignment return_statement
 
-%type <sValue> block_body block_stmt_list struct_body 
+%type <sValue> block_body block_stmt_list
 %type <sValue> for_statement for_header for_expr
 %type <sValue> switch_header
 
@@ -78,8 +96,11 @@ void dumpSymbolTable();
 
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
-%type <sValue> attribute_list variables_decl
+%type <sValue> variables_decl
 %type <sValue> type simple_type array_type primitive_type
+
+%type <AttributeListValue> attribute_list struct_body
+%type <AttributeDeclValue> attribute
 
 %type <sValue> type_modifier
 %type <NameList_Value> type_modifier_list
@@ -103,7 +124,7 @@ void dumpSymbolTable();
 %start program
 
 %%
-program          : declaration_list                 { printf("%s\n", $1); dumpSymbolTable();};
+program          : declaration_list                 { printf("%s\n", $1); dumpSymbolTable(symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -184,9 +205,13 @@ enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(symbolTab
                                                         free(listStr);};
                                                         
 struct_definition : STRUCT ID 
-                    LBRACE struct_body RBRACE       {   const char * values[] = {"struct ", $2, "{\n", $4 , "\n}"};
-                                                        $$ = concat_n(5, values);};
-struct_body       : /*Vazio*/            {  $$ = "";}
+                    LBRACE struct_body RBRACE       {   sq_declareStruct(symbolTable, $2, $4);
+                    
+                                                        char * attrListStr = attributeListToString($4);
+                                                        const char * values[] = {"struct ", $2, "{\n", attrListStr , "\n}"};
+                                                        $$ = concat_n(5, values);
+                                                        free(attrListStr);};
+struct_body       : /*Vazio*/            {  $$ = createList(NULL);}
                         | attribute_list {  $$ = $1;};
                                                         
 functiontype_definition: 
@@ -198,8 +223,20 @@ functiontype_definition:
 id_list : ID                                        {   $$ = createList($1);}
             | id_list COMMA  ID                     {   $$ = appendList($1, $3);};
             
-attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
-                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
+attribute_list  :  attribute                        {   $$ = createList($1);}
+                                                        //char * listStr = joinList($1->nameDeclList,", ", sq_NameDeclToString);
+                                                        //$$ = concat4($1->type," ", listStr, ";\n");
+                                                        //free(listStr); }
+                    | attribute_list attribute      {   $$ = appendList($1, $2);};
+                                                        //char * listStr = joinList($2->nameDeclList,", ", sq_NameDeclToString);
+                                                        //char * attribute = concat4($2->type," ", listStr, ";\n");
+                                                        //free(listStr); 
+                                                        //$$ = concat($1, attribute);};
+                    
+attribute       : type id_list SEMICOLON            {   $$ = sq_AttributeDecl($1, $2);};
+                    
+//attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
+//                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
 
 struct_constructor  : member LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
                                                                     $$ = concat_n(4, valores);};
@@ -472,80 +509,3 @@ int main (void) {
 
 int yyerror (char *s) {fprintf (stderr, "%s\n", s);}
 
-
-char * varToString(TableRow * row){
-    const char * constStr = "";
-    if(row->value.variableValue.isConst){
-        constStr = "const ";
-    }
-    TableRow * type = row->value.variableValue.type;
-    const char * typename = (type == NULL) ? "<?>" : type->name;
-    return concat3(constStr, typename, " variable");
-}
-
-
-char * functionRowToString(TableRow * row){
-    const char * returnTypeStr = row->value.functionValue.returnType->name;
-    arraylist * paramValues = row->value.functionValue.parameters;
-    
-    return concat4("function(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
-}
-
-char * enumTypeRowToString(TableRow * row){
-    char * enumValuesStr = joinList(row->value.enumValue.identifiers, ", ", NULL);
-    
-    return concat4("enum ", row->name, ": ", enumValuesStr);
-}
-
-char * tableRowToString(TableRow * row){
-    switch(row->category){
-        case categ_primitiveType:
-            return cpyString("primitive");
-        case categ_structType:
-            return cpyString("struct");
-        case categ_functionType:
-            return cpyString("function type");
-        case categ_enumType:
-            return enumTypeRowToString(row);
-        case categ_function:
-            return functionRowToString(row);
-        case categ_variable:
-            return varToString(row);
-        case categ_namespace:
-            return cpyString("namespace");
-        default:
-            return NULL;
-    }
-    
-}
-
-void dumpRow(char * key, void * value){
-    printf("%s \t-->\t ", key);
-    if(value == NULL){
-        printf("NULL");
-    }
-    else{
-        TableRow * row = (TableRow *)value;
-        char * rowStr = tableRowToString(row);
-        if(rowStr != NULL){
-            printf("%s",rowStr);
-            free(rowStr);
-        }
-    }
-    
-    printf("\n");
-}
-void dumpSymbolTable(){
-    printf("\n\n-----------------HASHTABLE-----------------\n");
-    if(symbolTable != NULL){
-        int i;
-        for(i=0; i < symbolTable->capacity; ++i){
-            char * key = symbolTable->body[i].key;
-            if(key != NULL){
-                void * value = symbolTable->body[i].value;
-                dumpRow(key, value);
-            }
-        } 
-    
-    }
-}

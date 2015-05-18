@@ -1,4 +1,4 @@
-#include "compiler_helper.h"
+#include "compiler_types.h"
 #include "string_helpers.h"
 #include "list_helper.h"
 #include <stdlib.h>
@@ -27,6 +27,14 @@ NameDeclItem * sq_NameDeclItem(char * name, Expression * expr){
     nameDecl->name = name;
     nameDecl->expr = expr;
     return nameDecl;
+}
+
+AttributeDecl * sq_AttributeDecl(char * typeName, NameList * namesList){
+	AttributeDecl *atributeDecl = (AttributeDecl*)malloc(sizeof(AttributeDecl));
+	atributeDecl->type = cpyString(typeName);
+	atributeDecl->namesList = namesList;
+	
+	return atributeDecl;
 }
 
 char * sq_NameDeclToString(void * item){

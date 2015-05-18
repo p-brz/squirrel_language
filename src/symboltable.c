@@ -1,5 +1,4 @@
 #include "symboltable.h"
-#include "compiler_helper.h"
 #include "string_helpers.h"
 #include "list_helper.h"
 #include <stdlib.h>
@@ -14,10 +13,12 @@ void declareVariables(hashtable * symbolTable, const char * typename, arraylist 
 void putPrimitive(hashtable * symbolTable, const char * typeName);
 /** Converte uma lista de Parameter (ver compiler_helper.h) em uma lista de ParamValue (ver symboltable.h)*/
 arraylist * convertToParamValueList(hashtable * symbolTable, ParamList * parameters);
-
+arraylist * convertAttributesToFieldsValues(hashtable * symbolTable,AttributeList * attributeList);
 TableRowValue EmptyRowValue();
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
+
+
 
 bool isType(TableRow * row){
     if(row != NULL){
@@ -65,18 +66,24 @@ ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool 
     
     return paramValue;
 }
+FieldValue * sq_FieldValue(const char * typeName, const char * fieldName){
+    FieldValue * fieldValue = (FieldValue *)malloc(sizeof(FieldValue));
+    fieldValue->type =cpyString(typeName);
+    fieldValue->name = cpyString(fieldName);
+    return fieldValue;
+}
 
 TableRow * sq_findType(hashtable * symbolTable, const char * name){
     TableRow * row = (TableRow *)hashtable_get(symbolTable, (char * )name);
     if(row == NULL){
-        printf("Could not find type '%s'", name);
+        printf("Could not find type '%s'\n", name);
         return NULL;
     }
     else if(!isType(row)){
-        printf("Found symbol '%s', but is not a type.", name);
+        printf("Found symbol '%s', but is not a type.\n", name);
         return NULL;
     }
-void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
+
     return row;
 }
 
@@ -101,6 +108,13 @@ void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * e
     TableRowValue rowValue = EmptyRowValue();
     rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
     putRow(symbolTable, enumName, categ_enumType, rowValue);
+}
+
+
+void sq_declareStruct(hashtable * symbolTable, const char * structName, AttributeList * attributeList){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.structValue.fields = convertAttributesToFieldsValues(symbolTable, attributeList);
+    putRow(symbolTable, structName, categ_structType, rowValue);
 }
 
 void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){
@@ -163,6 +177,26 @@ arraylist * convertToParamValueList(hashtable * symbolTable, ParamList * paramet
 	}
     
     return list;
+}
+
+arraylist * convertAttributesToFieldsValues(hashtable * symbolTable,AttributeList * attributeList){
+    arraylist * listFields = createList(NULL);
+    
+    int i;
+	void* value;
+	arraylist_iterate(attributeList, i, value) {
+	    AttributeDecl * attributeDecl = (AttributeDecl *)value;
+	    
+	    int j; 
+	    void * nameValue;
+	    arraylist_iterate(attributeDecl->namesList, j, nameValue) {
+	        
+	        FieldValue * fieldValue =  sq_FieldValue(attributeDecl->type, cpyString((const char * )nameValue));
+	        appendList(listFields, fieldValue);
+	    }
+	}
+    
+    return listFields;
 }
 
 char * sq_ParamValueStringConverter(void * value){

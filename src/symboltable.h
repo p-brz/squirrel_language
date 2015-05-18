@@ -9,7 +9,7 @@
 #include "arraylist.h"
 #include "hashtable.h"
 #include "sqtypes.h"
-#include "compiler_helper.h"
+#include "compiler_types.h"
 
 #include <stdbool.h> //inclui bool em C99
 
@@ -40,12 +40,12 @@ typedef struct{
 
 //Esta struct será utilizada para tipos de função e funções
 typedef struct {
-    TableRow *returnType;
+    TableRow *returnType; //TODO: substituir por typename
     arraylist * parameters; //Cada item da lista é um ParamValue
 } FunctionRow;
 
 typedef struct {
-    TableRow * type;
+    TableRow * type; //TODO: substituir por typename
     bool isConst;
     //?escopo
 }VariableRow;
@@ -55,12 +55,12 @@ typedef struct NamespaceRow{
 } NamespaceRow;
 
 typedef struct  {
-    TableRow *type;
+    TableRow *type; //TODO: substituir por typename
     bool isConst, isRef;
 } ParamValue;
 
 typedef struct  {
-    TableRow *type;
+    char * type;
     char * name;
 } FieldValue;
 
@@ -103,6 +103,8 @@ void sq_declareFunction(hashtable * symbolTable, const char * returnType, const 
 
 
 void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
+
+void sq_declareStruct(hashtable * symbolTable, const char * structName, AttributeList * attributeList);
 
 char * sq_ParamValueStringConverter(void * value);
 
