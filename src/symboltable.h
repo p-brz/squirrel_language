@@ -9,6 +9,7 @@
 #include "arraylist.h"
 #include "hashtable.h"
 #include "sqtypes.h"
+#include "compiler_helper.h"
 
 #include <stdbool.h> //inclui bool em C99
 
@@ -101,6 +102,7 @@ void sq_declareConstants(hashtable * symbolTable, const char * typeName, arrayli
 void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, arraylist * parameters);
 
 
+void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
 
 char * sq_ParamValueStringConverter(void * value);
 

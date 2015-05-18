@@ -4,13 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-NameList * createNameList(char * name){
-    return createList(name);
-}
-NameList * appendNameList(NameList * namelist, char * name){
-    return appendList(namelist, name);
-}
-
 arraylist * createList(void * value){
     if(value == NULL){
         return arraylist_create();
@@ -22,6 +15,17 @@ arraylist * appendList(arraylist * list, void * value){
     return list;
 }
 
+arraylist * copyList(arraylist * list, ValueDuplicator duplicator){
+    arraylist * copyList = createList(NULL);
+    int i;
+	void* value;
+	arraylist_iterate(list, i, value) {
+	    void * copyValue = duplicator == NULL ? value : duplicator(value);
+	    appendList(copyList, copyValue);
+	}
+	
+	return copyList;
+}
 int searchItem(arraylist *list, void * expectedValue, EqualsComparator comparator){
     if(list == NULL || expectedValue == NULL || comparator == NULL){
         printf("Em %s:%d::searchItem. Erro: parâmetro NULO", __FILE__, __LINE__);
@@ -44,7 +48,7 @@ bool listIsEmpty(arraylist * list){
     return arraylist_size(list) > 0 ? false : true;
 }
 
-char * joinList(NameList * namelist, const char * symbol, StringConverter itemConverter){
+char * joinList(arraylist * namelist, const char * symbol, StringConverter itemConverter){
     if(listIsEmpty(namelist)){
         return cpyString("");
     }
@@ -65,7 +69,7 @@ char * joinList(NameList * namelist, const char * symbol, StringConverter itemCo
 	return result;
 }
 
-void destroyList(NameList * namelist){
+void destroyList(arraylist * namelist){
     arraylist_destroy(namelist);
 }
 

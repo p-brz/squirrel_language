@@ -9,9 +9,6 @@
 #include "arraylist.h"
 #include <stdbool.h>
 
-/** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
-typedef arraylist NameList;
-
 /** Este typedef permite declarar ponteiros para funções que recebem um pointeiro
         de void e retornam um ponteiro para char (ver joinList para exemplo de uso).
     As funções StringConverter devem ser usadas para converter um determinado valor
@@ -23,11 +20,18 @@ typedef char * (*StringConverter)(void *);
 */
 typedef bool (* EqualsComparator)(void *, void *);
 
+/** Funções 'ValueDuplicator' são responsáveis por copiar um determinado valor (void *),
+        alocando uma nova memória, e retornar a cópia deste valor..
+*/
+typedef void * (* ValueDuplicator)(const void *);
+
 /** Cria uma lista, adicionando um valor caso este não seja nulo.*/
 arraylist * createList(void * value);
 
 /** Adiciona um valor 'value' a lista e retorna ela.*/
 arraylist * appendList(arraylist * list, void * value);
+
+arraylist * copyList(arraylist * list, ValueDuplicator duplicator);
 
 /** Busca na lista 'list' um item com valor igual a 'value', utilizando 'comparator'
         para testar se valores são iguais.
@@ -41,9 +45,6 @@ bool existItem(arraylist *list, void * value, EqualsComparator comparator);
 
 /** Retorna true se lista é vazia e false caso-contrário.*/
 bool listIsEmpty(arraylist * list);
-
-NameList * createNameList(char * name);
-NameList * appendNameList(NameList * namelist, char * name);
 
 /** Concatena todos os itens de uma lista 'namelist' em uma string, 
     separandos com o símbolo 'symbol'.

@@ -13,6 +13,9 @@
 typedef arraylist NameDeclList;
 typedef arraylist ParamList;
 
+/** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
+typedef arraylist NameList;
+
 typedef struct {
     sq_type type;
     char *expr;

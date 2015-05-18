@@ -84,7 +84,7 @@ void dumpSymbolTable();
 %type <sValue> type_modifier
 %type <NameList_Value> type_modifier_list
 
-%type <sValue> id_list
+%type <NameList_Value> id_list
 
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
@@ -176,8 +176,12 @@ type_modifier : CONST { $$ = strdup("const");}
                 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
-enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = {"enum ", $2, "{", $4, "}"};
-                                                        $$ = concat_n(5, values);};
+enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(symbolTable, $2, $4);
+
+                                                        char * listStr = joinList($4, ", ", NULL);
+                                                        const char * values[] = {"enum ", $2, "{", listStr, "}"};
+                                                        $$ = concat_n(5, values);
+                                                        free(listStr);};
                                                         
 struct_definition : STRUCT ID 
                     LBRACE struct_body RBRACE       {   const char * values[] = {"struct ", $2, "{\n", $4 , "\n}"};
@@ -191,8 +195,8 @@ functiontype_definition:
                                                         $$ = concat_n(5, values);
                                                         free(funcParams);};
 
-id_list : ID                                        {   $$ = $1;}
-            | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
+id_list : ID                                        {   $$ = createList($1);}
+            | id_list COMMA  ID                     {   $$ = appendList($1, $3);};
             
 attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
                     | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
@@ -487,6 +491,12 @@ char * functionRowToString(TableRow * row){
     return concat4("function(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
 }
 
+char * enumTypeRowToString(TableRow * row){
+    char * enumValuesStr = joinList(row->value.enumValue.identifiers, ", ", NULL);
+    
+    return concat4("enum ", row->name, ": ", enumValuesStr);
+}
+
 char * tableRowToString(TableRow * row){
     switch(row->category){
         case categ_primitiveType:
@@ -496,7 +506,7 @@ char * tableRowToString(TableRow * row){
         case categ_functionType:
             return cpyString("function type");
         case categ_enumType:
-            return cpyString("enum");
+            return enumTypeRowToString(row);
         case categ_function:
             return functionRowToString(row);
         case categ_variable:

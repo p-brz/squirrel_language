@@ -76,6 +76,7 @@ TableRow * sq_findType(hashtable * symbolTable, const char * name){
         printf("Found symbol '%s', but is not a type.", name);
         return NULL;
     }
+void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
     return row;
 }
 
@@ -90,6 +91,16 @@ void sq_declareConstants(hashtable * symbolTable, const char * typeName, arrayli
 void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, arraylist * parameters){
     TableRowValue value = FunctionRowValue(symbolTable, returnType, parameters);
     putRow(symbolTable, functionName, categ_function, value);
+}
+
+void * StringDuplicator(const void * value){
+    return cpyString((const char *)value);
+}
+
+void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
+    putRow(symbolTable, enumName, categ_enumType, rowValue);
 }
 
 void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){
