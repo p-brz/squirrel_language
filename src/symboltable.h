@@ -99,8 +99,9 @@ void sq_declareConstants(hashtable * symbolTable, const char * typeName, arrayli
 
     @param paremeters - uma lista de ponteiros para Parameter (ver compiler_helper.h)
 */
-void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, arraylist * parameters);
+void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters);
 
+void sq_declareFunctionType(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters);
 
 void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
 

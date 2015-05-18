@@ -100,6 +100,11 @@ void sq_declareFunction(hashtable * symbolTable, const char * returnType, const 
     putRow(symbolTable, functionName, categ_function, value);
 }
 
+void sq_declareFunctionType(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters){
+    TableRowValue value = FunctionRowValue(symbolTable, returnType, parameters);
+    putRow(symbolTable, functionName, categ_functionType, value);
+}
+
 void * StringDuplicator(const void * value){
     return cpyString((const char *)value);
 }

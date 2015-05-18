@@ -119,7 +119,6 @@ char * attributeListToString(AttributeList * attributeList){
 
 %type <NameDeclList_Value> name_decl_list
 %type <nameDeclValue> name_decl
-//%type <sValue> name_decl_list name_decl
 
 %start program
 
@@ -215,9 +214,11 @@ struct_body       : /*Vazio*/            {  $$ = createList(NULL);}
                         | attribute_list {  $$ = $1;};
                                                         
 functiontype_definition: 
-                    FUNCTION type ID func_params    {   char * funcParams = joinList($4, ", ", sq_ParameterToString);
-                                                        const char * values[] = {"function ", $2," ", $3, funcParams};
-                                                        $$ = concat_n(5, values);
+                    FUNCTION type ID func_params    {   sq_declareFunctionType(symbolTable, $2,$3,$4);
+                                                        
+                                                        char * funcParams = joinList($4, ", ", sq_ParameterToString);
+                                                        const char * values[] = {"function ", $2," ", $3, "(",funcParams,")"};
+                                                        $$ = concat_n(7, values);
                                                         free(funcParams);};
 
 id_list : ID                                        {   $$ = createList($1);}

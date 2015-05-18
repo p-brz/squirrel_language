@@ -26,6 +26,13 @@ char * functionRowToString(TableRow * row){
     return concat4("function(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
 }
 
+char * functionTypeRowToString(TableRow * row){
+    const char * returnTypeStr = row->value.functionValue.returnType->name;
+    arraylist * paramValues = row->value.functionValue.parameters;
+    
+    return concat4("function type(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
+}
+
 char * enumTypeRowToString(TableRow * row){
     char * enumValuesStr = joinList(row->value.enumValue.identifiers, ", ", NULL);
     
@@ -55,7 +62,7 @@ char * tableRowToString(TableRow * row){
         case categ_structType:
             return structTypeRowToString(row);
         case categ_functionType:
-            return cpyString("function type");
+            return functionTypeRowToString(row);
         case categ_enumType:
             return enumTypeRowToString(row);
         case categ_function:
