@@ -1,0 +1,35 @@
+void emptyFunction(){
+    print("empty");
+}
+
+string stringFunctionVoid(){
+    return "string";
+}
+
+boolean booleanFunctionOneParam(int num){
+    return num > 0;
+}
+
+float floatFunctionManyParams(int num1, float num2, string msg){
+    print(msg);
+    return num1 + num2;
+}
+
+short shortFunctionParamsWithModifiers(const short num1, ref int num2, const ref string msg, ref const string finalMsg){
+    print(msg);
+    short return_num = short(num1 + num2);
+    print(finalMsg);
+    
+    return return_num;
+}
+
+int main(){
+    emptyFunction();
+    print("stringFunctionVoid(): ", stringFunctionVoid());
+    print("booleanFunctionOneParam(10): ", booleanFunctionOneParam(10));
+    print("floatFunctionManyParams(1, 2.0, 'msg'): ", floatFunctionManyParams(1, 2.0, "msg"));
+    
+    return 0;
+}
+
+

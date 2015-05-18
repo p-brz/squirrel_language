@@ -7,6 +7,7 @@
 *******************************************************************************************/
 
 #include "arraylist.h"
+#include <stdbool.h>
 
 /** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
 typedef arraylist NameList;
@@ -17,12 +18,29 @@ typedef arraylist NameList;
         void * em string (elas devem alocar memória utilizando malloc ou similares).
 */
 typedef char * (*StringConverter)(void *);
+/** Funções 'EqualsComparator' devem comparar dois valores (void *) 
+        e retornar 'true' se forem iguais ou 'false', caso-contrário.
+*/
+typedef bool (* EqualsComparator)(void *, void *);
 
 /** Cria uma lista, adicionando um valor caso este não seja nulo.*/
 arraylist * createList(void * value);
 
 /** Adiciona um valor 'value' a lista e retorna ela.*/
 arraylist * appendList(arraylist * list, void * value);
+
+/** Busca na lista 'list' um item com valor igual a 'value', utilizando 'comparator'
+        para testar se valores são iguais.
+    Se encontrar item retorna o índice dele na lista, caso contrário retorna um valor negativo.        
+*/
+int searchItem(arraylist *list, void * value, EqualsComparator comparator);
+
+/** Similar a searchItem, mas retorna 'true' se valor existe e 'falso', caso contrário.        
+*/
+bool existItem(arraylist *list, void * value, EqualsComparator comparator);
+
+/** Retorna true se lista é vazia e false caso-contrário.*/
+bool listIsEmpty(arraylist * list);
 
 NameList * createNameList(char * name);
 NameList * appendNameList(NameList * namelist, char * name);
@@ -36,5 +54,8 @@ char * joinList(arraylist * namelist, const char * symbol, StringConverter itemC
 
 /** Destroi uma lista e todos os itens não nulos armazenados nela*/
 void destroyList(arraylist * list);
+
+// EqualsComparator para tipo string
+bool StrEqualsComparator(void * value1, void * value2);
 
 #endif

@@ -48,4 +48,9 @@ char  * concat4(const char * str1, const char * str2, const char * str3, const c
     return concat_n(4, values);
 }
 
+void appendStr(char ** str, const char * toAppend){
+    char * result = concat(*str, toAppend);
+    free(*str);
+    *str = result;
+}
 

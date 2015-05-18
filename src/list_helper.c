@@ -2,6 +2,7 @@
 
 #include "string_helpers.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 NameList * createNameList(char * name){
     return createList(name);
@@ -21,7 +22,32 @@ arraylist * appendList(arraylist * list, void * value){
     return list;
 }
 
+int searchItem(arraylist *list, void * expectedValue, EqualsComparator comparator){
+    if(list == NULL || expectedValue == NULL || comparator == NULL){
+        printf("Em %s:%d::searchItem. Erro: parâmetro NULO", __FILE__, __LINE__);
+        return -2;
+    }
+    
+    int i;
+	void* value;
+	arraylist_iterate(list, i, value) {
+	    if(comparator(expectedValue, value)){
+	        return i;
+	    }
+	}
+	return -1;
+}
+bool existItem(arraylist *list, void * value, EqualsComparator comparator){
+    return searchItem(list, value, comparator) >= 0;
+}
+bool listIsEmpty(arraylist * list){
+    return arraylist_size(list) > 0 ? false : true;
+}
+
 char * joinList(NameList * namelist, const char * symbol, StringConverter itemConverter){
+    if(listIsEmpty(namelist)){
+        return cpyString("");
+    }
     char * result = NULL;
     int i;
 	void* value;
@@ -43,3 +69,15 @@ void destroyList(NameList * namelist){
     arraylist_destroy(namelist);
 }
 
+
+bool StrEqualsComparator(void * value1, void * value2){
+    if(value1 == value2){ 
+        return true;
+    }
+    
+    if(value1 != NULL && value2 != NULL){
+        bool equals =  (strcmp((const char *)value1, (const char *)value2) == 0);
+        return equals;
+    }
+    return false;
+}

@@ -10,77 +10,18 @@
 
 hashtable * symbolTable;
 
-char * varToString(TableRow * row){
-    const char * constStr = "";
-    if(row->value.variableValue.isConst){
-        constStr = "const ";
-    }
-    TableRow * type = row->value.variableValue.type;
-    const char * typename = (type == NULL) ? "<?>" : type->name;
-    return concat3(constStr, typename, " variable");
-}
-
-char * tableRowToString(TableRow * row){
-    switch(row->category){
-        case categ_primitiveType:
-            return cpyString("primitive");
-        case categ_structType:
-            return cpyString("struct");
-        case categ_functionType:
-            return cpyString("function type");
-        case categ_enumType:
-            return cpyString("enum");
-        case categ_function:
-            return cpyString("function");
-        case categ_variable:
-            return varToString(row);
-        case categ_namespace:
-            return cpyString("namespace");
-        default:
-            return NULL;
-    }
-    
-}
-
-void dumpRow(char * key, void * value){
-    printf("%s \t-->\t ", key);
-    if(value == NULL){
-        printf("NULL");
-    }
-    else{
-        TableRow * row = (TableRow *)value;
-        char * rowStr = tableRowToString(row);
-        if(rowStr != NULL){
-            printf("%s",rowStr);
-            free(rowStr);
-        }
-    }
-    
-    printf("\n");
-}
-void dumpSymbolTable(){
-    printf("\n\n-----------------HASHTABLE-----------------\n");
-    if(symbolTable != NULL){
-        int i;
-        for(i=0; i < symbolTable->capacity; ++i){
-            char * key = symbolTable->body[i].key;
-            if(key != NULL){
-                void * value = symbolTable->body[i].value;
-                dumpRow(key, value);
-            }
-        } 
-    
-    }
-}
-
+void dumpSymbolTable();
 
 %}
 
 %union {
     char * sValue;  /* string value */
     Expression * eValue;
-    NameList * namesValue;
-    NameDeclItem * nameDeclValue;    
+    NameDeclList * NameDeclList_Value;
+    NameDeclItem * nameDeclValue;
+    NameList * NameList_Value; 
+    Parameter * ParamValue; 
+    ParamList * ParamListValue;
 };
 
 %token <sValue> ID
@@ -123,10 +64,12 @@ void dumpSymbolTable(){
 
 %type <sValue> function_call lvalue_call io_command
 
-%type <sValue> func_params function
-%type <sValue> param_decl_list param_decl type_decl
+%type <sValue> function
+%type <ParamListValue> func_params param_decl_list
+%type <ParamValue> param_decl
 
-%type <eValue> expr_list
+//%type <eValue> expr_list
+%type <sValue> expr_list
 
 %type <sValue> expr
 %type <sValue> binary_expr
@@ -136,8 +79,10 @@ void dumpSymbolTable(){
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
 %type <sValue> attribute_list variables_decl
-%type <sValue> type_modifier_list type_modifier
 %type <sValue> type simple_type array_type primitive_type
+
+%type <sValue> type_modifier
+%type <NameList_Value> type_modifier_list
 
 %type <sValue> id_list
 
@@ -151,7 +96,7 @@ void dumpSymbolTable(){
 %type <sValue> array_literal index_access 
 %type <sValue> type_or_expr type_expr
 
-%type <namesValue> name_decl_list
+%type <NameDeclList_Value> name_decl_list
 %type <nameDeclValue> name_decl
 //%type <sValue> name_decl_list name_decl
 
@@ -183,21 +128,25 @@ namespace        : NAMESPACE ID
     
 /* *********************************** FUNCTIONS ********************************************** */
 
-function        : type ID func_params block_body    {   const char * values[] = {$1, " ", $2, " ", $3, $4};
-                                                        $$ = concat_n(6, values); };
+function        : type ID func_params block_body    {   char * funcParams = joinList($3, ", ", sq_ParameterToString);
+                                                        sq_declareFunction(symbolTable, $1, $2, $3);
+                                                        
+                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ")", $4};
+                                                        $$ = concat_n(7, values); 
+                                                        free(funcParams);
+                                                        //TODO: destruir Parameter list
+                                                    };
 
-func_params     : LPAREN param_decl_list RPAREN     {   $$ = concat3("(",$2,")"); };
+func_params     : LPAREN param_decl_list RPAREN     {   $$ = $2; };
 
-param_decl_list : /* Vazio*/                                {   $$ = "";}
-                      | param_decl                          {   $$ = $1;}
-                      | param_decl_list COMMA param_decl    {   $$ = concat3($1, ", ", $3);};
+param_decl_list : /* Vazio*/                                {   $$ = createList(NULL);}
+                      | param_decl                          {   $$ = createList($1);}
+                      | param_decl_list COMMA param_decl    {   $$ = appendList($1, $3);};
 
-param_decl      : type_decl ID                              {   $$ = concat3($1," ",$2);};
+param_decl      : type ID                                   {   $$ = sq_Parameter($1, $2, createList(NULL));}
+                    | type_modifier_list type ID            {   $$ = sq_Parameter($2, $3, $1);};
 
 /* ************************************* TYPES *********************************************** */
-
-type_decl       : type                              {   $$ = $1;}
-                    | type_modifier_list type       {   $$ = concat3($1, " ", $2);};
 
 type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
@@ -219,6 +168,12 @@ primitive_type : VOID       { $$ = strdup("void"); }
 
 array_type   : type ARRAY_SYMBOL       {   $$ = concat($1, "[]"); };
 
+type_modifier_list : type_modifier                              {   $$ = createList($1); }
+                       | type_modifier_list type_modifier       {   $$ = appendList($1, $2);};
+
+type_modifier : CONST { $$ = strdup("const");}
+                | REF { $$ = strdup("ref");};
+                
 /* ********************************* TYPE DEFINITION ***************************************** */
 
 enum_definition   : ENUM ID LBRACE id_list RBRACE   {   const char * values[] = {"enum ", $2, "{", $4, "}"};
@@ -231,8 +186,10 @@ struct_body       : /*Vazio*/            {  $$ = "";}
                         | attribute_list {  $$ = $1;};
                                                         
 functiontype_definition: 
-                    FUNCTION type ID func_params    {   const char * values[] = {"function ", $2," ", $3, $4};
-                                                        $$ = concat_n(5, values);};
+                    FUNCTION type ID func_params    {   char * funcParams = joinList($4, ", ", sq_ParameterToString);
+                                                        const char * values[] = {"function ", $2," ", $3, funcParams};
+                                                        $$ = concat_n(5, values);
+                                                        free(funcParams);};
 
 id_list : ID                                        {   $$ = $1;}
             | id_list COMMA  ID                     {   $$ = concat3($1, ",", $3);};
@@ -276,13 +233,13 @@ inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
                     | inc_op lvalue_term { $$ = concat($1, $2);};
 
 function_call    : lvalue_call                                  {   $$ = $1;}
-                      |io_command                                {   $$ = $1;};
-                    //| rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
+                      |io_command                                {   $$ = $1;}
+                    | rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
                     
-lvalue_call      : lvalue_term LPAREN expr /*expr_list*/ RPAREN               {   const char * values[] = {$1, "(", $3, ")"};
-                                                                    $$ = concat_n(4, values); };
+lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   $$ = concat4($1, "(", $3, ")"); };
 
-io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", sq_exprToStr($3), ")");}
+//io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", sq_exprToStr($3), ")");}
+io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", $3, ")");}
                     | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
                     | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
                     | READLINE LPAREN RPAREN                  {   $$ = strdup("readline()"); };
@@ -291,10 +248,7 @@ io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("
 return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
                    | RETURN                                     {   $$ = strdup("return ");};
 
-assignment       : lvalue_term assignment_op expr               {   void * lValueTerm = hashtable_get(symbolTable, $1);
-                                                                    if(lValueTerm != NULL){
-                                                                        printf("On assignment, found var: %s \n", $1);
-                                                                    }
+assignment       : lvalue_term assignment_op expr               {  
                                                                     const char *values[] = {$1, " ", $2, " ", $3};
                                                                     $$ = concat_n(5, values);
                                                                 };
@@ -323,20 +277,14 @@ name_decl         : ID                                          {   $$ = sq_Name
                                                                     //$$ = concat_n(3, values);
                                                                     };
 
-type_modifier_list : type_modifier                              {   $$ = $1; }
-                       | type_modifier_list type_modifier       {   const char *values[] = {$1, " ", $2}; 
-                                                                    $$ = concat_n(3, values);};
-
-type_modifier : CONST { $$ = strdup("const");}
-                | REF { $$ = strdup("ref");};
-
 /* ********************************* EXPRESSIONS ********************************************* */
-expr_list       : /* Vazio */                                   {   $$ = NULL;}
-                    | NUMBER /*expr*/                           {   $$ = sq_Expression(type_int, $1);};
-                    //| expr_list COMMA NUMBER/*expr*/            {   $$ = concat(concat($1, ","), $3);};
+expr_list       : /* Vazio */                                   {   $$ = "";}
+                    //| NUMBER /*expr*/                           {   $$ = sq_Expression(type_int, $1);};
+                    | expr                           {   $$ = $1;};
+                    | expr_list COMMA expr            {   $$ = concat3($1, ",", $3);};
 
-expr            : binary_expr                       {   $$ = $1;}
-                    | type_expr                     {   $$ = $1;};
+expr            : binary_expr                                 {   $$ = $1; }
+                    | type_expr                               {   $$ = $1; };
 
 binary_expr     : unary_pos_expr                              {   $$ = $1;}
                     | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, " ", $2, " ", $3};
@@ -519,3 +467,75 @@ int main (void) {
 }
 
 int yyerror (char *s) {fprintf (stderr, "%s\n", s);}
+
+
+char * varToString(TableRow * row){
+    const char * constStr = "";
+    if(row->value.variableValue.isConst){
+        constStr = "const ";
+    }
+    TableRow * type = row->value.variableValue.type;
+    const char * typename = (type == NULL) ? "<?>" : type->name;
+    return concat3(constStr, typename, " variable");
+}
+
+
+char * functionRowToString(TableRow * row){
+    const char * returnTypeStr = row->value.functionValue.returnType->name;
+    arraylist * paramValues = row->value.functionValue.parameters;
+    
+    return concat4("function(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
+}
+
+char * tableRowToString(TableRow * row){
+    switch(row->category){
+        case categ_primitiveType:
+            return cpyString("primitive");
+        case categ_structType:
+            return cpyString("struct");
+        case categ_functionType:
+            return cpyString("function type");
+        case categ_enumType:
+            return cpyString("enum");
+        case categ_function:
+            return functionRowToString(row);
+        case categ_variable:
+            return varToString(row);
+        case categ_namespace:
+            return cpyString("namespace");
+        default:
+            return NULL;
+    }
+    
+}
+
+void dumpRow(char * key, void * value){
+    printf("%s \t-->\t ", key);
+    if(value == NULL){
+        printf("NULL");
+    }
+    else{
+        TableRow * row = (TableRow *)value;
+        char * rowStr = tableRowToString(row);
+        if(rowStr != NULL){
+            printf("%s",rowStr);
+            free(rowStr);
+        }
+    }
+    
+    printf("\n");
+}
+void dumpSymbolTable(){
+    printf("\n\n-----------------HASHTABLE-----------------\n");
+    if(symbolTable != NULL){
+        int i;
+        for(i=0; i < symbolTable->capacity; ++i){
+            char * key = symbolTable->body[i].key;
+            if(key != NULL){
+                void * value = symbolTable->body[i].value;
+                dumpRow(key, value);
+            }
+        } 
+    
+    }
+}

@@ -78,8 +78,9 @@ typedef struct TableRow{
 } TableRow;
 
 //Construtor de table row 
-//TODO: incluir valor de TableRow (TableRowValue)
-TableRow * sq_TableRow(char * name, Category category);
+TableRow * sq_TableRow(char * name, Category category, TableRowValue value);
+
+ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool isConst, bool isRef);
 
 /** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
 hashtable * sq_createSymbolTable();
@@ -92,5 +93,15 @@ void sq_declareVariables(hashtable * symbolTable, const char * typeName, arrayli
 
 /** Similar a sq_declareVariables, mas cria variáveis são marcadas const isConst = true*/
 void sq_declareConstants(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList);
+
+/** Insere na tabela de símbolos (symbolTable) uma função com tipo de retorno 'returnType' e nome 'functionName'.
+
+    @param paremeters - uma lista de ponteiros para Parameter (ver compiler_helper.h)
+*/
+void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, arraylist * parameters);
+
+
+
+char * sq_ParamValueStringConverter(void * value);
 
 #endif

@@ -110,7 +110,7 @@
 ","                                 {return COMMA;}
 "."                                 {return DOT;}
 \"(\\.|[^"])*\"                     {yylval.sValue = strdup(yytext); return STRING_LITERAL;}
-[a-zA-Z][a-zA-Z0-9]*                {yylval.sValue = strdup(yytext); return ID;}
+[a-zA-Z_][a-zA-Z0-9_]*                {yylval.sValue = strdup(yytext); return ID;}
 
 . yyerror("invalid character");
 

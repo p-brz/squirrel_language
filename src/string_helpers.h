@@ -12,5 +12,6 @@ char  * concat_n(int size, const char ** values);
 char  * concat4(const char * str1, const char * str2, const char * str3, const char * str4);
 char  * intToString(int value);
 char * cpyString(const char *s);
+void appendStr(char ** str, const char * toAppend);
 
 #endif
