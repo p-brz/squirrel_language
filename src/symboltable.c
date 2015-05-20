@@ -6,6 +6,13 @@
 #include <string.h> //memset
 #include <stdio.h>
 
+//Construtor de table row 
+TableRow * sq_TableRow(char * name, Category category, TableRowValue value);
+
+ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool isConst, bool isRef);
+
+TableRow * sq_findType(hashtable * symbolTable, const char * name);
+
 
 void putRow(hashtable * symbolTable, const char * name, Category category, const TableRowValue value);
 void putVariable(hashtable * symbolTable, const char * typename, NameDeclItem * item, bool isConst);
@@ -17,8 +24,6 @@ arraylist * convertAttributesToFieldsValues(hashtable * symbolTable,AttributeLis
 TableRowValue EmptyRowValue();
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
-
-
 
 bool isType(TableRow * row){
     if(row != NULL){
@@ -47,6 +52,57 @@ hashtable * sq_createSymbolTable(){
     
     return symbolTable;
 }
+void sq_destroySymbolTable(hashtable * symbolTable){
+    if(symbolTable == NULL){
+        return;
+    }
+
+    //TODO: destruir elementos da tabela
+    
+    hashtable_destroy(symbolTable);
+}
+
+void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
+    declareVariables(sqContext->symbolTable, typeName, nameDeclList, false);
+}
+
+void sq_declareConstants(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
+    declareVariables(sqContext->symbolTable, typeName, nameDeclList, true);
+}
+
+void sq_declareFunction(SquirrelContext * sqContext, const char * returnType, const char * functionName, arraylist * parameters){
+    TableRowValue value = FunctionRowValue(sqContext->symbolTable, returnType, parameters);
+    putRow(sqContext->symbolTable, functionName, categ_function, value);
+}
+
+void sq_declareFunctionType(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters){
+    TableRowValue value = FunctionRowValue(sqContext->symbolTable, returnType, parameters);
+    putRow(sqContext->symbolTable, functionName, categ_functionType, value);
+}
+
+void * StringDuplicator(const void * value){
+    return cpyString((const char *)value);
+}
+
+void sq_declareEnum(SquirrelContext * sqContext, const char * enumName, NameList * enumValues){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
+    putRow(sqContext->symbolTable, enumName, categ_enumType, rowValue);
+}
+
+
+void sq_declareStruct(SquirrelContext * sqContext, const char * structName, AttributeList * attributeList){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.structValue.fields = convertAttributesToFieldsValues(sqContext->symbolTable, attributeList);
+    putRow(sqContext->symbolTable, structName, categ_structType, rowValue);
+}
+
+void sq_declareNamespace(SquirrelContext * sqContext, const char * namespaceName){
+    putRow(sqContext->symbolTable, namespaceName, categ_namespace, EmptyRowValue());
+}
+
+
+
 
 TableRow * sq_TableRow(char * name, Category category, TableRowValue value){
     TableRow * row = (TableRow *)malloc(sizeof(TableRow));
@@ -86,47 +142,6 @@ TableRow * sq_findType(hashtable * symbolTable, const char * name){
 
     return row;
 }
-
-void sq_declareVariables(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList){
-    declareVariables(symbolTable, typeName, nameDeclList, false);
-}
-
-void sq_declareConstants(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList){
-    declareVariables(symbolTable, typeName, nameDeclList, true);
-}
-
-void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, arraylist * parameters){
-    TableRowValue value = FunctionRowValue(symbolTable, returnType, parameters);
-    putRow(symbolTable, functionName, categ_function, value);
-}
-
-void sq_declareFunctionType(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters){
-    TableRowValue value = FunctionRowValue(symbolTable, returnType, parameters);
-    putRow(symbolTable, functionName, categ_functionType, value);
-}
-
-void * StringDuplicator(const void * value){
-    return cpyString((const char *)value);
-}
-
-void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues){
-    TableRowValue rowValue = EmptyRowValue();
-    rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
-    putRow(symbolTable, enumName, categ_enumType, rowValue);
-}
-
-
-void sq_declareStruct(hashtable * symbolTable, const char * structName, AttributeList * attributeList){
-    TableRowValue rowValue = EmptyRowValue();
-    rowValue.structValue.fields = convertAttributesToFieldsValues(symbolTable, attributeList);
-    putRow(symbolTable, structName, categ_structType, rowValue);
-}
-
-void sq_declareNamespace(hashtable * symbolTable, const char * namespaceName){
-    putRow(symbolTable, namespaceName, categ_namespace, EmptyRowValue());
-}
-
-
 
 
 void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){

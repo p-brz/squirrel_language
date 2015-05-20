@@ -10,6 +10,7 @@
 #include "hashtable.h"
 #include "sqtypes.h"
 #include "compiler_types.h"
+#include "squirrel_context.h"
 
 #include <stdbool.h> //inclui bool em C99
 
@@ -78,37 +79,32 @@ typedef struct TableRow{
     TableRowValue value;
 } TableRow;
 
-//Construtor de table row 
-TableRow * sq_TableRow(char * name, Category category, TableRowValue value);
-
-ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool isConst, bool isRef);
-
-/** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
-hashtable * sq_createSymbolTable();
-
-TableRow * sq_findType(hashtable * symbolTable, const char * name);
-
-/** Insere na tabela de símbolos (symbolTable) uma lista de nomes de variáveis (nameDeclList), 
+/** Insere na tabela de símbolos uma lista de nomes de variáveis (nameDeclList), 
     declaradas com um mesmo tipo (type)*/
-void sq_declareVariables(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList);
+void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList);
 
 /** Similar a sq_declareVariables, mas cria variáveis são marcadas const isConst = true*/
-void sq_declareConstants(hashtable * symbolTable, const char * typeName, arraylist * nameDeclList);
+void sq_declareConstants(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList);
 
-/** Insere na tabela de símbolos (symbolTable) uma função com tipo de retorno 'returnType' e nome 'functionName'.
+/** Insere na tabela de símbolos uma função com tipo de retorno 'returnType' e nome 'functionName'.
 
     @param paremeters - uma lista de ponteiros para Parameter (ver compiler_helper.h)
 */
-void sq_declareFunction(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters);
+void sq_declareFunction(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters);
 
-void sq_declareFunctionType(hashtable * symbolTable, const char * returnType, const char * functionName, ParamList * parameters);
+void sq_declareFunctionType(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters);
 
-void sq_declareEnum(hashtable * symbolTable, const char * enumName, NameList * enumValues);
+void sq_declareEnum(SquirrelContext * sqContext, const char * enumName, NameList * enumValues);
 
-void sq_declareStruct(hashtable * symbolTable, const char * structName, AttributeList * attributeList);
+void sq_declareStruct(SquirrelContext * sqContext, const char * structName, AttributeList * attributeList);
 
-void sq_declareNamespace(hashtable * symbolTable, const char * namespaceName);
+void sq_declareNamespace(SquirrelContext * sqContext, const char * namespaceName);
 
 char * sq_ParamValueStringConverter(void * value);
+
+/** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
+hashtable * sq_createSymbolTable();
+/** Destroi tabela de símbolos e todos os valores armazenados.*/
+void sq_destroySymbolTable(hashtable * symbolTable);
 
 #endif

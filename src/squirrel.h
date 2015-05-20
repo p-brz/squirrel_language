@@ -5,6 +5,6 @@
 #include "string_helpers.h"
 #include "sqtypes.h"
 #include "compiler_types.h"
-#include "symboltable.h"
+#include "squirrel_context.h"
 
 #endif

@@ -7,29 +7,14 @@
 #include "squirrel.h"
 #include "dump_table.h"
 
-hashtable * symbolTable;
-arraylist * scopeList;
+SquirrelContext * sqContext;
 
 void startScope(const char * scopeName){
-    appendList(scopeList, cpyString(scopeName));
-    char * scopeListStr = joinList(scopeList, ".", NULL);
-    printf("start  scope %s\n", scopeListStr);
-    free(scopeListStr);
+    sq_startScope(sqContext, scopeName);
 }
 
 void finishScope(){
-    char * scopeListStr = joinList(scopeList, ".", NULL);
-    
-    char * lastScope = arraylist_pop(scopeList);
-    if(lastScope != NULL){
-        printf("finish scope %s\n", scopeListStr);
-        free(lastScope);
-    }
-    else{
-        printf("Error! Finishing unexistent scope");
-    }
-    
-    free(scopeListStr);
+    sq_finishScope(sqContext);
 }
 
 %}
@@ -129,7 +114,7 @@ void finishScope(){
 
 %%
 program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", $1); dumpSymbolTable(symbolTable);};
+                                                      printf("%s\n", $1); dumpSymbolTable(sqContext->symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -148,7 +133,7 @@ type_definition  : enum_definition                  {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
                       
 namespace        : NAMESPACE ID {startScope($2);}
-                    LBRACE declaration_list RBRACE  {   sq_declareNamespace(symbolTable, $2);
+                    LBRACE declaration_list RBRACE  {   sq_declareNamespace(sqContext, $2);
                                                         const char * values[] = {"namespace ", $2, "{\n", $5, "\n}"};
                                                         $$ = concat_n(5, values);
                                                         
@@ -159,7 +144,7 @@ namespace        : NAMESPACE ID {startScope($2);}
 
 function        : type ID {startScope($2);}
                         func_params block_body      {   char * funcParams = joinList($4, ", ", sq_ParameterToString);
-                                                        sq_declareFunction(symbolTable, $1, $2, $4);
+                                                        sq_declareFunction(sqContext, $1, $2, $4);
                                                         
                                                         const char * values[] = {$1, " ", $2, "(", funcParams, ")", $5};
                                                         $$ = concat_n(7, values); 
@@ -208,7 +193,7 @@ type_modifier : CONST { $$ = strdup("const");}
                 
 /* ********************************* TYPE DEFINITION ***************************************** */
 
-enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(symbolTable, $2, $4);
+enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(sqContext, $2, $4);
 
                                                         char * listStr = joinList($4, ", ", NULL);
                                                         const char * values[] = {"enum ", $2, "{", listStr, "}"};
@@ -216,7 +201,7 @@ enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(symbolTab
                                                         free(listStr);};
                                                         
 struct_definition : STRUCT ID 
-                    LBRACE struct_body RBRACE       {   sq_declareStruct(symbolTable, $2, $4);
+                    LBRACE struct_body RBRACE       {   sq_declareStruct(sqContext, $2, $4);
                     
                                                         char * attrListStr = attributeListToString($4);
                                                         const char * values[] = {"struct ", $2, "{\n", attrListStr , "\n}"};
@@ -227,7 +212,7 @@ struct_body       : /*Vazio*/                       {  $$ = createList(NULL);}
                         | attribute_list            {  $$ = $1;};
                                                         
 functiontype_definition: 
-                    FUNCTION type ID func_params    {   sq_declareFunctionType(symbolTable, $2,$3,$4);
+                    FUNCTION type ID func_params    {   sq_declareFunctionType(sqContext, $2,$3,$4);
                                                         
                                                         char * funcParams = joinList($4, ", ", sq_ParameterToString);
                                                         const char * values[] = {"function ", $2," ", $3, "(",funcParams,")"};
@@ -309,14 +294,14 @@ assignment       : lvalue_term assignment_op expr               {
                                                                 };
 
 variables_decl   : type name_decl_list                          {   
-                                                                    sq_declareVariables(symbolTable, $1, $2);
+                                                                    sq_declareVariables(sqContext, $1, $2);
                                                                     $$ = concat3($1, " ", joinList($2,", ", sq_NameDeclToString));
                                                                     destroyList($2);
                                                                 }
                                                                 
                       /* Assumindo que variáveis podem ter apenas modificador CONST*/
                     | CONST type name_decl_list                 {   
-                                                                     sq_declareConstants(symbolTable, $2, $3); 
+                                                                     sq_declareConstants(sqContext, $2, $3); 
                                                                      char * listStr = joinList($3, ", ", sq_NameDeclToString);
                                                                      $$ = concat4("const ", $2, " ", listStr);
                                                                      free(listStr); 
@@ -534,14 +519,12 @@ conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")"
 %%
 
 int main (void) {
-    symbolTable = sq_createSymbolTable();
-    scopeList = createList(NULL);
+    sqContext = sq_SquirrelContext();
     
     int exitCode =  yyparse ( );
     
-    hashtable_destroy(symbolTable);
-    symbolTable = NULL;
-    
+    sq_DestroySquirrelContext(sqContext);
+        
     return exitCode;
 }
 
