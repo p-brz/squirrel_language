@@ -4,6 +4,7 @@
 #include "sqtypes.h"
 #include <stdbool.h>
 #include "arraylist.h"
+
 /** ***************************************************************************************
  compiler_types.h
     - tipos utilizados nas regras do compilador yacc (e funções associadas a estes tipos)
@@ -46,6 +47,7 @@ NameDeclItem * sq_NameDeclItem(char * name, Expression * expr);
 char * sq_NameDeclToString(void * item);
 
 AttributeDecl * sq_AttributeDecl(char * typeName, NameList * namesList);
+char * attributeListToString(AttributeList * attributeList);
 
 Expression *sq_Expression( sq_type type, const char *expr );
 char *sq_exprToStr( Expression *expr );

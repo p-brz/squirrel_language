@@ -75,3 +75,21 @@ char *sq_exprToStr( Expression *expr )
     return "";
 }
 
+char * AttributeDeclStringConverter(void * value){
+    if(value == NULL){
+        return cpyString("");
+    }
+    AttributeDecl * attributeDecl = (AttributeDecl *)value;
+    char * nameDeclListStr = joinList(attributeDecl->namesList, ", ", NULL);
+    char * result = concat3(attributeDecl->type, " ", nameDeclListStr);
+    free(nameDeclListStr);
+    return result;
+}
+
+char * attributeListToString(AttributeList * attributeList){
+    char * listStr =  joinList(attributeList, ";\n", AttributeDeclStringConverter);
+    char * result = concat(listStr, ";");//último ';' não é adicionado por joinList
+    free(listStr);
+    return result;
+}
+

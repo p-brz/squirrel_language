@@ -8,24 +8,28 @@
 #include "dump_table.h"
 
 hashtable * symbolTable;
+arraylist * scopeList;
 
-
-char * AttributeDeclStringConverter(void * value){
-    if(value == NULL){
-        return cpyString("");
-    }
-    AttributeDecl * attributeDecl = (AttributeDecl *)value;
-    char * nameDeclListStr = joinList(attributeDecl->namesList, ", ", NULL);
-    char * result = concat3(attributeDecl->type, " ", nameDeclListStr);
-    free(nameDeclListStr);
-    return result;
+void startScope(const char * scopeName){
+    appendList(scopeList, cpyString(scopeName));
+    char * scopeListStr = joinList(scopeList, ".", NULL);
+    printf("start  scope %s\n", scopeListStr);
+    free(scopeListStr);
 }
 
-char * attributeListToString(AttributeList * attributeList){
-    char * listStr =  joinList(attributeList, ";\n", AttributeDeclStringConverter);
-    char * result = concat(listStr, ";");//último ';' não é adicionado por joinList
-    free(listStr);
-    return result;
+void finishScope(){
+    char * scopeListStr = joinList(scopeList, ".", NULL);
+    
+    char * lastScope = arraylist_pop(scopeList);
+    if(lastScope != NULL){
+        printf("finish scope %s\n", scopeListStr);
+        free(lastScope);
+    }
+    else{
+        printf("Error! Finishing unexistent scope");
+    }
+    
+    free(scopeListStr);
 }
 
 %}
@@ -110,7 +114,8 @@ char * attributeListToString(AttributeList * attributeList){
 %type <sValue> struct_constructor member_init member_init_list
 %type <sValue> member
 
-%type <sValue> for if while do_while try_catch switch switch_body when_list when_block default_block conditional_test if_block
+%type <sValue> for while do_while try_catch switch switch_body when_list when_block default_block conditional_test
+%type <sValue> if if_block else_block
 
 %type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
 %type <sValue> call_expr
@@ -123,7 +128,8 @@ char * attributeListToString(AttributeList * attributeList){
 %start program
 
 %%
-program          : declaration_list                 { printf("%s\n", $1); dumpSymbolTable(symbolTable);};
+program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
+                                                      printf("%s\n", $1); dumpSymbolTable(symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -141,24 +147,29 @@ type_definition  : enum_definition                  {   $$ = $1;}
                       | struct_definition           {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
                       
-namespace        : NAMESPACE ID 
+namespace        : NAMESPACE ID {startScope($2);}
                     LBRACE declaration_list RBRACE  {   sq_declareNamespace(symbolTable, $2);
-                                                        const char * values[] = {"namespace ", $2, "{\n", $4, "\n}"};
-                                                        $$ = concat_n(5, values); };
+                                                        const char * values[] = {"namespace ", $2, "{\n", $5, "\n}"};
+                                                        $$ = concat_n(5, values);
+                                                        
+                                                        finishScope(); };
                                                         
     
 /* *********************************** FUNCTIONS ********************************************** */
 
-function        : type ID func_params block_body    {   char * funcParams = joinList($3, ", ", sq_ParameterToString);
-                                                        sq_declareFunction(symbolTable, $1, $2, $3);
+function        : type ID {startScope($2);}
+                        func_params block_body      {   char * funcParams = joinList($4, ", ", sq_ParameterToString);
+                                                        sq_declareFunction(symbolTable, $1, $2, $4);
                                                         
-                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ")", $4};
+                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ")", $5};
                                                         $$ = concat_n(7, values); 
                                                         free(funcParams);
                                                         //TODO: destruir Parameter list
+                                                        
+                                                        finishScope();
                                                     };
 
-func_params     : LPAREN param_decl_list RPAREN     {   $$ = $2; };
+func_params     : LPAREN param_decl_list RPAREN             {   $$ = $2; };
 
 param_decl_list : /* Vazio*/                                {   $$ = createList(NULL);}
                       | param_decl                          {   $$ = createList($1);}
@@ -172,8 +183,8 @@ param_decl      : type ID                                   {   $$ = sq_Paramete
 type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
 
-simple_type : primitive_type    { $$ = $1; }
-                | member          { $$ = $1; };
+simple_type : primitive_type                        { $$ = $1; }
+                | member                            { $$ = $1; };
               
 primitive_type : VOID       { $$ = strdup("void"); }
                   | BYTE    { $$ = strdup("byte"); }
@@ -187,7 +198,7 @@ primitive_type : VOID       { $$ = strdup("void"); }
                   | OBJECT  { $$ = strdup("object"); }
                   | TYPE    { $$ = strdup("type"); };
 
-array_type   : type ARRAY_SYMBOL       {   $$ = concat($1, "[]"); };
+array_type   : type ARRAY_SYMBOL                                {   $$ = concat($1, "[]"); };
 
 type_modifier_list : type_modifier                              {   $$ = createList($1); }
                        | type_modifier_list type_modifier       {   $$ = appendList($1, $2);};
@@ -211,8 +222,9 @@ struct_definition : STRUCT ID
                                                         const char * values[] = {"struct ", $2, "{\n", attrListStr , "\n}"};
                                                         $$ = concat_n(5, values);
                                                         free(attrListStr);};
-struct_body       : /*Vazio*/            {  $$ = createList(NULL);}
-                        | attribute_list {  $$ = $1;};
+                                                        
+struct_body       : /*Vazio*/                       {  $$ = createList(NULL);}
+                        | attribute_list            {  $$ = $1;};
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   sq_declareFunctionType(symbolTable, $2,$3,$4);
@@ -240,7 +252,7 @@ attribute       : type id_list SEMICOLON            {   $$ = sq_AttributeDecl($1
 //attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
 //                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
 
-struct_constructor  : member LBRACE member_init_list RBRACE         {   const char * valores[] = {$1, "{", $3, "}"};
+struct_constructor  : member LBRACE member_init_list RBRACE     {   const char * valores[] = {$1, "{", $3, "}"};
                                                                     $$ = concat_n(4, valores);};
 
 member_init_list    :   /*vazio*/                               {   $$ = "";}
@@ -452,7 +464,9 @@ block_statement : for       		{$$ = $1;}
 			        | switch        {$$ = $1;};
 
 
-for             : FOR for_header block_body     {$$ = concat3("for", $2, $3);};
+for             : FOR {startScope("for");}
+                    for_header block_body     { $$ = concat3("for", $3, $4);
+                                                finishScope(); };
                                                         					
 for_header      : LPAREN 
                     for_statement SEMICOLON 
@@ -467,23 +481,40 @@ for_statement   : /*Vazio*/                     {$$ = "";}
 for_expr        : /*Vazio*/                     {$$ = " ";}
 			        | binary_expr               {$$ = $1;};
 
-if 		        : if_block				        { $$ = $1;}
-    		        | if_block ELSE block_body	{ $$ = concat3($1, "\nelse ", $3);}
-   			        | if_block ELSE if		    { $$ = concat3($1, "\nelse ", $3);};
+if 		        : if_block				                    {   $$ = $1;}
+    		        | if_block else_block	                {   $$ = concat($1, $2);};
 
-if_block 	    : IF conditional_test block_body 	        {   $$ = concat3("if", $2, $3);};
+if_block 	    : IF {startScope("if");}
+                    conditional_test block_body 	        {   $$ = concat3("if", $3, $4);
+                                                                finishScope();};
 
-while 		    : WHILE conditional_test block_body         {   $$ = concat3("while", $2, $3);};
+else_block      : ELSE {startScope("else");} 
+                     block_body	                            {   $$ = concat("\nelse ", $3);
+                                                                finishScope();  }
+   			        | ELSE if		                        {   $$ = concat("\nelse ", $2);};
 
-do_while        : DO block_body 
-                    WHILE conditional_test SEMICOLON        {   const char * values[] = {"do",$2," while", $4, ";"};
-                                                                $$ = concat_n(5, values);};
+while 		    : WHILE {startScope("while");}
+                    conditional_test block_body             {   $$ = concat3("while", $3, $4);
+                                                                finishScope();};
 
-try_catch 	    : TRY block_body CATCH block_body           {   $$ = concat4("try",$2,"catch", $4);};
+do_while        : DO {startScope("do");}
+                    block_body 
+                    WHILE conditional_test SEMICOLON        {   const char * values[] = {"do",$3," while", $5, ";"};
+                                                                $$ = concat_n(5, values);
+                                                                finishScope();};
 
-switch          : switch_header LBRACE switch_body RBRACE   {   $$ = concat4($1, "{\n", $3, "\n}");};
+try_catch 	    : TRY   { startScope("try");}
+                            block_body 
+                        { finishScope();}
+                  CATCH { startScope("catch");} 
+                            block_body
+                        { finishScope();}                   {   $$ = concat4("try",$3,"catch", $7);};
 
-switch_header   : SWITCH LPAREN opt_expr RPAREN             {   $$ = concat3("switch(", $3, ")");};
+switch          : switch_header LBRACE switch_body RBRACE   {   $$ = concat4($1, "{\n", $3, "\n}");
+                                                                finishScope(); /*Escopo iniciado em switch_header*/ };
+
+switch_header   : SWITCH { startScope("switch"); }
+                    LPAREN opt_expr RPAREN                  {   $$ = concat3("switch(", $4, ")");};
 
 switch_body 	: when_list				                    {   $$ = $1;}
 		            | when_list default_block		        {   $$ = concat($1, $2);};
@@ -491,15 +522,20 @@ switch_body 	: when_list				                    {   $$ = $1;}
 when_list       : when_block				                {   $$ = $1;}
 	                | when_list when_block			        {   $$ = concat($1, $2);};
 
-when_block 	    : WHEN conditional_test block_body          {   $$ = concat3("when", $2, $3);};
+when_block 	    : WHEN  { startScope("when");}
+                    conditional_test block_body             {   $$ = concat3("when", $3, $4);
+                                                                finishScope();};
 
-default_block   : DEFAULT block_body                        {   $$ = concat("default", $2);};
+default_block   : DEFAULT { startScope("default"); }
+                    block_body                              {   $$ = concat("default", $3);
+                                                                finishScope();};
 
 conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")");};
 %%
 
 int main (void) {
     symbolTable = sq_createSymbolTable();
+    scopeList = createList(NULL);
     
     int exitCode =  yyparse ( );
     
