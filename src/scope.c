@@ -7,13 +7,13 @@
 
 void sq_startScope(SquirrelContext * sqContext, const char * scopeName){
     appendList(sqContext->scopeList, cpyString(scopeName));
-    char * scopeListStr = joinList(sqContext->scopeList, ".", NULL);
+    char * scopeListStr = sq_fullScopeName(sqContext);
     printf("start  scope %s\n", scopeListStr);
     free(scopeListStr);
 }
 
 void sq_finishScope(SquirrelContext * sqContext){
-    char * scopeListStr = joinList(sqContext->scopeList, ".", NULL);
+    char * scopeListStr = sq_fullScopeName(sqContext);
     
     char * lastScope = arraylist_pop(sqContext->scopeList);
     if(lastScope != NULL){
@@ -25,4 +25,11 @@ void sq_finishScope(SquirrelContext * sqContext){
     }
     
     free(scopeListStr);
+}
+
+char * sq_fullScopeName(SquirrelContext * sqContext){
+    return sq_makeFullScopeName(sqContext->scopeList);
+}
+char * sq_makeFullScopeName(arraylist * scopeList){
+    return joinList(scopeList, "_", NULL);
 }

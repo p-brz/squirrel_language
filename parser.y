@@ -142,16 +142,15 @@ namespace        : NAMESPACE ID {startScope($2);}
     
 /* *********************************** FUNCTIONS ********************************************** */
 
-function        : type ID {startScope($2);}
-                        func_params block_body      {   char * funcParams = joinList($4, ", ", sq_ParameterToString);
-                                                        sq_declareFunction(sqContext, $1, $2, $4);
-                                                        
+function        : type ID func_params               {   //Declare function and start scope
+                                                        sq_startFunction(sqContext, $1, $2, $3);}
+                                    block_body      {   char * funcParams = joinList($3, ", ", sq_ParameterToString);
                                                         const char * values[] = {$1, " ", $2, "(", funcParams, ")", $5};
                                                         $$ = concat_n(7, values); 
                                                         free(funcParams);
                                                         //TODO: destruir Parameter list
                                                         
-                                                        finishScope();
+                                                        finishScope(); //scope created in function
                                                     };
 
 func_params     : LPAREN param_decl_list RPAREN             {   $$ = $2; };
@@ -213,7 +212,6 @@ struct_body       : /*Vazio*/                       {  $$ = createList(NULL);}
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   sq_declareFunctionType(sqContext, $2,$3,$4);
-                                                        
                                                         char * funcParams = joinList($4, ", ", sq_ParameterToString);
                                                         const char * values[] = {"function ", $2," ", $3, "(",funcParams,")"};
                                                         $$ = concat_n(7, values);
@@ -223,14 +221,7 @@ id_list : ID                                        {   $$ = createList($1);}
             | id_list COMMA  ID                     {   $$ = appendList($1, $3);};
             
 attribute_list  :  attribute                        {   $$ = createList($1);}
-                                                        //char * listStr = joinList($1->nameDeclList,", ", sq_NameDeclToString);
-                                                        //$$ = concat4($1->type," ", listStr, ";\n");
-                                                        //free(listStr); }
                     | attribute_list attribute      {   $$ = appendList($1, $2);};
-                                                        //char * listStr = joinList($2->nameDeclList,", ", sq_NameDeclToString);
-                                                        //char * attribute = concat4($2->type," ", listStr, ";\n");
-                                                        //free(listStr); 
-                                                        //$$ = concat($1, attribute);};
                     
 attribute       : type id_list SEMICOLON            {   $$ = sq_AttributeDecl($1, $2);};
                     
@@ -312,10 +303,7 @@ name_decl_list   : name_decl                                    {   $$ = createL
                     | name_decl_list COMMA name_decl            {   $$ = appendList($1, $3);};
 
 name_decl         : ID                                          {   $$ = sq_NameDeclItem($1, NULL); }
-                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression(type_void, $3));
-                                                                    //const char *values[] = {$1, " = ", $3}; 
-                                                                    //$$ = concat_n(3, values);
-                                                                    };
+                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression(type_void, $3)); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                                   {   $$ = "";}

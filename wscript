@@ -8,6 +8,8 @@ PARSER_NAME = 'squirrel'
 
 def options(opt):
     opt.load('compiler_c')
+    
+    opt.add_option('-e', '--example', help='Informa qual exemplo será compilado', dest='example_name')
 
 def configure(conf):
     conf.load('compiler_c flex bison')
@@ -25,6 +27,7 @@ def build(bld):
 
     bld.stlib(
         target= 'datastructs-c',
+        name= 'datastructs-c',
         source = sources,
         cflags = ['--std=gnu99'],
         includes = datastructsDir,
@@ -45,10 +48,28 @@ def build(bld):
         target = PARSER_NAME,
         use=['FLEX', 'datastructs-c', 'squirrel-lib'])
 
-# Criando comando especial 'run' para executar compilador
+    
+    if(bld.options.example_name):
+        bld.stlib(
+            target='sqlib',
+            source = bld.path.ant_glob('language/**/*.c'),
+            includes = ['language'],
+            export_includes = ['language'],
+            use=['datastructs-c'])
+            
+        bld.program(
+            target=bld.options.example_name,
+            source=path.join('traducoes_exemplo', bld.options.example_name + ".c"),
+            use='sqlib')
+        
+
 from waflib.Build import BuildContext
+
+# Criando comando especial 'run' para executar compilador
 class RunContext(BuildContext):
         cmd = 'run'
         fun = 'run'
 def run(ctx):
     ctx(rule=path.join(ctx.path.get_bld().abspath(), PARSER_NAME));
+    
+    

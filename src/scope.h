@@ -6,4 +6,7 @@
 void sq_startScope(SquirrelContext * sqContext, const char * scopeName);
 void sq_finishScope(SquirrelContext * sqContext);
 
+char * sq_fullScopeName(SquirrelContext * sqContext);
+char * sq_makeFullScopeName(arraylist * scopeList);
+
 #endif

@@ -14,10 +14,12 @@ ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool 
 TableRow * sq_findType(hashtable * symbolTable, const char * name);
 
 
-void putRow(hashtable * symbolTable, const char * name, Category category, const TableRowValue value);
-void putVariable(hashtable * symbolTable, const char * typename, NameDeclItem * item, bool isConst);
-void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst);
+void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value);
+void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value);
+void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclItem * item, bool isConst);
+void declareVariables(SquirrelContext * sqContext, const char * typename, arraylist * nameDeclList, bool isConst);
 void putPrimitive(hashtable * symbolTable, const char * typeName);
+void declareParamVariables(SquirrelContext * sqContext, ParamList * parameters);
 /** Converte uma lista de Parameter (ver compiler_helper.h) em uma lista de ParamValue (ver symboltable.h)*/
 arraylist * convertToParamValueList(hashtable * symbolTable, ParamList * parameters);
 arraylist * convertAttributesToFieldsValues(hashtable * symbolTable,AttributeList * attributeList);
@@ -63,21 +65,27 @@ void sq_destroySymbolTable(hashtable * symbolTable){
 }
 
 void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
-    declareVariables(sqContext->symbolTable, typeName, nameDeclList, false);
+    declareVariables(sqContext, typeName, nameDeclList, false);
 }
 
 void sq_declareConstants(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
-    declareVariables(sqContext->symbolTable, typeName, nameDeclList, true);
+    declareVariables(sqContext, typeName, nameDeclList, true);
 }
 
+
+void sq_startFunction(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters){
+    sq_declareFunction(sqContext, returnType, functionName, parameters);
+    sq_startScope(sqContext, functionName);
+    declareParamVariables(sqContext, parameters);
+}
 void sq_declareFunction(SquirrelContext * sqContext, const char * returnType, const char * functionName, arraylist * parameters){
     TableRowValue value = FunctionRowValue(sqContext->symbolTable, returnType, parameters);
-    putRow(sqContext->symbolTable, functionName, categ_function, value);
+    putRow(sqContext, functionName, categ_function, value);
 }
 
 void sq_declareFunctionType(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters){
     TableRowValue value = FunctionRowValue(sqContext->symbolTable, returnType, parameters);
-    putRow(sqContext->symbolTable, functionName, categ_functionType, value);
+    putRow(sqContext, functionName, categ_functionType, value);
 }
 
 void * StringDuplicator(const void * value){
@@ -87,18 +95,18 @@ void * StringDuplicator(const void * value){
 void sq_declareEnum(SquirrelContext * sqContext, const char * enumName, NameList * enumValues){
     TableRowValue rowValue = EmptyRowValue();
     rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
-    putRow(sqContext->symbolTable, enumName, categ_enumType, rowValue);
+    putRow(sqContext, enumName, categ_enumType, rowValue);
 }
 
 
 void sq_declareStruct(SquirrelContext * sqContext, const char * structName, AttributeList * attributeList){
     TableRowValue rowValue = EmptyRowValue();
     rowValue.structValue.fields = convertAttributesToFieldsValues(sqContext->symbolTable, attributeList);
-    putRow(sqContext->symbolTable, structName, categ_structType, rowValue);
+    putRow(sqContext, structName, categ_structType, rowValue);
 }
 
 void sq_declareNamespace(SquirrelContext * sqContext, const char * namespaceName){
-    putRow(sqContext->symbolTable, namespaceName, categ_namespace, EmptyRowValue());
+    putRow(sqContext, namespaceName, categ_namespace, EmptyRowValue());
 }
 
 
@@ -144,29 +152,47 @@ TableRow * sq_findType(hashtable * symbolTable, const char * name){
 }
 
 
-void declareVariables(hashtable * symbolTable, const char * typename, arraylist * nameDeclList, bool isConst){
+void declareVariables(SquirrelContext * sqContext, const char * typename, arraylist * nameDeclList, bool isConst){
     int i;
 	void* value;
 	//arraylist_iterate gera um for para iterar sobre a lista (ver arraylist.h)
 	arraylist_iterate(nameDeclList, i, value) {
 	    NameDeclItem * item = (NameDeclItem *) value;
-	    putVariable(symbolTable, typename, item, isConst);
+	    putVariable(sqContext, typename, item, isConst);
 	}
 }
 
+void declareParamVariables(SquirrelContext * sqContext, ParamList * parameters){
+    int i;
+	void* value;
+	arraylist_iterate(parameters, i, value) {
+	    Parameter * parameter = (Parameter *)value;
+	    
+        //TODO: permitir definição de variável 'ref'
+	    TableRowValue value = VariableRowValue(sqContext->symbolTable, parameter->type, parameter->isConst);
+        putRow(sqContext, parameter->name, categ_variable, value);
+	}
+}
 
-void putRow(hashtable * symbolTable, const char * name, Category category, const TableRowValue value){
-    char * key = cpyString(name);
+void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value){
+    putRowBase(sqContext->symbolTable, sqContext->scopeList, name, category, value);
+}
+void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value){
+    char * scopeName = scopeList != NULL ? (char *)sq_makeFullScopeName(scopeList) : (char *)cpyString("");
+    char * key = strlen(scopeName) > 0 ? concat3(scopeName, "_", name)
+                                       : concat(scopeName, name);
     TableRow * row = sq_TableRow(key, category, value);
     hashtable_set(symbolTable, key, row);
+    
+    free(scopeName);
 }
 
-void putVariable(hashtable * symbolTable, const char * typename, NameDeclItem * item, bool isConst){
-    TableRowValue value = VariableRowValue(symbolTable, typename, isConst);
-    putRow(symbolTable, item->name, categ_variable, value);
+void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclItem * item, bool isConst){
+    TableRowValue value = VariableRowValue(sqContext->symbolTable, typename, isConst);
+    putRow(sqContext, item->name, categ_variable, value);
 }
 void putPrimitive(hashtable * symbolTable, const char * typeName){
-    putRow(symbolTable, typeName, categ_primitiveType, EmptyRowValue());
+    putRowBase(symbolTable, NULL, typeName, categ_primitiveType, EmptyRowValue());
 }
 
 TableRowValue EmptyRowValue(){

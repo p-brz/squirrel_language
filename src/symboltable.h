@@ -86,6 +86,10 @@ void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arr
 /** Similar a sq_declareVariables, mas cria variáveis são marcadas const isConst = true*/
 void sq_declareConstants(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList);
 
+/** Declara função e inicia escopo.
+*/
+void sq_startFunction(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters);
+
 /** Insere na tabela de símbolos uma função com tipo de retorno 'returnType' e nome 'functionName'.
 
     @param paremeters - uma lista de ponteiros para Parameter (ver compiler_helper.h)
