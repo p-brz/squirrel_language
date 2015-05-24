@@ -1,7 +1,27 @@
 #ifndef SQ_CONTROL_H
 #define SQ_CONTROL_H
 
+        
+/***************************** DO-WHILE MACROS ********************************/
+#define DO_START(do_id) \
+    do_start_##do_id :  \
+        ;
+        
+#define DO_END(do_id, condition) \
+    if(condition)                \
+        goto do_start_##do_id ;
 
+/****************************** WHILE MACROS ********************************/
+#define WHILE_START(while_id, condition)\
+    while_start_##while_id :            \
+    if(!(condition))                    \
+        goto while_exit_##while_id ;
+
+#define WHILE_END(while_id)         \
+    goto while_start_##while_id ;   \
+    while_exit_##while_id :         \
+        ;    
+        
 /****************************** FOR MACROS ********************************/
 
 #define FOR_START(for_id, initialization, cond_test, incr_stmt)\
@@ -29,7 +49,7 @@
         ;
 
 #define ELSE_START(if_id)       \
-    /*Esta instrução vai ser executada se o if for executado*/\
+    /*Se o if for executado, próxima instrução fará execução pular para fim do else*/\
     goto else_exit_##if_id ;    \
     if_exit_##if_id:            \
         ;                       \

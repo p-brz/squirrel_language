@@ -1,4 +1,4 @@
-#include <sqlib.h>
+#include "sqlib.h"
 
 int program_main(){
     
@@ -50,9 +50,4 @@ int program_main(){
     return 0;
 }
 
-int main(){
-    squirrel_setup();
-    int retValue = program_main();
-    free_All();
-    return retValue;
-}
+#include "sq_main.incl"

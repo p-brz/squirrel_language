@@ -5,13 +5,14 @@ int main(){
     }
     print("counter == 10? ", counter == 10);
     
-    while(counter < 10){
-        print("Isso não deve ser executado!");
+    while(counter < 12){
+        print("Isto deve ser executado 2 vezes!");
+        ++counter;
     }
     
     do{
-        print("Isto deve ser executado 1 vez!");
-    }while(counter < 10);
+        print("Isto deve ser executado 3 vezes!");
+    }while(counter < 15);
     
     return 0;
 }

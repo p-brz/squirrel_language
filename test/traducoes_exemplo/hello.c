@@ -11,12 +11,4 @@ int program_main ()
 }
 
 //Main real deve ser embutido ao fim do programa
-int main(){
-    //Setup deve ser incluso no main de todos os programas
-    squirrel_setup();
-    //Chamada do main do programa
-    int retValue = program_main();
-    //Libera qualquer memória que não tenha sido desalocada
-    free_All();
-    return retValue;
-}
+#include "sq_main.incl"

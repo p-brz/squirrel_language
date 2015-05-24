@@ -48,9 +48,4 @@ int program_main(){
     return 0;
 }
 
-int main(){
-    squirrel_setup();
-    int retValue = program_main();
-    free_All();
-    return retValue;
-}
+#include "sq_main.incl"

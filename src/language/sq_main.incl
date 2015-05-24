@@ -1,0 +1,13 @@
+#ifndef SQ_MAIN_INCL
+#define SQ_MAIN_INCL
+
+int main(){
+    squirrel_setup();
+    //Chamada do main do programa
+    int retValue = program_main();
+    //Libera qualquer memória que não tenha sido desalocada
+    free_All();
+    return retValue;
+}
+
+#endif

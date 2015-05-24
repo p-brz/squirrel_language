@@ -3,14 +3,8 @@
 
 const char * INCLUDES = "#include \"sqlib.h\"\n\n";
 
-const char * MAIN = 
-    "int main(){\n"
-    "    squirrel_setup();\n"
-    "    int retValue = program_main();\n"
-    "    free_All();\n"
-    "    return retValue;\n"
-    "}\n";
+const char * MAIN_INCLUDE = "\n#include \"sq_main.incl\"\n";
 
 char * gen_program(const char * declarationsList){
-    return concat3(INCLUDES, declarationsList, MAIN);
+    return concat3(INCLUDES, declarationsList, MAIN_INCLUDE);
 }
