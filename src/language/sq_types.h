@@ -5,7 +5,7 @@
 #include "sq_struct.h"
 #include "sq_array.h"
 
-//----------------------------- String ----------------------------------------
+//-------------------------- Types definition ----------------------------------
 typedef struct{
     MemoryNode * memory;
     char * cstr;
@@ -13,14 +13,15 @@ typedef struct{
 
 string create_String(const char * strValue);
 
-//----------------------------- Boolean ----------------------------------------
 typedef int boolean;
 
 #define true 1
 #define false 0
 
-char * boolean_toCString(boolean booleanValue);
-char * long_toCString(long longValue);
-char * float_toCString(float floatValue);
+//----------------------------- toCString --------------------------------------
+const char * string_toCString(string stringValue);
+const char * boolean_toCString(boolean booleanValue);
+const char * long_toCString(long longValue);
+const char * float_toCString(float floatValue);
 
 #endif

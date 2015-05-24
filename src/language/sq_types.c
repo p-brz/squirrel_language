@@ -15,18 +15,22 @@ string create_String(const char * strValue){
 }
 
 
-char * boolean_toCString(boolean booleanValue){
-    char * cstring = booleanValue ? cpyString("true") : cpyString("false");
-    putMemory(cstring);
-    return cstring;
+const char * string_toCString(string stringValue){
+    if(stringValue.memory == NULL || stringValue.cstr == NULL){
+        return "null";
+    }
+    return stringValue.cstr;
+}
+const char * boolean_toCString(boolean booleanValue){
+    return booleanValue ? "true" : "false";
 }
 
-char * long_toCString(long longValue){
+const char * long_toCString(long longValue){
     char * cstring = longToString(longValue);
     putMemory(cstring);
     return cstring;
 }
-char * float_toCString(float floatValue){
+const char * float_toCString(float floatValue){
     char * cstring = realToString(floatValue);
     putMemory(cstring);
     return cstring;

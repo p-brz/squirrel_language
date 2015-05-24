@@ -1,5 +1,6 @@
 enum DiasDaSemana{segunda, terca, quarta, quinta, sexta, sabado, domingo}
 
 int main(){
+    DiasDaSemana dia1 = DiasDaSemana.segunda;
     return 0;
 }

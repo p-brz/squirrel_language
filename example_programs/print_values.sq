@@ -1,15 +1,24 @@
+enum Naipes{Ouros, Espadas, Paus, Copas}
+
 int main(){
     print("Number: ", 10);
     print("Boolean: ", true);
     print("Real: ", 0.1);
+    print("String literal: ", "literal");
+    print("Enum literal: ", Naipes.Espadas);
+    print();
     
     boolean bValue = true;
     long longNumber = 12345;
     float floatNumber = 0.5;
+    string stringVar = "Hello";
+    Naipes naipesVar = Naipes.Ouros;
     
     print("Boolean var: ", bValue);
     print("Long var: ", longNumber);
     print("float var: ", floatNumber);
+    print("string var: ", stringVar);
+    print("enum var: ", naipesVar);
     
     return 0;
 }
