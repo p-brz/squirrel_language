@@ -9,14 +9,16 @@ COMPILER_NAME = 'squirrel'
 def options(opt):
     opt.load('compiler_c')
     
-    opt.add_option('-e', '--example', help='Informa qual exemplo será compilado', dest='example_name')
-
+    opt.recurse('test')
+    
 def configure(conf):
     conf.load('compiler_c flex bison')
     #isto talvez só seja necessário no windows (?)
     conf.env.LIB_FLEX = ['fl']
     # muda o nome do arquivo ".h" para y.tab.h
     conf.env.BISONFLAGS = ['--defines=y.tab.h', '-v']
+    
+    conf.recurse('test')
 
 def build(bld):
 
@@ -54,19 +56,15 @@ def build(bld):
         use      = ['FLEX', 'datastructs-c', 'squirrel-compiler', 'squirrel-commons'])
 
     
-    if(bld.options.example_name):
-        path_language = path.join('src','language');
-        bld.stlib(
-            target          = 'squirrel-language',
-            source          = bld.path.ant_glob(path.join('src','language','**', '*.c')),
-            includes        = path_language,
-            export_includes = path_language,
-            use             = ['datastructs-c', 'squirrel-commons'])
+    path_language = path.join('src','language');
+    bld.stlib(
+        target          = 'squirrel-language',
+        source          = bld.path.ant_glob(path.join('src','language','**', '*.c')),
+        includes        = path_language,
+        export_includes = path_language,
+        use             = ['datastructs-c', 'squirrel-commons'])
             
-        bld.program(
-            target  = bld.options.example_name,
-            source  = path.join('traducoes_exemplo', bld.options.example_name + ".c"),
-            use     = ['squirrel-language'])
+    bld.recurse('test');
         
 
 from waflib.Build import BuildContext
