@@ -3,6 +3,7 @@
 
 #include "sq_types.h"
 #include "sq_memory.h"
+#include "sq_control.h"
 #include <stdio.h> //printf
 
 void squirrel_setup(){

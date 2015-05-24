@@ -25,6 +25,12 @@ const char * boolean_toCString(boolean booleanValue){
     return booleanValue ? "true" : "false";
 }
 
+const char * int_toCString(int value){
+    char * cstring = intToString(value);
+    putMemory(cstring);
+    return cstring;
+}
+
 const char * long_toCString(long longValue){
     char * cstring = longToString(longValue);
     putMemory(cstring);

@@ -21,6 +21,7 @@ typedef int boolean;
 //----------------------------- toCString --------------------------------------
 const char * string_toCString(string stringValue);
 const char * boolean_toCString(boolean booleanValue);
+const char * int_toCString(int value);
 const char * long_toCString(long longValue);
 const char * float_toCString(float floatValue);
 
