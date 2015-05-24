@@ -4,17 +4,18 @@
 
 /****************************** FOR MACROS ********************************/
 
-#define FOR_START(for_id, initialization, cond_test)\
+#define FOR_START(for_id, initialization, cond_test, incr_stmt)\
     initialization;             \
-    /* O operador ## concatena for_test_ com o valor de for_id*/ \
+    goto for_test_##for_id ;    \
+    for_incr_##for_id:          \
+        incr_stmt;              \
     for_test_##for_id :         \
     if(!(cond_test))            \
        goto for_exit_##for_id ;
         
-#define FOR_END(for_id, incr_stmt)      \
-    incr_stmt;                      \
-    goto for_test_##for_id;         \
-    for_exit_##for_id:              \
+#define FOR_END(for_id)                 \
+    goto for_incr_##for_id;             \
+    for_exit_##for_id:                  \
     ; //empty statement
 
 /****************************** IF-ELSE MACROS ********************************/

@@ -17,7 +17,7 @@ int program_main(){
     
     //Blocos utilizados para isolar o escopo do for
     {
-        FOR_START(for_1, int i=0, i < 4){
+        FOR_START(for_1, int i=0, i < 4, ++i){
             printf("%s%s\n", "i: ", int_toCString(i));
         
             IF_START(if_3, i==0){
@@ -43,7 +43,8 @@ int program_main(){
             }
             ELSE_END(if_3);
             
-        } FOR_END(for_1, ++i);
+        } 
+        FOR_END(for_1);
     }
     
     return 0;
