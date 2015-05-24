@@ -1,0 +1,15 @@
+int main(){
+    print("Number: ", 10);
+    print("Boolean: ", true);
+    print("Real: ", 0.1);
+    
+    boolean bValue = true;
+    long longNumber = 12345;
+    float floatNumber = 0.5;
+    
+    print("Boolean var: ", bValue);
+    print("Long var: ", longNumber);
+    print("float var: ", floatNumber);
+    
+    return 0;
+}

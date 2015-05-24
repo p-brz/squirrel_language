@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
+//Baseado em: http://stackoverflow.com/questions/1701055/what-is-the-maximum-length-in-chars-needed-to-represent-any-double-value
+#define MAX_REAL_DIGITS 1080
+
 char * cpyString(const char *s) {
     char *d = malloc (strlen (s) + 1);   // Space for length plus nul
     if (d == NULL) return NULL;          // No memory
@@ -54,3 +57,17 @@ void appendStr(char ** str, const char * toAppend){
     *str = result;
 }
 
+char  * intToString(int value){
+    return longToString(value);
+}
+char  * longToString(long long value){
+    char tmp[30];
+    sprintf(tmp, "%lld", value);
+    return cpyString(tmp);
+}
+
+char * realToString(double value){
+    char tmp[MAX_REAL_DIGITS];
+    sprintf(tmp, "%f", value);
+    return cpyString(tmp);
+}
