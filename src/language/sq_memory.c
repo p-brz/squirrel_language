@@ -23,21 +23,31 @@ MemoryNode * allocaMemory(size_t elementSize, size_t numberOfElements){
     return putMemory(memory);
 }
 
-void free_memory(){
+static void freeNode(MemoryNode * node){
+    free(node->memory);
+    node->memory = NULL;
+    free(node);
+}
+static void free_memoryNodes(int freeAll){
     int i;
     void * value;
     arraylist_iterate(memorylist, i, value){
         MemoryNode * node = (MemoryNode *)value;
         
-        if(node->refCount == 0){
-            free(node->memory);
-            node->memory = NULL;
-            free(node);
+        if(node->refCount == 0 || freeAll){
+            freeNode(node);
             arraylist_remove(memorylist, i);
             
             i--;//reduz contador em 1 para não pular item (já que lista foi reduzida)
         }
-    }
+    }    
+}
+void free_memory(){
+    free_memoryNodes(0);
+}
+
+void free_All(){
+    free_memoryNodes(1);
 }
 
 void incrRefCount(MemoryNode * memNode){

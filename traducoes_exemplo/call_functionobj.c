@@ -60,9 +60,7 @@ PrintFunction functionFactory(){
     return printE;
 }
     
-int main(){
-    squirrel_setup();
-    
+int program_main(){
     Array functionArray = create_Array(sizeof(PrintFunction), 3, (PrintFunction[]){printA,printB,printC});
     incrRefCount_Array(functionArray, NULL);
     
@@ -83,4 +81,12 @@ int main(){
     //Imprimindo memória para verificar que tudo foi desalocado
     printDebugMemory();
     return 0;
+}
+
+
+int main(){
+    squirrel_setup();
+    int retValue = program_main();
+    free_All();
+    return retValue;
 }

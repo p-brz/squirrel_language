@@ -270,7 +270,7 @@ function_call    : lvalue_call                                  {   $$ = $1;}
 lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   $$ = concat4($1, "(", $3, ")"); };
 
 //io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", sq_exprToStr($3), ")");}
-io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", $3, ")");}
+io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("print(", $3, ")");}
                     | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
                     | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
                     | READLINE LPAREN RPAREN                  {   $$ = strdup("readline()"); };
