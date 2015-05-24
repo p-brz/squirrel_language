@@ -1,5 +1,4 @@
 #include "sqlib.h"
-#include <stdio.h>
 
 int main ()
 {

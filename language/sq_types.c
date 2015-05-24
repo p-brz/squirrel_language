@@ -6,6 +6,7 @@ string create_String(const char * strValue){
     
     string str;
     str.memory = memory;
-    str.cstr = (char *)strcpy(memory->memory, strValue);
+    
+    str.cstr = (char *)strcpy((char *)memory->memory, strValue);
     return str;
 }
