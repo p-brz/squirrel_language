@@ -114,7 +114,7 @@ void finishScope(){
 
 %%
 program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", $1); dumpSymbolTable(sqContext->symbolTable);};
+                                                      printf("%s\n", gen_program($1)); dumpSymbolTable(sqContext->symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -269,7 +269,6 @@ function_call    : lvalue_call                                  {   $$ = $1;}
                     
 lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   $$ = concat4($1, "(", $3, ")"); };
 
-//io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("printf(\"%s\",", sq_exprToStr($3), ")");}
 io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("print(", $3, ")");}
                     | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
                     | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
