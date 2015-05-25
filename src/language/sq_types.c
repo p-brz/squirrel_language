@@ -4,6 +4,13 @@
 
 #include <string.h>
 
+
+string empty_String(){
+    string str;
+    str.memory = NULL;
+    str.cstr = NULL;
+    return str;
+}
 string create_String(const char * strValue){
     MemoryNode * memory = allocaMemory(sizeof(char), strlen(strValue));
     

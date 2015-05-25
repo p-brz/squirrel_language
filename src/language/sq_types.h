@@ -12,12 +12,15 @@ typedef struct{
 } string;
 
 string create_String(const char * strValue);
+string empty_String();
 
 typedef int boolean;
 
 #define true 1
 #define false 0
 
+#define and &&
+#define or ||
 //----------------------------- toCString --------------------------------------
 const char * string_toCString(string stringValue);
 const char * boolean_toCString(boolean booleanValue);
