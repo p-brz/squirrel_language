@@ -6,7 +6,7 @@ int main(){
         
     print("t1: ", typename(t1));
     print("t2: ", typename(t2));
-    print("enum Moeda: ", typename(Moeda));
+    print("enum Moeda: ", typename(typeof(Moeda)));
 
     print("t1 casts to t2 ? ", t1 caststo(t2) );
     print("enum Moeda casts to string? ", Moeda caststo(string) );

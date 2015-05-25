@@ -19,11 +19,11 @@ typedef int boolean;
 #define true 1
 #define false 0
 
-#define and &&
-#define or ||
-
 //----------------------------- Operators ------------------------------------//
 boolean equals_String(const string str1, const string str2);
+
+#define and &&
+#define or ||
 
 //----------------------------- toCString --------------------------------------
 const char * string_toCString(string stringValue);
