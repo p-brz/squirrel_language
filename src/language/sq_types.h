@@ -21,6 +21,10 @@ typedef int boolean;
 
 #define and &&
 #define or ||
+
+//----------------------------- Operators ------------------------------------//
+boolean equals_String(const string str1, const string str2);
+
 //----------------------------- toCString --------------------------------------
 const char * string_toCString(string stringValue);
 const char * boolean_toCString(boolean booleanValue);

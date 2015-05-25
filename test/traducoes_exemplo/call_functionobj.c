@@ -73,7 +73,8 @@ int program_main(){
     getArrayItem(PrintFunction, functionArray, 2)();
     getStructMember(StructWithFunction, printable,f)();
     functionFactory()();
-
+    
+    //Decrementar variáveis alocadas no escopo
     decrRefCount_Array(functionArray, NULL);
     decrRefCount_StructWithFunction(&printable);
     free_memory();

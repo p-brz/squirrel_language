@@ -21,6 +21,14 @@ string create_String(const char * strValue){
     return str;
 }
 
+boolean equals_String(const string str1, const string str2){
+    if(str1.cstr != NULL && str2.cstr != NULL){
+        return strcmp(str1.cstr, str2.cstr) == 0;
+    }
+    else{
+        return str1.cstr == NULL && str2.cstr == NULL;
+    }
+}
 
 const char * string_toCString(string stringValue){
     if(stringValue.memory == NULL || stringValue.cstr == NULL){

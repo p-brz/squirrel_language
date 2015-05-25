@@ -15,38 +15,38 @@ int program_main(){
     }
     ELSE_END(if_2);
     
-    //Blocos utilizados para isolar o escopo do for
-    {
-        FOR_START(for_1, int i=0, i < 4, ++i){
-            printf("%s%s\n", "i: ", int_toCString(i));
-        
-            IF_START(if_3, i==0){
-                printf("%s\n", "\ti é zero.");
+    FOR_START(for_1){
+    FOR_HEADER(for_1, int i=0, i < 4, ++i);
+    
+        printf("%s%s\n", "i: ", int_toCString(i));
+    
+        IF_START(if_3, i==0){
+            printf("%s\n", "\ti é zero.");
+        }
+        ELSE_START(if_3){
+            //transforma um "else if" em um else { if ... }
+            IF_START(if_4,  i==1){
+                printf("%s\n", "\ti é 1");
             }
-            ELSE_START(if_3){
-                //transforma um "else if" em um else { if ... }
-                IF_START(if_4,  i==1){
-                    printf("%s\n", "\ti é 1");
+            ELSE_START(if_4){
+                printf("%s\n", "\ti é 2 ou 3");
+                IF_START(if_5, i > 2){
+                    printf("%s\n", "\t\ti é 3");
                 }
-                ELSE_START(if_4){
-                    printf("%s\n", "\ti é 2 ou 3");
-                    IF_START(if_5, i > 2){
-                        printf("%s\n", "\t\ti é 3");
-                    }
-                    ELSE_START(if_5){
-                        printf("%s\n", "\t\ti é 2");
-                    }
-                    ELSE_END(if_5);
+                ELSE_START(if_5){
+                    printf("%s\n", "\t\ti é 2");
                 }
-                ELSE_END(if_4);
-                
+                ELSE_END(if_5);
             }
-            ELSE_END(if_3);
+            ELSE_END(if_4);
             
-        } 
-        FOR_END(for_1);
+        }
+        ELSE_END(if_3);
+            
+    FOR_END(for_1);
     }
     
+    free_memory();
     return 0;
 }
 
