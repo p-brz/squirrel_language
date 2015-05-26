@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char * getTypeName(const char * typeName){
+    return typeName == NULL ? "<unknown type>" : typeName;
+}
 
 char * varToString(TableRow * row){
     const char * constStr = "";
@@ -58,6 +61,8 @@ char * tableRowToString(TableRow * row){
     switch(row->category){
         case categ_primitiveType:
             return cpyString("primitive");
+        case categ_arrayType:
+            return concat("array of: ", getTypeName(row->value.arrayValue.baseTypename));
         case categ_structType:
             return structTypeRowToString(row);
         case categ_functionType:

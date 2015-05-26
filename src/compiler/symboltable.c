@@ -1,6 +1,7 @@
 #include "symboltable.h"
 #include "string_helpers.h"
 #include "list_helper.h"
+#include "scope.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h> //memset
@@ -15,7 +16,7 @@ TableRow * sq_findRow(SquirrelContext * sqContext, const char * name);
 
 /** Tenta buscar na tabela por um tipo de nome 'typeName'. 
     Retorna um ponteiro para sua linha na tabela (TableRow) ou NULL caso não exista ou não seja um tipo.*/
-TableRow * sq_findTypeRow(hashtable * symbolTable, const char * typeName);
+TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * typeName);
 
 void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value);
 void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value);
@@ -68,6 +69,10 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName){
     return row->value.variableValue.typeName;
 }
 
+
+bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
+    return sq_findRow(sqContext, symbol) != NULL;
+}
 /*********************************************************************************************************/
 
 void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
@@ -92,6 +97,21 @@ void sq_declareFunction(SquirrelContext * sqContext, const char * returnType, co
 void sq_declareFunctionType(SquirrelContext * sqContext, const char * returnType, const char * functionName, ParamList * parameters){
     TableRowValue value = FunctionRowValue(sqContext->symbolTable, returnType, parameters);
     putRow(sqContext, functionName, categ_functionType, value);
+}
+
+
+void sq_declareArrayType(SquirrelContext * sqContext, const char * originTypeName){
+    TableRow * originTypeRow = sq_findTypeRow(sqContext, originTypeName);
+    if(originTypeRow == NULL){
+        printf("error: Trying to make array type with unknown origin type : '%s'\n", originTypeName);
+        return;
+    }
+    const char * originTypeKey = originTypeRow->name; 
+    TableRowValue value = sq_ArrayTypeValue(originTypeKey);
+    char * arrayType = concat(originTypeKey, "[]");
+
+    putRowBase(sqContext->symbolTable, NULL, arrayType, categ_arrayType, value);
+    free(arrayType);
 }
 
 void * StringDuplicator(const void * value){
@@ -133,8 +153,9 @@ TableRow * sq_findRow(SquirrelContext * sqContext, const char * name){
     return row;
 }
 
-TableRow * sq_findTypeRow(hashtable * symbolTable, const char * name){
-    TableRow * row = (TableRow *)hashtable_get(symbolTable, (char * )name);
+TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * name){
+    //FIXME: fazer busca com base nos escopos
+    TableRow * row = (TableRow *)hashtable_get(sqContext->symbolTable, (char * )name);
     if(row == NULL){
         printf("Could not find type '%s'\n", name);
         return NULL;

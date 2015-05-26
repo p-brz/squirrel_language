@@ -23,6 +23,7 @@
     Caso não encontre, retorna NULL.*/
 const char * sq_getVarType(SquirrelContext * sqContext, const char * varName);
 
+bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
 /** ************************ DECLARAÇÃO DE SÍMBOLOS *****************************/
 
 /** Insere na tabela de símbolos uma lista de nomes de variáveis (nameDeclList), 
@@ -61,6 +62,10 @@ void sq_declareFunctionType(
         const char *        returnType, 
         const char *        functionName, 
         ParamList *         parameters);
+
+void sq_declareArrayType(
+        SquirrelContext * sqContext, 
+        const char * originTypeName);
 
 void sq_declareEnum(
         SquirrelContext *   sqContext, 

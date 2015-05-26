@@ -8,6 +8,7 @@
 
 typedef enum {
     categ_primitiveType, 
+    categ_arrayType,
     categ_structType, 
     categ_functionType, 
     categ_enumType, 
@@ -34,6 +35,11 @@ typedef struct{
 typedef struct {
     TypeCategory typeCategory;
 }PrimitiveTypeRow;
+
+typedef struct {
+    /** O tipo do qual este array foi derivado*/
+    char * baseTypename;
+}ArrayTypeRow;
 
 //Esta struct será utilizada para tipos de função e funções
 typedef struct {
@@ -63,11 +69,12 @@ typedef struct  {
 } FieldValue;
 
 typedef union {
-    StructTypeRow   structValue;
-    EnumTypeRow     enumValue;
-    FunctionRow     functionValue;
-    VariableRow     variableValue;
+    StructTypeRow    structValue;
+    EnumTypeRow      enumValue;
+    FunctionRow      functionValue;
+    VariableRow      variableValue;
     PrimitiveTypeRow primitiveValue;
+    ArrayTypeRow     arrayValue;
 //    NamespaceRow    namespaceValue;
 } TableRowValue;
 
@@ -92,6 +99,7 @@ ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool 
 
 TableRowValue EmptyRowValue();
 TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory);
+TableRowValue sq_ArrayTypeValue(const char * baseTypename);
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
 

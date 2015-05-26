@@ -184,7 +184,8 @@ primitive_type : VOID       { $$ = strdup("void"); }
                   | OBJECT  { $$ = strdup("object"); }
                   | TYPE    { $$ = strdup("type"); };
 
-array_type   : type ARRAY_SYMBOL                                {   $$ = concat($1, "[]"); };
+array_type   : type ARRAY_SYMBOL                                {   sq_declareArrayType(sqContext, $1);
+                                                                    $$ = concat($1, "[]"); };
 
 type_modifier_list : type_modifier                              {   $$ = createList($1); }
                        | type_modifier_list type_modifier       {   $$ = appendList($1, $2);};
@@ -384,7 +385,7 @@ value           : NUMBER_LITERAL                    {   $$ = sq_Expression("numb
                     | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value");};
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
-                    //| LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
+                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
                     | NEW type 
                         LBRACKET expr RBRACKET      {   const char * values[] = {"new ", $2, "[", $4, "]"};
                                                         $$ = concat_n(5, values);};

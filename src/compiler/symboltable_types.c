@@ -36,6 +36,11 @@ TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory){
     rowValue.primitiveValue.typeCategory = typeCategory;
     return rowValue;
 }
+TableRowValue sq_ArrayTypeValue(const char * baseTypename){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.arrayValue.baseTypename = cpyString(baseTypename);
+    return rowValue;
+}
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst){
     TableRowValue rowValue;
     rowValue.variableValue.isConst = isConst;
