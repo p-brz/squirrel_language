@@ -57,6 +57,11 @@ void appendStr(char ** str, const char * toAppend){
     *str = result;
 }
 
+
+int strEquals(const char * str1, const char * str2){
+    return strcmp(str1, str2) == 0;
+}
+
 char  * intToString(int value){
     return longToString(value);
 }

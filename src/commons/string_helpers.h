@@ -15,8 +15,11 @@ char  * cpyString(const char *s);
     ATENÇÃO: O valor anterior de str é liberado da memória.*/
 void appendStr(char ** str, const char * toAppend);
 
+int strEquals(const char * str1, const char * str2);
+
 char  * intToString(int value);
 char  * longToString(long long value);
 char  * realToString(double value);
+
 
 #endif

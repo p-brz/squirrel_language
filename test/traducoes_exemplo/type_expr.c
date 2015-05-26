@@ -1,35 +1,16 @@
 #include "sqlib.h"
 
-#include "string_helpers.h"
-
-typedef struct type{
-    const char * typename;
-    struct type * arrayOf;//Tipos array terão um apontador para o tipo gerador
-} type;
-
-type create_Type(const char * typename, type * arrayOf){
-    type t;
-    t.typename = typename;
-    t.arrayOf = arrayOf;
-    return t;
-}
-
-string typename(const type t){
-    return create_String(t.typename);
-}
-
-//boolean caststo(type t1, type t2){
-//    
-//}
-//------------------------------------------------------------------------------
 //Tabela de tipos (parcial) - deverá conter todos os tipos primitivos e os definidos no programa
-type TYPE_TABLE[] = {{"int", NULL}, {"double", NULL}, {"Moeda", NULL}};
+//Esta tabela deve ser inclusa em todos os programas (omitindo dos exemplos por simplicidade)
+const type TYPE_TABLE[] = {{"int", type_integer, NULL}, {"double", type_real, NULL}, {"boolean", type_boolean,NULL}, {"string", type_string, NULL}, {"Moeda", type_enum, NULL}};
 
 //Cada tipo terá um índice correspondente na tabela, identificado por um "define" 
 //no formato: TYPE_<typename>
 #define TYPE_int 0
 #define TYPE_double 1
-#define TYPE_Moeda 2 //O typeof pode ser definido antes do tipo em si ser encontrado
+#define TYPE_boolean 2
+#define TYPE_string 3
+#define TYPE_Moeda 4 //O typeof pode ser definido antes do tipo em si ser encontrado
 
 typedef enum {Moeda_Cara, Moeda_Coroa} Moeda;
 //Conversor de enum para String
@@ -52,11 +33,13 @@ int program_main(){
     printf("%s%s\n", "t1: ", typename(t1).cstr);
     printf("%s%s\n", "t2: ", typename(t2).cstr);
     printf("%s%s\n", "enum Moeda: ", typename(TYPE_TABLE[TYPE_Moeda]).cstr);
-/*
-    print("t1 casts to t2 ? ", t1 caststo(t2) );
-    print("enum Moeda casts to string? ", Moeda caststo(string) );
-    print("boolean caststo ( 1 caststo(double) )? ", boolean caststo( 1 caststo(double) ) );
-*/
+
+    printf("%s%s\n","t1 casts to t2 ? ", boolean_toCString(caststo(t1 , t2)) );
+    printf("%s%s\n","enum Moeda casts to string? "
+                , boolean_toCString( caststo(TYPE_TABLE[TYPE_Moeda], TYPE_TABLE[TYPE_string])) );
+    printf("%s%s\n","boolean caststo ( 1 caststo(double) )? " //O tipo de caststo já é conhecido em tempo de compilação
+                , boolean_toCString( caststo(TYPE_TABLE[TYPE_boolean], TYPE_TABLE[TYPE_boolean])) );
+
 
     return 0;
 }

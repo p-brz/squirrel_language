@@ -436,8 +436,9 @@ block_statement : for       		{$$ = $1;}
 			        | switch        {$$ = $1;};
 
 
-for             : FOR {startScope("for");}
-                    for_header block_body     { $$ = concat3("for", $3, $4);
+for             : FOR {startScope("for"); $<sValue>$ = cpyString("abc");}
+                    for_header block_body     { printf("%s\n", $<sValue>2);
+                                                $$ = concat3("for", $3, $4);
                                                 finishScope(); };
                                                         					
 for_header      : LPAREN 
