@@ -32,7 +32,7 @@ void finishScope(){
 };
 
 %token <sValue> ID
-%token <sValue> NUMBER
+%token <sValue> NUMBER_LITERAL
 %token <sValue> REAL_LITERAL BOOLEAN_LITERAL
 %token <sValue> STRING_LITERAL 
 
@@ -81,7 +81,9 @@ void finishScope(){
 %type <sValue> expr
 %type <sValue> binary_expr
 %type <sValue> unary_pre_expr unary_pos_expr
-%type <sValue> term rvalue_term value
+%type <sValue> term rvalue_term 
+
+%type <eValue> value
 
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
@@ -302,12 +304,11 @@ name_decl_list   : name_decl                                    {   $$ = createL
                     | name_decl_list COMMA name_decl            {   $$ = appendList($1, $3);};
 
 name_decl         : ID                                          {   $$ = sq_NameDeclItem($1, NULL); }
-                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression(type_void, $3)); };
+                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression("void", $3)); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                                   {   $$ = "";}
-                    //| NUMBER /*expr*/                           {   $$ = sq_Expression(type_int, $1);};
-                    | expr                           {   $$ = $1;};
+                    | expr                           {   $$ = $1;}
                     | expr_list COMMA expr            {   $$ = concat3($1, ",", $3);};
 
 expr            : binary_expr                                 {   $$ = $1; }
@@ -336,19 +337,21 @@ unary_pre_expr  : term                              {   $$ = $1; }
 term            : rvalue_term                       {   $$ = $1;}
                     | lvalue_term                   {   $$ = $1;};
                    
-rvalue_term     :   LPAREN expr RPAREN              {   $$ = concat3("(",$2,")");}
-                    | call_expr                     {   $$ = $1;}
+rvalue_term     :   LPAREN expr RPAREN              {   Expression *expr = sq_Expression("error", concat3("(",$2,")"));
+                                                        $$ = sq_exprToStr(expr);}
+                    | call_expr                     {   $$ = $1; }//sq_exprToStr($1);}
                     | struct_constructor            {   $$ = $1;}
-                    | value                         {   $$ = $1;}
+                    | value                         {   $$ = sq_exprToStr($1);}
                     | clone_expr                    {   $$ = $1;}
                     | length_expr                   {   $$ = $1;}
                     | slice_expr                    {   $$ = $1;};
 
 call_expr       :   function_call                               {   $$ = $1; }
                         /* Casts*/
-                        | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", $3, ")"};
-                                                                    $$ = concat_n(4, values); }
-                        | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
+                    | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", $3, ")"};
+                                                                 char *temp = concat_n(4, values);
+                                                                Expression *expr = sq_Expression($1,temp); $$ = sq_exprToStr(expr);}
+                    | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
@@ -370,12 +373,12 @@ lvalue_term     :  member                           { $$ = $1;}
 index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = {$1, "[", $3, "]"};
                                                         $$ = concat_n(4, values);};
 
-value           : NUMBER                            {   $$ = strdup($1); } 
-                    | REAL_LITERAL                  {   $$ = strdup($1); }
-                    | STRING_LITERAL                {   $$ = strdup($1); }
-                    | BOOLEAN_LITERAL               {   $$ = strdup($1); }
-                    | array_literal                 {   $$ = $1; }
-                    | SWITCH_VALUE                  {   $$ = strdup("switch_value");};
+value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal", $1);} 
+                    | REAL_LITERAL                  {   $$ = sq_Expression("real_literal", $1);}
+                    | STRING_LITERAL                {   $$ = sq_Expression("string_literal", $1); }
+                    | BOOLEAN_LITERAL               {   $$ = sq_Expression("boolean_literal", $1); }
+                    | array_literal                 {   $$ = sq_Expression("error", $1); }
+                    | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value");};
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
                     //| LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
