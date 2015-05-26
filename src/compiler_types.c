@@ -3,10 +3,10 @@
 #include "list_helper.h"
 #include <stdlib.h>
 
-Expression *sq_Expression( sq_type type, const char *exprParam )
+Expression *sq_Expression( const char *type, const char *exprParam )
 {
 	Expression *expr = (Expression*)malloc(sizeof(Expression));
-	expr->type = type;
+	expr->type = cpyString(type);
 	expr->expr = cpyString(exprParam);
 
 	return expr;
@@ -22,14 +22,14 @@ Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * m
 	return param;
 }
 
-NameDeclItem * sq_NameDeclItem(char * name, Expression * expr){
+NameDeclItem * sq_NameDeclItem(const char * name, Expression * expr){
 	NameDeclItem *nameDecl = (NameDeclItem*)malloc(sizeof(NameDeclItem));
-    nameDecl->name = name;
+    nameDecl->name = cpyString(name);
     nameDecl->expr = expr;
     return nameDecl;
 }
 
-AttributeDecl * sq_AttributeDecl(char * typeName, NameList * namesList){
+AttributeDecl * sq_AttributeDecl(const char * typeName, NameList * namesList){
 	AttributeDecl *atributeDecl = (AttributeDecl*)malloc(sizeof(AttributeDecl));
 	atributeDecl->type = cpyString(typeName);
 	atributeDecl->namesList = namesList;
@@ -67,12 +67,12 @@ char * sq_ParameterToString(void * parameter){
 
 char *sq_exprToStr( Expression *expr )
 {
-    switch ( expr->type ) {
-        case type_int:
+    /*switch ( expr->type ) {
+        case "int":
             return concat3("cast_intToStr(", expr->expr, ")");
         break;
-    }
-    return "";
+    }*/
+    return cpyString(expr->expr);
 }
 
 char * AttributeDeclStringConverter(void * value){

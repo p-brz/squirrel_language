@@ -51,6 +51,8 @@ hashtable * sq_createSymbolTable(){
     putPrimitive(symbolTable, "type");
     putPrimitive(symbolTable, "string");
     putPrimitive(symbolTable, "object");
+    putPrimitive(symbolTable, "number_literal");
+    putPrimitive(symbolTable, "real_literal");
     
     return symbolTable;
 }

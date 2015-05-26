@@ -8,7 +8,6 @@
 
 #include "arraylist.h"
 #include "hashtable.h"
-#include "sqtypes.h"
 #include "compiler_types.h"
 #include "squirrel_context.h"
 

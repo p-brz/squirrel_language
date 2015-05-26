@@ -1,7 +1,6 @@
 #ifndef COMPILER_HELPER_H
 #define COMPILER_HELPER_H
 
-#include "sqtypes.h"
 #include <stdbool.h>
 #include "arraylist.h"
 
@@ -19,7 +18,7 @@ typedef arraylist AttributeList;
 typedef arraylist NameList;
 
 typedef struct {
-    sq_type type;
+    char *type;
     char *expr;
 } Expression;
 
@@ -43,13 +42,13 @@ typedef struct  {
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList);
 char * sq_ParameterToString(void * parameter);
 
-NameDeclItem * sq_NameDeclItem(char * name, Expression * expr);
+NameDeclItem * sq_NameDeclItem(const char * name, Expression * expr);
 char * sq_NameDeclToString(void * item);
 
-AttributeDecl * sq_AttributeDecl(char * typeName, NameList * namesList);
+AttributeDecl * sq_AttributeDecl(const char * typeName, NameList * namesList);
 char * attributeListToString(AttributeList * attributeList);
 
-Expression *sq_Expression( sq_type type, const char *expr );
+Expression *sq_Expression( const char *type, const char *expr );
 char *sq_exprToStr( Expression *expr );
 
 
