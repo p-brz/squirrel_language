@@ -13,21 +13,20 @@ char * varToString(TableRow * row){
     if(row->value.variableValue.isConst){
         constStr = "const ";
     }
-    TableRow * type = row->value.variableValue.type;
-    const char * typename = (type == NULL) ? "<?>" : type->name;
-    return concat3(constStr, typename, " variable");
+    const char * typename = row->value.variableValue.typeName;
+    return concat3(constStr,  (typename == NULL) ? "<NULL>" : typename, " variable");
 }
 
 
 char * functionRowToString(TableRow * row){
-    const char * returnTypeStr = row->value.functionValue.returnType->name;
+    const char * returnTypeStr = row->value.functionValue.returnTypename != NULL ? row->value.functionValue.returnTypename : "NULL";
     arraylist * paramValues = row->value.functionValue.parameters;
     
     return concat4("function(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);
 }
 
 char * functionTypeRowToString(TableRow * row){
-    const char * returnTypeStr = row->value.functionValue.returnType->name;
+    const char * returnTypeStr = row->value.functionValue.returnTypename != NULL ? row->value.functionValue.returnTypename : "NULL";
     arraylist * paramValues = row->value.functionValue.parameters;
     
     return concat4("function type(", joinList(paramValues, ", ", sq_ParamValueStringConverter),"): ", returnTypeStr);

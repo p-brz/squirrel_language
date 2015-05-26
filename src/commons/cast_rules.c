@@ -8,19 +8,19 @@ int getTypeNumberWidth(const char * typename){
     if(strEquals(typename, "number_literal"))
         return 1;
     if(strEquals(typename, "byte"))
-        return 1;
-    if(strEquals(typename, "short"))
         return 2;
-    if(strEquals(typename, "int"))
+    if(strEquals(typename, "short"))
         return 3;
-    if(strEquals(typename, "long"))
+    if(strEquals(typename, "int"))
         return 4;
+    if(strEquals(typename, "long"))
+        return 5;
     if(strEquals(typename, "real_literal"))
-        return 5;
-    if(strEquals(typename, "float"))
-        return 5;
-    if(strEquals(typename, "double"))
         return 6;
+    if(strEquals(typename, "float"))
+        return 7;
+    if(strEquals(typename, "double"))
+        return 8;
     return 0;
 }
 

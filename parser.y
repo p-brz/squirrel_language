@@ -116,7 +116,7 @@ void finishScope(){
 
 %%
 program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", gen_program($1)); dumpSymbolTable(sqContext->symbolTable);};
+                                                      printf("%s\n", $1); dumpSymbolTable(sqContext->symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -365,7 +365,10 @@ slice_expr      : term
 opt_expr        : /*Vazio*/   { $$ = "";}
                     | expr  { $$ = $1;};
                                                                                        
-lvalue_term     :  member                           { $$ = $1;}
+lvalue_term     :  member                           { //TODO: member pode não ser apenas uma variável
+                                                        char * typeName = sq_getVarType(sqContext, $1);
+                                                        printf("%s : %s\n", $1, typeName);
+                                                        $$ = $1;}
                     | index_access                  { $$ = $1;}
                     | rvalue_term DOT member        { $$ = concat3($1, ".", $3);}
                     | index_access DOT member       { $$ = concat3($1, ".", $3);};
