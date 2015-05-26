@@ -116,7 +116,7 @@ void finishScope(){
 
 %%
 program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", $1); dumpSymbolTable(sqContext->symbolTable);};
+                                                      printf("%s\n", gen_program(sqContext, $1)); dumpSymbolTable(sqContext->symbolTable);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/

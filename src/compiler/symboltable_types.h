@@ -4,6 +4,8 @@
 #include "compiler_types.h"
 #include "hashtable.h"
 
+#include "cast_rules.h"
+
 typedef enum {
     categ_primitiveType, 
     categ_structType, 
@@ -28,6 +30,10 @@ typedef struct{
     arraylist * identifiers;// Cada identificador do enum é uma string
 
 } EnumTypeRow;
+
+typedef struct {
+    TypeCategory typeCategory;
+}PrimitiveTypeRow;
 
 //Esta struct será utilizada para tipos de função e funções
 typedef struct {
@@ -61,6 +67,7 @@ typedef union {
     EnumTypeRow     enumValue;
     FunctionRow     functionValue;
     VariableRow     variableValue;
+    PrimitiveTypeRow primitiveValue;
 //    NamespaceRow    namespaceValue;
 } TableRowValue;
 
@@ -84,6 +91,7 @@ TableRow * sq_TableRow(char * name, Category category, TableRowValue value);
 ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool isConst, bool isRef);
 
 TableRowValue EmptyRowValue();
+TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory);
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
 

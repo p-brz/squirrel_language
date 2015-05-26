@@ -30,6 +30,10 @@ boolean equals_String(const string str1, const string str2){
     }
 }
 
+string typename(const type t){
+    return create_String(t.typename);
+}
+
 const char * string_toCString(string stringValue){
     if(stringValue.memory == NULL || stringValue.cstr == NULL){
         return "null";

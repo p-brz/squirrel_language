@@ -1,6 +1,8 @@
 #ifndef SQ_GENERATOR_H
 #define SQ_GENERATOR_H
 
-char * gen_program(const char * declarationsList);
+#include "squirrel_context.h"
+
+char * gen_program(SquirrelContext * ctx, const char * declarationsList);
 
 #endif

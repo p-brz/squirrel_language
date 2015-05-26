@@ -21,7 +21,7 @@ void putRow(SquirrelContext * sqContext, const char * name, Category category, c
 void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value);
 void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclItem * item, bool isConst);
 void declareVariables(SquirrelContext * sqContext, const char * typename, arraylist * nameDeclList, bool isConst);
-void putPrimitive(hashtable * symbolTable, const char * typeName);
+void putPrimitive(hashtable * symbolTable, const char * typeName, TypeCategory typeCategory);
 void declareParamVariables(SquirrelContext * sqContext, ParamList * parameters);
 
 char * makeTableKey(arraylist * scopeList, const char * name);
@@ -30,19 +30,19 @@ char * makeTableKey(arraylist * scopeList, const char * name);
 hashtable * sq_createSymbolTable(){
     hashtable * symbolTable = hashtable_create();
     
-    putPrimitive(symbolTable, "void");
-    putPrimitive(symbolTable, "byte");
-    putPrimitive(symbolTable, "short");
-    putPrimitive(symbolTable, "int");
-    putPrimitive(symbolTable, "long");
-    putPrimitive(symbolTable, "float");
-    putPrimitive(symbolTable, "double");
-    putPrimitive(symbolTable, "boolean");
-    putPrimitive(symbolTable, "type");
-    putPrimitive(symbolTable, "string");
-    putPrimitive(symbolTable, "object");
-    putPrimitive(symbolTable, "number_literal");
-    putPrimitive(symbolTable, "real_literal");
+    putPrimitive(symbolTable, "void"            , type_void);
+    putPrimitive(symbolTable, "byte"            , type_integer);
+    putPrimitive(symbolTable, "short"           , type_integer);
+    putPrimitive(symbolTable, "int"             , type_integer);
+    putPrimitive(symbolTable, "long"            , type_integer);
+    putPrimitive(symbolTable, "float"           , type_real);
+    putPrimitive(symbolTable, "double"          , type_real);
+    putPrimitive(symbolTable, "boolean"         , type_boolean);
+    putPrimitive(symbolTable, "type"            , type_type);
+    putPrimitive(symbolTable, "string"          , type_string);
+    putPrimitive(symbolTable, "object"          , type_object);
+    putPrimitive(symbolTable, "number_literal"  , type_integer);
+    putPrimitive(symbolTable, "real_literal"    , type_real);
     
     return symbolTable;
 }
@@ -183,8 +183,8 @@ void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclIte
     TableRowValue value = VariableRowValue(sqContext->symbolTable, typename, isConst);
     putRow(sqContext, item->name, categ_variable, value);
 }
-void putPrimitive(hashtable * symbolTable, const char * typeName){
-    putRowBase(symbolTable, NULL, typeName, categ_primitiveType, EmptyRowValue());
+void putPrimitive(hashtable * symbolTable, const char * typeName, TypeCategory typeCategory){
+    putRowBase(symbolTable, NULL, typeName, categ_primitiveType, sq_PrimitiveTypeValue(typeCategory));
 }
 
 

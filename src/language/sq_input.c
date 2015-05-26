@@ -6,8 +6,8 @@
 
 #define BASE_CAPACITY 100
 
-static char * resizeLine(char * line, int * capacityPtr){
-    int newCapacity = *capacityPtr * 2;
+static char * resizeLine(char * line, size_t * capacityPtr){
+    size_t newCapacity = *capacityPtr * 2;
     char * tmp = realloc(line, newCapacity);
     if(tmp == NULL){//falhou
         free(line);

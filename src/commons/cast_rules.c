@@ -24,21 +24,21 @@ int getTypeNumberWidth(const char * typename){
     return 0;
 }
 
-BOOL isNumber(TypeCategory category){
+bool isNumber(TypeCategory category){
     return category == type_integer || category == type_real;
 }
-BOOL can_coerce_to(const char * typename1, TypeCategory category1
+bool can_coerce_to(const char * typename1, TypeCategory category1
                         ,const char * typename2, TypeCategory category2){
     if(category2 == type_object){
-        return TRUE;
+        return true;
     }
     else if(isNumber(category1) && isNumber(category2)){
         return getTypeNumberWidth(typename2) >= getTypeNumberWidth(typename1);
     }
-    return FALSE;
+    return false;
 }
 
-BOOL can_force_cast_to_string(TypeCategory category){
+bool can_force_cast_to_string(TypeCategory category){
     return isNumber(category)
             || category == type_boolean
             || category == type_object //Objeto pode ter cast forçado a qualquer tipo
@@ -46,15 +46,15 @@ BOOL can_force_cast_to_string(TypeCategory category){
             || category == type_type;  //conversão de type para string é feita via typename 
 }
 
-BOOL can_force_coerce_to(TypeCategory cat1, TypeCategory cat2){
+bool can_force_coerce_to(TypeCategory cat1, TypeCategory cat2){
     if(cat1 == type_object){ //object pode ser forçado para qualquer tipo
-        return TRUE;
+        return true;
     }
     else if(isNumber(cat1) && isNumber(cat2)){
-        return TRUE;
+        return true;
     }
     else if(cat2 == type_string){
         return can_force_cast_to_string(cat1);
     }
-    return FALSE;
+    return false;
 }

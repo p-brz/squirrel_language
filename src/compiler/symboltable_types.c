@@ -31,6 +31,11 @@ TableRowValue EmptyRowValue(){
     return emptyValue;
 }
 
+TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.primitiveValue.typeCategory = typeCategory;
+    return rowValue;
+}
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst){
     TableRowValue rowValue;
     rowValue.variableValue.isConst = isConst;

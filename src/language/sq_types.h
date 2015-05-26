@@ -4,6 +4,7 @@
 #include "sq_memory.h"
 #include "sq_struct.h"
 #include "sq_array.h"
+#include "sq_metatype.h"
 
 //-------------------------- Types definition ----------------------------------
 typedef struct{
@@ -24,6 +25,8 @@ boolean equals_String(const string str1, const string str2);
 
 #define and &&
 #define or ||
+
+string typename(const type t);
 
 //----------------------------- toCString --------------------------------------
 const char * string_toCString(string stringValue);
