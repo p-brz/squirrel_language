@@ -16,6 +16,7 @@ bool isVariable(TableRow * row){
 bool isType(TableRow * row){
     if(row != NULL){
         return row->category == categ_primitiveType
+                || row->category == categ_arrayType
                 || row->category == categ_structType
                 || row->category == categ_functionType
                 || row->category == categ_enumType;

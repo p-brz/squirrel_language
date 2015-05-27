@@ -7,6 +7,7 @@ typedef struct arraylist arraylist;
 typedef struct{
     hashtable * symbolTable;
     arraylist * scopeList;
+    int scopeIdCounter; //contador para gerar ids de escopos
 } SquirrelContext;
 
 SquirrelContext * sq_SquirrelContext();

@@ -37,6 +37,14 @@ AttributeDecl * sq_AttributeDecl(const char * typeName, NameList * namesList){
 	return atributeDecl;
 }
 
+IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts){
+    IfStruct * ifStruct = (IfStruct *)malloc(sizeof(IfStruct));
+    ifStruct->ifId = ifId;
+    ifStruct->conditional_test = conditional_test;
+    ifStruct->block_stmts = block_stmts;
+    return ifStruct;
+}
+
 char * sq_NameDeclToString(void * item){
     NameDeclItem * nameDecl = (NameDeclItem *)item;
     if(nameDecl->expr != NULL){

@@ -29,6 +29,7 @@ void finishScope(){
     ParamList        * ParamListValue;
     AttributeDecl    * AttributeDeclValue;
     AttributeList    * AttributeListValue;
+    IfStruct         * ifValue;
 };
 
 %token <sValue> ID
@@ -102,7 +103,8 @@ void finishScope(){
 %type <sValue> member
 
 %type <sValue> for while do_while try_catch switch switch_body when_list when_block default_block conditional_test
-%type <sValue> if if_block else_block
+%type <sValue> if else_block
+%type <ifValue> if_block
 
 %type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
 %type <sValue> call_expr
@@ -147,8 +149,8 @@ namespace        : NAMESPACE ID {startScope($2);}
 function        : type ID func_params               {   //Declare function and start scope
                                                         sq_startFunction(sqContext, $1, $2, $3);}
                                     block_body      {   char * funcParams = joinList($3, ", ", sq_ParameterToString);
-                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ")", $5};
-                                                        $$ = concat_n(7, values); 
+                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ") {\n", $5, "}\n"};
+                                                        $$ = concat_n(8, values); 
                                                         free(funcParams);
                                                         //TODO: destruir Parameter list
                                                         
@@ -241,8 +243,9 @@ member_init_list    :   /*vazio*/                               {   $$ = "";}
 member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
-block_body       : LBRACE block_stmt_list RBRACE                {   char * begin_block = concat("{\n", $2);
-                                                                    $$ = concat(begin_block, "}\n"); };
+block_body       : LBRACE block_stmt_list RBRACE                {   $$ = $2;}
+                                                                    //char * begin_block = concat("{\n", $2);
+                                                                    //$$ = concat(begin_block, "}\n"); };
 
 block_stmt_list  : /* Vazio */                                  {   $$ = ""; }
                     | statement_list                            {   $$ = $1; };
@@ -367,7 +370,7 @@ opt_expr        : /*Vazio*/   { $$ = "";}
                     | expr  { $$ = $1;};
                                                                                        
 lvalue_term     :  member                           { //TODO: member pode não ser apenas uma variável
-                                                        char * typeName = sq_getVarType(sqContext, $1);
+                                                        const char * typeName = sq_getVarType(sqContext, $1);
                                                         printf("%s : %s\n", $1, typeName);
                                                         $$ = $1;}
                     | index_access                  { $$ = $1;}
@@ -443,9 +446,8 @@ block_statement : for       		{$$ = $1;}
 			        | switch        {$$ = $1;};
 
 
-for             : FOR {startScope("for"); $<sValue>$ = cpyString("abc");}
-                    for_header block_body     { printf("%s\n", $<sValue>2);
-                                                $$ = concat3("for", $3, $4);
+for             : FOR {startScope("for");}
+                    for_header block_body     { $$ = concat3("for", $3, $4);
                                                 finishScope(); };
                                                         					
 for_header      : LPAREN 
@@ -461,17 +463,17 @@ for_statement   : /*Vazio*/                     {$$ = "";}
 for_expr        : /*Vazio*/                     {$$ = " ";}
 			        | binary_expr               {$$ = $1;};
 
-if 		        : if_block				                    {   $$ = $1;}
-    		        | if_block else_block	                {   $$ = concat($1, $2);};
+if 		        : if_block				                    {   $$ = sq_genIfBlock($1);}
+    		        | if_block else_block	                {   $$ = sq_genIfElseBlock($1, $2);};
 
 if_block 	    : IF {startScope("if");}
-                    conditional_test block_body 	        {   $$ = concat3("if", $3, $4);
+                    conditional_test block_body 	        {   $$ = sq_IfStruct(sq_makeScopeId(sqContext, "if_"), $3, $4);
                                                                 finishScope();};
 
 else_block      : ELSE {startScope("else");} 
-                     block_body	                            {   $$ = concat("\nelse ", $3);
+                     block_body	                            {   $$ = $3;
                                                                 finishScope();  }
-   			        | ELSE if		                        {   $$ = concat("\nelse ", $2);};
+   			        | ELSE if		                        {   $$ = $2;};
 
 while 		    : WHILE {startScope("while");}
                     conditional_test block_body             {   $$ = concat3("while", $3, $4);

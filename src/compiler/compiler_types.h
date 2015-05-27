@@ -39,6 +39,13 @@ typedef struct  {
     NameList * namesList;
 } AttributeDecl;
 
+typedef struct {
+    char * ifId;
+    char * conditional_test;
+    char * block_stmts;
+} IfStruct;
+
+
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList);
 char * sq_ParameterToString(void * parameter);
 
@@ -51,5 +58,6 @@ char * attributeListToString(AttributeList * attributeList);
 Expression *sq_Expression( const char *type, const char *expr );
 char *sq_exprToStr( Expression *expr );
 
+IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts);
 
 #endif

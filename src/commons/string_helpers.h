@@ -6,6 +6,8 @@
   
 *******************************************************************************************/
 
+#include <string.h> //size_t
+
 char  * concat(const char * str1, const char * str2);
 char  * concat3(const char * str1, const char * str2, const char * str3);
 char  * concat_n(int size, const char ** values);
@@ -16,6 +18,12 @@ char  * cpyString(const char *s);
 void appendStr(char ** str, const char * toAppend);
 
 int strEquals(const char * str1, const char * str2);
+/** Retorna o número de 'searchString' encontradas em 'str1'*/
+int strCount(const char * str1, const char * searchString);
+/** Retorna o índice da primeira ocorrência de 'searchString' encontradaa em 
+    'str1' ou um valor negativo se 'searchString' não for encontrada.*/
+int findString(const char * str1, const char * searchString);
+char * getSubstring(const char * str, size_t startIndex, size_t length);
 
 char  * intToString(int value);
 char  * longToString(long long value);

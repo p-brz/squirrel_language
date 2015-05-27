@@ -61,7 +61,38 @@ void appendStr(char ** str, const char * toAppend){
 int strEquals(const char * str1, const char * str2){
     return strcmp(str1, str2) == 0;
 }
+int strCount(const char * str, const char * searchString){
+    if(str == NULL || searchString == NULL){
+        return 0;
+    }
+    
+    size_t substrSize = strlen(searchString);
+    
+    const char * strEnd = str + strlen(str);
+    const char * strIndex = str;
+    int count = 0;
+    
+    do{
+        strIndex = strstr(strIndex, searchString);
+        if(strIndex != NULL){
+            ++count;
+            strIndex += substrSize;
+        }
+    }while(strIndex != NULL && strIndex < strEnd);
+    
+    return count;
+}
+int findString(const char * str1, const char * searchString){
+    const char * strPos = strstr(str1, searchString);
+    return strPos == NULL ? -1 : strPos - str1;
+}
 
+char * getSubstring(const char * str, size_t startIndex, size_t length){
+    char * substr = calloc(length + 1, sizeof(char));
+    strncpy(substr, str + startIndex, length);
+    substr[length] = '\0';
+    return substr;
+}
 char  * intToString(int value){
     return longToString(value);
 }

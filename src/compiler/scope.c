@@ -10,6 +10,9 @@ void sq_startScope(SquirrelContext * sqContext, const char * scopeName){
     char * scopeListStr = sq_fullScopeName(sqContext);
     printf("start  scope %s\n", scopeListStr);
     free(scopeListStr);
+    
+    //Novo escopo criado
+    sqContext->scopeIdCounter++;
 }
 
 void sq_finishScope(SquirrelContext * sqContext){
@@ -32,4 +35,12 @@ char * sq_fullScopeName(SquirrelContext * sqContext){
 }
 char * sq_makeFullScopeName(arraylist * scopeList){
     return joinList(scopeList, "_", NULL);
+}
+
+char * sq_makeScopeId(SquirrelContext * sqContext, const char * prefix){
+    char * counterStr = intToString(sqContext->scopeIdCounter);
+    char * result = concat(prefix, counterStr);
+    free(counterStr);
+    
+    return result;
 }

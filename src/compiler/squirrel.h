@@ -6,5 +6,6 @@
 #include "compiler_types.h"
 #include "squirrel_context.h"
 #include "sq_generator.h"
-
+#include "scope.h"
+#include "symboltable.h"
 #endif
