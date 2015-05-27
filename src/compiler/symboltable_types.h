@@ -19,7 +19,6 @@ typedef struct{
 
 typedef struct{
     arraylist * identifiers;// Cada identificador do enum é uma string
-
 } EnumTypeRow;
 
 typedef struct {
@@ -62,6 +61,7 @@ typedef union {
     StructTypeRow    structValue;
     FieldValue       structFieldValue;
     EnumTypeRow      enumValue;
+    FieldValue       enumFieldValue;
     FunctionRow      functionValue;
     VariableRow      variableValue;
     PrimitiveTypeRow primitiveValue;
@@ -92,6 +92,7 @@ TableRowValue EmptyRowValue();
 TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory);
 TableRowValue sq_ArrayTypeValue(const char * baseTypename);
 TableRowValue sq_FieldRowValue(const FieldValue * field);
+TableRowValue sq_EnumFieldRowValue(const char * enumName, const char * fieldValue);
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
 

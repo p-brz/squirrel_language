@@ -171,6 +171,15 @@ void sq_declareEnum(SquirrelContext * sqContext, const char * enumName, NameList
     TableRowValue rowValue = EmptyRowValue();
     rowValue.enumValue.identifiers = copyList(enumValues, StringDuplicator);
     putRow(sqContext, enumName, categ_enumType, rowValue);
+    
+    int i;
+    void * value;
+    arraylist_iterate(enumValues, i, value){
+        TableRowValue enumFieldValue = sq_EnumFieldRowValue(enumName, (const char *)value);
+        char * key = concat3(enumName, "_", (const char *)value);
+        putRow(sqContext, key, categ_enumFieldValue, enumFieldValue);
+        free(key);
+    }
 }
 
 

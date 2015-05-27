@@ -66,6 +66,12 @@ TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType,
 }
 
 
+TableRowValue sq_EnumFieldRowValue(const char * enumName, const char * fieldName){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.enumFieldValue.name = cpyString(fieldName);
+    rowValue.enumFieldValue.type = cpyString(enumName);
+    return rowValue;
+}
 
 TableRow * sq_TableRow(char * name, Category category, TableRowValue value){
     TableRow * row = (TableRow *)malloc(sizeof(TableRow));

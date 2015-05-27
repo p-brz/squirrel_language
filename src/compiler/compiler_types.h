@@ -18,6 +18,7 @@ typedef enum {
     categ_structField, 
     categ_functionType, 
     categ_enumType, 
+    categ_enumFieldValue,
     categ_function, 
     categ_variable, 
     categ_namespace}  Category;

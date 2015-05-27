@@ -20,6 +20,8 @@ const char * sq_categoryCString(Category category){
             return "functionType";
         case categ_enumType:
             return "enumType";
+        case categ_enumFieldValue:
+            return "enumFieldValue";
         case categ_function:
             return "function";
         case categ_variable:

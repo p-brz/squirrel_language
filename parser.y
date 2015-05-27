@@ -409,11 +409,10 @@ array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
 
 member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
                                                         $$ = sq_Member($1,$1, category, NULL);
-                                                        printf("member no parent '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
+                                                        printf("member '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
                                                         free($1);}
                     | member DOT ID                 {   
                                                         char * memberTableKey = sq_makeMemberTableKey(sqContext, $3, $1);
-                                                        printf("try make member %s with parent. Member key: %s\n", $3, memberTableKey);
                                                         Category category = sq_findSymbolCategory(sqContext, memberTableKey);
                                                         $$ = sq_Member($3, memberTableKey, category, $1);
                                                         
