@@ -255,9 +255,7 @@ member_init_list    :   /*vazio*/                               {   $$ = "";}
 member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
 
 /* *********************************** STATEMENTS ******************************************** */
-block_body       : LBRACE block_stmt_list RBRACE                {   $$ = $2;}
-                                                                    //char * begin_block = concat("{\n", $2);
-                                                                    //$$ = concat(begin_block, "}\n"); };
+block_body       : LBRACE block_stmt_list RBRACE                {   $$ = $2;} //"{} vão ser inclusas em regras que usem block_body, quando necessario"
 
 block_stmt_list  : /* Vazio */                                  {   $$ = ""; }
                     | statement_list                            {   $$ = $1; };
@@ -374,7 +372,8 @@ call_expr       :   function_call                               {   $$ = $1; }
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
-length_expr     :  member DOT LENGTH                            {   $$ = concat(sq_memberToString($1),".length");};
+length_expr     :  member DOT LENGTH                            {   //member deve ser um array ou string
+                                                                    $$ = concat(sq_memberToString($1),".length");};
 
 slice_expr      : term 
                     LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {$1, "[ ", $3, " : ", $5, " ]"};
@@ -409,9 +408,19 @@ array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
                                                         $$ = concat_n(5, values);};
 
 member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
-                                                        $$ = sq_Member($1, category, NULL);}
-                    | member DOT ID                 {   Category category = sq_findSymbolCategory(sqContext, $3);
-                                                        $$ = sq_Member($3, category, $1);};
+                                                        $$ = sq_Member($1,$1, category, NULL);
+                                                        printf("member no parent '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
+                                                        free($1);}
+                    | member DOT ID                 {   
+                                                        char * memberTableKey = sq_makeMemberTableKey(sqContext, $3, $1);
+                                                        printf("try make member %s with parent. Member key: %s\n", $3, memberTableKey);
+                                                        Category category = sq_findSymbolCategory(sqContext, memberTableKey);
+                                                        $$ = sq_Member($3, memberTableKey, category, $1);
+                                                        
+                                                        printf("member '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
+                                                        
+                                                        free(memberTableKey);
+                                                        free($3); };
 
 /* ********************************* OPERATORS ********************************************* */
 

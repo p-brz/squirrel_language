@@ -31,7 +31,8 @@ typedef arraylist NameList;
 
 typedef struct Member{
     Category category;
-    char * name;
+    char * name;//ID especifica deste membro
+    char * tableKey; //Chave na tabela de símbolos
     struct Member * parent;
 } Member;
 
@@ -63,7 +64,9 @@ typedef struct {
     char * block_stmts;
 } IfStruct;
 
-Member * sq_Member(const char * name, Category category, Member * parent);
+const char * sq_categoryCString(Category category);
+
+Member * sq_Member(const char * name, const char * tableKey, Category category, Member * parent);
 void sq_destroyMember(Member * member);
 char * sq_memberToString(Member * member);
 

@@ -3,6 +3,35 @@
 #include "list_helper.h"
 #include <stdlib.h>
 
+
+const char * sq_categoryCString(Category category){
+    switch(category){
+        case categ_unknown:
+            return "unknown";
+        case categ_primitiveType:
+            return "primitiveType";
+        case categ_arrayType:
+            return "arrayType";
+        case categ_structType:
+            return "structType";
+        case categ_structField:
+            return "structField";
+        case categ_functionType:
+            return "functionType";
+        case categ_enumType:
+            return "enumType";
+        case categ_function:
+            return "function";
+        case categ_variable:
+            return "variable";
+        case categ_namespace:
+            return "namespace";
+        default:
+            return NULL;
+    }
+    
+}
+
 Expression *sq_Expression( const char *type, const char *exprParam )
 {
 	Expression *expr = (Expression*)malloc(sizeof(Expression));
@@ -12,9 +41,10 @@ Expression *sq_Expression( const char *type, const char *exprParam )
 	return expr;
 }
 
-Member * sq_Member(const char * name, Category category, Member * parent){
+Member * sq_Member(const char * name, const char * tableKey, Category category, Member * parent){
     Member * member = (Member *)malloc(sizeof(Member));
     member->name = cpyString(name);
+    member->tableKey = cpyString(tableKey);
     member->category = category;
     member->parent = parent;
 }

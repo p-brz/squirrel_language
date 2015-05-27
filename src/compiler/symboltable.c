@@ -75,8 +75,52 @@ bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
 }
 
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol){
+    if(symbol == NULL){
+        return categ_unknown;
+    }
     TableRow * row = sq_findRow(sqContext, symbol);
     return row == NULL ? categ_unknown : row->category;
+}
+
+char * sq_makeMemberTableKey(SquirrelContext * sqContext, const char * memberName, Member * parent){
+    if(parent == NULL){
+        return cpyString(memberName);
+    }
+    
+    if(parent->category == categ_namespace || parent->category == categ_enumType){
+        return concat3(parent->tableKey, "_", memberName);
+    }
+    else if(parent->category == categ_variable || parent->category == categ_structField){//Pai é uma variável ou campo de uma variável
+        TableRow * parentRow = sq_findRow(sqContext, parent->tableKey);
+        if(parentRow != NULL){
+            TableRow * typeRow = NULL;
+            if(parentRow->category == categ_variable){
+                typeRow = sq_findTypeRow(sqContext, parentRow->value.variableValue.typeName);
+            }
+            else if(parentRow->category == categ_structField){
+                typeRow = sq_findTypeRow(sqContext, parentRow->value.structFieldValue.type);
+            }
+            
+            if(typeRow != NULL && typeRow->category == categ_structType){//apenas variáveis struct podem ter membros aninhados
+                return concat3(typeRow->name, ".", memberName);
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+    Um membro podde ser:
+      - um namespace
+      - tipo definido por usuário (struct, enum, function)
+      - uma variável
+      - um campo de uma variável (ou de outro campo)
+      - uma função
+*/
+Category sq_findMemberCategory(SquirrelContext * sqContext, const char * memberName, Member * parent){
+    char * memberSymbolKey = sq_makeMemberTableKey(sqContext, memberName, parent);
+    return sq_findSymbolCategory(sqContext, memberName);
 }
 /*********************************************************************************************************/
 
@@ -160,11 +204,24 @@ char * makeTableKey(arraylist * scopeList, const char * name){
 }
 
 TableRow * sq_findRow(SquirrelContext * sqContext, const char * name){
-    //Por hora não faz resolução de nomes completa
-    char * key = makeTableKey(sqContext->scopeList, name);
-    TableRow * row = (TableRow *)hashtable_get(sqContext->symbolTable, (char * )key);
-    free(key);
-    return row;
+    arraylist * scopeList = arraylist_copy(sqContext->scopeList);
+    int i;
+    int listSize = arraylist_size(scopeList);
+    for(i=listSize; i >=0; --i){
+        char * key = makeTableKey(scopeList, name);
+        TableRow * row = (TableRow *)hashtable_get(sqContext->symbolTable, (char * )key);
+        free(key);
+        
+        if(row != NULL){
+            arraylist_destroy(scopeList);
+            return row;
+        }
+        if(i > 0){
+            arraylist_pop(scopeList);
+        }
+    }
+    arraylist_destroy(scopeList);
+    return NULL;
 }
 
 TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * name){
