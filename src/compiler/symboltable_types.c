@@ -42,6 +42,12 @@ TableRowValue sq_ArrayTypeValue(const char * baseTypename){
     rowValue.arrayValue.baseTypename = cpyString(baseTypename);
     return rowValue;
 }
+TableRowValue sq_FieldRowValue(const FieldValue * field){
+    TableRowValue rowValue = EmptyRowValue();
+    rowValue.structFieldValue = *field;
+    return rowValue;
+}
+
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst){
     TableRowValue rowValue;
     rowValue.variableValue.isConst = isConst;

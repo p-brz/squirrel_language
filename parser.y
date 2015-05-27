@@ -16,7 +16,15 @@ void startScope(const char * scopeName){
 void finishScope(){
     sq_finishScope(sqContext);
 }
-
+void printStatus(SquirrelContext * sqContext){
+    int errCount = sq_getErrorCount(sqContext);
+    if(errCount > 0){
+        printf("\n\nCompilação falhou! Foram encontrados %d erros:\n\n", errCount);
+        char * errListStr = joinList(sqContext->errorList, "\n", NULL);
+        printf("%s\n", errListStr);
+        free(errListStr);
+    }
+}
 %}
 
 %union {
@@ -29,6 +37,7 @@ void finishScope(){
     ParamList        * ParamListValue;
     AttributeDecl    * AttributeDeclValue;
     AttributeList    * AttributeListValue;
+    Member           * memberValue;
     IfStruct         * ifValue;
 };
 
@@ -102,7 +111,7 @@ void finishScope(){
 %type <NameList_Value> id_list
 
 %type <sValue> struct_constructor member_init member_init_list
-%type <sValue> member
+%type <memberValue> member
 
 %type <sValue> for while do_while try_catch switch switch_body when_list when_block default_block conditional_test
 %type <sValue> if else_block
@@ -120,7 +129,8 @@ void finishScope(){
 
 %%
 program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", gen_program(sqContext, $1)); dumpSymbolTable(sqContext->symbolTable);};
+                                                      printf("%s\n", gen_program(sqContext, $1)); dumpSymbolTable(sqContext->symbolTable);
+                                                      printStatus(sqContext);};
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -138,8 +148,8 @@ type_definition  : enum_definition                  {   $$ = $1;}
                       | struct_definition           {   $$ = $1;}
                       | functiontype_definition     {   $$ = $1;};
                       
-namespace        : NAMESPACE ID {startScope($2);}
-                    LBRACE declaration_list RBRACE  {   sq_declareNamespace(sqContext, $2);
+namespace        : NAMESPACE ID {sq_declareNamespace(sqContext, $2); startScope($2);}
+                    LBRACE declaration_list RBRACE  {   
                                                         const char * values[] = {"namespace ", $2, "{\n", $5, "\n}"};
                                                         $$ = concat_n(5, values);
                                                         
@@ -174,7 +184,7 @@ type            : simple_type                       {   $$ = $1; }
                     | array_type                    {   $$ = $1; };
 
 simple_type : primitive_type                        { $$ = $1; }
-                | member                            { $$ = $1; };
+                | member                            { $$ = sq_memberToString($1); };
               
 primitive_type : VOID       { $$ = strdup("void"); }
                   | BYTE    { $$ = strdup("byte"); }
@@ -235,7 +245,7 @@ attribute       : type id_list SEMICOLON            {   $$ = sq_AttributeDecl($1
 //attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
 //                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
 
-struct_constructor  : member LBRACE member_init_list RBRACE     {   const char * valores[] = {$1, "{", $3, "}"};
+struct_constructor  : member LBRACE member_init_list RBRACE     {   const char * valores[] = {sq_memberToString($1), "{", $3, "}"};
                                                                     $$ = concat_n(4, valores);};
 
 member_init_list    :   /*vazio*/                               {   $$ = "";}
@@ -349,7 +359,8 @@ rvalue_term     :   LPAREN expr RPAREN              {   Expression *expr = sq_Ex
                     | struct_constructor            {   $$ = $1;}
                     | value                         {   $$ = sq_exprToStr($1);}
                     | clone_expr                    {   $$ = $1;}
-                    | length_expr                   {   $$ = $1;}
+                    | length_expr                   {   
+                                                        $$ = $1;}
                     | slice_expr                    {   $$ = $1;};
 
 call_expr       :   function_call                               {   $$ = $1; }
@@ -363,7 +374,7 @@ call_expr       :   function_call                               {   $$ = $1; }
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
                                                                     $$ = concat_n(4, values); };
 
-length_expr     :  member DOT LENGTH                            {   $$ = concat($1,".length");};
+length_expr     :  member DOT LENGTH                            {   $$ = concat(sq_memberToString($1),".length");};
 
 slice_expr      : term 
                     LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {$1, "[ ", $3, " : ", $5, " ]"};
@@ -372,12 +383,13 @@ opt_expr        : /*Vazio*/   { $$ = "";}
                     | expr  { $$ = $1;};
                                                                                        
 lvalue_term     :  member                           { //TODO: member pode não ser apenas uma variável
-                                                        const char * typeName = sq_getVarType(sqContext, $1);
-                                                        printf("%s : %s\n", $1, typeName);
-                                                        $$ = $1;}
+                                                        char * memberStr = sq_memberToString($1);
+                                                        const char * typeName = sq_getVarType(sqContext, memberStr);
+                                                        printf("%s : %s\n", memberStr, typeName);
+                                                        $$ = memberStr;}
                     | index_access                  { $$ = $1;}
-                    | rvalue_term DOT member        { $$ = concat3($1, ".", $3);}
-                    | index_access DOT member       { $$ = concat3($1, ".", $3);};
+                    | rvalue_term DOT member        { $$ = concat3($1, ".", sq_memberToString($3));}
+                    | index_access DOT member       { $$ = concat3($1, ".", sq_memberToString($3));};
 
 index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = {$1, "[", $3, "]"};
                                                         $$ = concat_n(4, values);};
@@ -392,11 +404,14 @@ value           : NUMBER_LITERAL                    {   $$ = sq_Expression("numb
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
                     | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
                     | NEW type 
-                        LBRACKET expr RBRACKET      {   const char * values[] = {"new ", $2, "[", $4, "]"};
+                        LBRACKET expr RBRACKET      {   
+                                                        const char * values[] = {"new ", $2, "[", $4, "]"};
                                                         $$ = concat_n(5, values);};
 
-member          : ID                                {   $$ = $1;}
-                    | member DOT ID                 {   $$ = concat3($1,".",$3);};
+member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
+                                                        $$ = sq_Member($1, category, NULL);}
+                    | member DOT ID                 {   Category category = sq_findSymbolCategory(sqContext, $3);
+                                                        $$ = sq_Member($3, category, $1);};
 
 /* ********************************* OPERATORS ********************************************* */
 

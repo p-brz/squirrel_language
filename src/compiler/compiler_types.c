@@ -12,6 +12,33 @@ Expression *sq_Expression( const char *type, const char *exprParam )
 	return expr;
 }
 
+Member * sq_Member(const char * name, Category category, Member * parent){
+    Member * member = (Member *)malloc(sizeof(Member));
+    member->name = cpyString(name);
+    member->category = category;
+    member->parent = parent;
+}
+void sq_destroyMember(Member * member){
+    if(member != NULL){
+        sq_destroyMember(member->parent);
+        free(member->name);
+        free(member);
+    }
+}
+char * sq_memberToString(Member * member){
+    if(member == NULL){
+        return NULL;
+    }
+    if(member->parent == NULL){
+        return cpyString(member->name);
+    }
+    else{
+        char * parentString = sq_memberToString(member->parent);
+        char * result = concat3(parentString, ".", member->name);
+        free(parentString);
+        return result;
+    }
+}
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList){
 	Parameter * param = (Parameter*)malloc(sizeof(Parameter));
 	param->type = cpyString(typeName);

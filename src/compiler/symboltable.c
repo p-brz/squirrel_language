@@ -73,6 +73,11 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName){
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
     return sq_findRow(sqContext, symbol) != NULL;
 }
+
+Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol){
+    TableRow * row = sq_findRow(sqContext, symbol);
+    return row == NULL ? categ_unknown : row->category;
+}
 /*********************************************************************************************************/
 
 void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){
@@ -129,6 +134,15 @@ void sq_declareStruct(SquirrelContext * sqContext, const char * structName, Attr
     TableRowValue rowValue = EmptyRowValue();
     rowValue.structValue.fields = convertAttributesToFieldsValues(sqContext->symbolTable, attributeList);
     putRow(sqContext, structName, categ_structType, rowValue);
+    
+    int i;
+    void * value;
+    arraylist_iterate(rowValue.structValue.fields, i, value){
+        FieldValue * field = (FieldValue *)value;
+        char * fieldName = concat3(structName, "." ,field->name);
+        putRow(sqContext, fieldName, categ_structField, sq_FieldRowValue(field));
+        free(fieldName);
+    }
 }
 
 void sq_declareNamespace(SquirrelContext * sqContext, const char * namespaceName){

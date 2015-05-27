@@ -24,6 +24,8 @@
 const char * sq_getVarType(SquirrelContext * sqContext, const char * varName);
 
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
+
+Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol);
 /** ************************ DECLARAÇÃO DE SÍMBOLOS *****************************/
 
 /** Insere na tabela de símbolos uma lista de nomes de variáveis (nameDeclList), 

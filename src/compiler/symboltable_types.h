@@ -6,16 +6,6 @@
 
 #include "cast_rules.h"
 
-typedef enum {
-    categ_primitiveType, 
-    categ_arrayType,
-    categ_structType, 
-    categ_functionType, 
-    categ_enumType, 
-    categ_function, 
-    categ_variable, 
-    categ_namespace}  Category;
-
 /* Forward-declaration de TableRow
     - como TableRow inclui os campos <Categoria>Row, ele não pode ser declarado antes dos campos
     - por sua vez, alguns campos (como VariableRow) usam ponteiros para TableRow
@@ -70,6 +60,7 @@ typedef struct  {
 
 typedef union {
     StructTypeRow    structValue;
+    FieldValue       structFieldValue;
     EnumTypeRow      enumValue;
     FunctionRow      functionValue;
     VariableRow      variableValue;
@@ -100,6 +91,7 @@ ParamValue * sq_ParamValue(hashtable * symbolTable, const char * typeName, bool 
 TableRowValue EmptyRowValue();
 TableRowValue sq_PrimitiveTypeValue(TypeCategory typeCategory);
 TableRowValue sq_ArrayTypeValue(const char * baseTypename);
+TableRowValue sq_FieldRowValue(const FieldValue * field);
 TableRowValue VariableRowValue(hashtable * symbolTable, const char * typename, bool isConst);
 TableRowValue FunctionRowValue(hashtable * symbolTable, const char * returnType, arraylist * parameters);
 

@@ -10,12 +10,30 @@
   
 *******************************************************************************************/
 
+typedef enum {
+    categ_unknown, //símbolo não existe
+    categ_primitiveType, 
+    categ_arrayType,
+    categ_structType, 
+    categ_structField, 
+    categ_functionType, 
+    categ_enumType, 
+    categ_function, 
+    categ_variable, 
+    categ_namespace}  Category;
+    
 typedef arraylist NameDeclList;
 typedef arraylist ParamList;
 typedef arraylist AttributeList;
 
 /** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
 typedef arraylist NameList;
+
+typedef struct Member{
+    Category category;
+    char * name;
+    struct Member * parent;
+} Member;
 
 typedef struct {
     char *type;
@@ -45,6 +63,9 @@ typedef struct {
     char * block_stmts;
 } IfStruct;
 
+Member * sq_Member(const char * name, Category category, Member * parent);
+void sq_destroyMember(Member * member);
+char * sq_memberToString(Member * member);
 
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList);
 char * sq_ParameterToString(void * parameter);
