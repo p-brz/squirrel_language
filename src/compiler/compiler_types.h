@@ -60,4 +60,5 @@ char *sq_exprToStr( Expression *expr );
 
 IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts);
 
+NameList * sq_ForHeader(char * initStmt, char * testConditional, char * incrStmt);
 #endif

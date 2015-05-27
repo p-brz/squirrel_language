@@ -102,6 +102,36 @@ char * sq_genDoWhile(SquirrelContext * sqContext, const char * block_stmts, cons
     free(decrement_var);
     return result;
 }
+
+/*
+    FOR_START(){
+    FOR_HEADER(for_id, stmt_init, condition, stmt_incr);
+        block_stmts
+    
+    FOR_END(for_id);
+        decrementVar
+    }
+*/
+char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, const char * block_stmts){
+    char * forId = sq_makeScopeId(sqContext, "for_");
+
+    if(strlen((const char *)arraylist_get(forStatements, 1)) == 0){
+        arraylist_set(forStatements, 1, cpyString("true"));
+    }
+    char * forParamList = joinList(forStatements, ", ", NULL);
+    
+    char * forHeader = concat5("FOR_START(){\n FOR_HEADER(", forId, ", ", forParamList, ");\n");
+    char * forEnd = concat3("FOR_END(", forId, ");\n");
+    char * decrement_var = sq_genScopeDecrementVariables(sqContext);
+    
+    char * result = concat5(forHeader, block_stmts, forEnd, decrement_var, "}\n");
+    free(forId);
+    free(forParamList);
+    free(forHeader);
+    free(forEnd);
+    free(decrement_var);
+    return result;
+}
 /******************************************************************************************************/
 
 char * sq_genScopeDecrementVariables(SquirrelContext * sqContext){

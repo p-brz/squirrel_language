@@ -45,6 +45,12 @@ IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts)
     return ifStruct;
 }
 
+NameList * sq_ForHeader(char * initStmt, char * testConditional, char * incrStmt){
+    NameList * list = createList(initStmt);
+    appendList(list, testConditional);
+    appendList(list, incrStmt);
+    return list;
+}
 char * sq_NameDeclToString(void * item){
     NameDeclItem * nameDecl = (NameDeclItem *)item;
     if(nameDecl->expr != NULL){

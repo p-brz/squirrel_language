@@ -9,4 +9,6 @@ char * sq_genIfBlock(IfStruct * ifStruct);
 char * sq_genIfElseBlock(IfStruct * ifStruct, const char * elseStmts);
 char * sq_genWhile(SquirrelContext * sqContext, const char * conditional_test, const char * block_stmts);
 char * sq_genDoWhile(SquirrelContext * sqContext, const char * block_stmts, const char * conditional_test);
+char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, const char * block_stmts);
+
 #endif

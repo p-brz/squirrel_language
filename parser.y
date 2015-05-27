@@ -67,8 +67,10 @@ void finishScope(){
 %type <sValue> assignment return_statement
 
 %type <sValue> block_body block_stmt_list
-%type <sValue> for_statement for_header for_expr
+%type <sValue> for_statement for_expr
 %type <sValue> switch_header
+
+%type <NameList_Value> for_header
 
 %type <sValue> function_call lvalue_call io_command
 
@@ -447,20 +449,20 @@ block_statement : for       		{$$ = $1;}
 
 
 for             : FOR {startScope("for");}
-                    for_header block_body     { $$ = concat3("for", $3, $4);
+                    for_header block_body     { $$ = sq_genForBlock(sqContext, $3, $4);
                                                 finishScope(); };
                                                         					
 for_header      : LPAREN 
                     for_statement SEMICOLON 
                     for_expr      SEMICOLON 
                     for_statement 
-                  RPAREN                        {   const char * values[] = {"(",$2,";", $4, ";",$6 ,")"};
-                                                    $$ = concat_n(7, values);};
+                  RPAREN                        {   //const char * values[] = {"(",$2,";", $4, ";",$6 ,")"};
+                                                    $$ = sq_ForHeader($2, $4, $6);};
                                         
 for_statement   : /*Vazio*/                     {$$ = "";}
 			        | std_statement             {$$ = $1;};
 
-for_expr        : /*Vazio*/                     {$$ = " ";}
+for_expr        : /*Vazio*/                     {$$ = "";}
 			        | binary_expr               {$$ = $1;};
 
 if 		        : if_block				                    {   $$ = sq_genIfBlock($1);}
