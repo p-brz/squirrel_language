@@ -51,6 +51,10 @@ char  * concat4(const char * str1, const char * str2, const char * str3, const c
     return concat_n(4, values);
 }
 
+char  * concat5(const char * str1, const char * str2, const char * str3, const char * str4, const char * str5){
+    const char * values[] = {str1, str2, str3, str4, str5};
+    return concat_n(5, values);
+}
 void appendStr(char ** str, const char * toAppend){
     char * result = concat(*str, toAppend);
     free(*str);

@@ -476,13 +476,12 @@ else_block      : ELSE {startScope("else");}
    			        | ELSE if		                        {   $$ = $2;};
 
 while 		    : WHILE {startScope("while");}
-                    conditional_test block_body             {   $$ = concat3("while", $3, $4);
+                    conditional_test block_body             {   $$ = sq_genWhile(sqContext, $3, $4);
                                                                 finishScope();};
 
 do_while        : DO {startScope("do");}
                     block_body 
-                    WHILE conditional_test SEMICOLON        {   const char * values[] = {"do",$3," while", $5, ";"};
-                                                                $$ = concat_n(5, values);
+                    WHILE conditional_test SEMICOLON        {   $$ = sq_genDoWhile(sqContext, $3, $5);
                                                                 finishScope();};
 
 try_catch 	    : TRY   { startScope("try");}

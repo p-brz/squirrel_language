@@ -4,6 +4,7 @@
 #include "symboltable_types.h"
 #include "hashtable.h"
 #include "list_helper.h"
+#include "scope.h"
 
 #include <stdlib.h> //NULL
 
@@ -27,6 +28,7 @@ char * gen_SetTypeArrayOf(TableRow * tableRow);
 char * getTypeCategoryStr(TableRow * tableRow);
 //----------------------------------------------------------------------------//
 char * gen_Block(const char * stmts);
+char * sq_genScopeDecrementVariables(SquirrelContext * sqContext);
 char * sq_genIfBlockStart(
         const char * ifId, const char * conditional_test, const char * block_body);
 char * sq_genElseBlock(const char * ifId, const char * elseStmts);
@@ -58,6 +60,52 @@ char * sq_genIfElseBlock(IfStruct * ifStruct, const char * elseStmts){
     char * ifStart = sq_genIfBlockStart(ifStruct->ifId, ifStruct->conditional_test, ifStruct->block_stmts);
     char * elseBlock = sq_genElseBlock(ifStruct->ifId, elseStmts);
     return concat(ifStart, elseBlock);
+}
+
+/*
+    WHILE_START(while_id, conditional_test){
+        block_stmts
+    WHILE_END(while_id);
+        //decrementar variáveis do escopo
+    }
+*/
+char * sq_genWhile(SquirrelContext * sqContext, const char * conditional_test, const char * block_stmts){
+    char * whileId = sq_makeScopeId(sqContext, "while_");
+    char * whileStart = concat5("WHILE_START(", whileId, ", ",conditional_test, ") {\n");
+    char * whileEnd = concat3("WHILE_END(", whileId, ");\n");
+    char * decrement_var = sq_genScopeDecrementVariables(sqContext);
+    
+    char * result = concat5(whileStart, block_stmts, whileEnd, decrement_var, "}\n");
+    free(whileId);
+    free(whileStart);
+    free(whileEnd);
+    free(decrement_var);
+    return result;
+    
+}
+
+/*
+    DO_START(do_id){
+        block_stmts
+    DO_END(do_id, conditional_test);
+    }
+*/
+char * sq_genDoWhile(SquirrelContext * sqContext, const char * block_stmts, const char * conditional_test){
+    char * doId          = sq_makeScopeId(sqContext, "do_");
+    char * doStart       = concat3("DO_START(", doId, ") {\n");
+    char * doEnd         = concat5("DO_END(", doId, ", ",conditional_test, ");\n");
+    char * decrement_var = sq_genScopeDecrementVariables(sqContext);
+    
+    char * result = concat5(doStart, block_stmts, doEnd, decrement_var, "}\n");
+    free(doStart);
+    free(doEnd);
+    free(decrement_var);
+    return result;
+}
+/******************************************************************************************************/
+
+char * sq_genScopeDecrementVariables(SquirrelContext * sqContext){
+    return cpyString("//TODO: Gerar decremento de variáveis (de tipos compostos) do escopo atual \n");
 }
 /**
     IF_START(if_id, contional_test){
