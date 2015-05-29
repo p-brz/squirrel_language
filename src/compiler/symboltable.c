@@ -9,14 +9,6 @@
 
 //-----------------------------------------Declarações de Funções Locais--------------------------------------------------------//
 
-/** Tenta buscar na tabela por uma linha na tabela com nome 'typeName'.
-    Este método deve ser responsável pela resolução de nomes.
-    Retorna um ponteiro para a linha na tabela (TableRow) ou NULL caso não exista.*/
-TableRow * sq_findRow(SquirrelContext * sqContext, const char * name);
-
-/** Tenta buscar na tabela por um tipo de nome 'typeName'. 
-    Retorna um ponteiro para sua linha na tabela (TableRow) ou NULL caso não exista ou não seja um tipo.*/
-TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * typeName);
 
 void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value);
 void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value);

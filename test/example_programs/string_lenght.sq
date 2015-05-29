@@ -1,0 +1,6 @@
+int main(){
+    string str = "Hello";
+    print (str.length);
+
+return 0;
+}

@@ -27,6 +27,7 @@ typedef arraylist NameDeclList;
 typedef arraylist ParamList;
 typedef arraylist AttributeList;
 
+
 /** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
 typedef arraylist NameList;
 

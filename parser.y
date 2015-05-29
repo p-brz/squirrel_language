@@ -276,11 +276,11 @@ std_statement    : function_call                                {   $$ = $1; }
                     | assignment                                {   $$ = $1; }
                     | inc_stmt                                  {   $$ = $1; };
 
-inc_stmt         : lvalue_term inc_op { $$ = concat($1, $2);}
-                    | inc_op lvalue_term { $$ = concat($1, $2);};
+inc_stmt         : lvalue_term inc_op                           { $$ = concat($1, $2);}
+                    | inc_op lvalue_term                        { $$ = concat($1, $2);};
 
 function_call    : lvalue_call                                  {   $$ = $1;}
-                      |io_command                                {   $$ = $1;}
+                    |io_command                                 {   $$ = $1;}
                     | rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
                     
 lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   $$ = concat4($1, "(", $3, ")"); };
@@ -373,7 +373,9 @@ clone_expr      : CLONE LPAREN expr RPAREN                      {   const char *
                                                                     $$ = concat_n(4, values); };
 
 length_expr     :  member DOT LENGTH                            {   //member deve ser um array ou string
-                                                                    $$ = concat(sq_memberToString($1),".length");};
+                                                                    char * memberLengthStr = sq_genLenghtExpr (sqContext,$1);
+                                                                    $$ = memberLengthStr != NULL ? memberLengthStr : strdup("blah2");
+};
 
 slice_expr      : term 
                     LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {$1, "[ ", $3, " : ", $5, " ]"};
@@ -390,7 +392,8 @@ lvalue_term     :  member                           { //TODO: member pode não s
                     | rvalue_term DOT member        { $$ = concat3($1, ".", sq_memberToString($3));}
                     | index_access DOT member       { $$ = concat3($1, ".", sq_memberToString($3));};
 
-index_access    : term LBRACKET expr RBRACKET       {   const char * values[] = {$1, "[", $3, "]"};
+index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo de term é array e tipo de expr é inteiro
+                                                        const char * values[] = {$1, "[", $3, "]"};
                                                         $$ = concat_n(4, values);};
 
 value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal", $1);} 
@@ -550,4 +553,3 @@ int main (void) {
 }
 
 int yyerror (char *s) {fprintf (stderr, "%s\n", s);}
-

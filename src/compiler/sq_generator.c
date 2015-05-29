@@ -1,7 +1,7 @@
 #include "sq_generator.h"
 #include "string_helpers.h"
-
 #include "symboltable_types.h"
+#include "symboltable.h"
 #include "hashtable.h"
 #include "list_helper.h"
 #include "scope.h"
@@ -259,4 +259,53 @@ char * getTypeCategoryStr(TableRow * tableRow){
             return cpyString("type_enum");
     }
     return cpyString("");
+}
+
+
+
+char * sq_getMemberType (SquirrelContext * ctx ,  Member * member){
+    TableRow * row = sq_findRow(ctx,member->tableKey);
+    if(row== NULL){
+        return NULL;
+    }
+    if(row -> category == categ_variable){
+        return row -> value.variableValue.typeName ;
+    }
+    else if(row->category == categ_structField){
+        return row-> value.structFieldValue.type ;
+    }
+    else{
+        return NULL;
+    }
+}
+
+
+/**
+Array a;
+
+a.length
+
+string b;
+
+strlen(b.cstr)
+
+*/
+char * sq_genLenghtExpr(SquirrelContext * ctx ,  Member * member){
+    char * type =  sq_getMemberType (ctx, member);
+    if (type == NULL){
+        return NULL;
+    } 
+    
+    TableRow  * typeRow = sq_findTypeRow(ctx,type);
+    if (typeRow->category == categ_arrayType){
+        return concat(sq_memberToString(member),".length");
+    }
+    else if (strEquals(type,"string")){
+        
+       return concat3("strlen(" , sq_memberToString(member) ,".cstr)" ); 
+    }    
+    else{
+       return NULL; 
+    }
+    
 }
