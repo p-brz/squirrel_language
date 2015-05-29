@@ -35,6 +35,8 @@ bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
 
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol);
 
+char * sq_getMemberType (SquirrelContext * ctx ,  Member * member);
+
 char * sq_makeMemberTableKey(SquirrelContext * sqContext, const char * memberName, Member * parent);
 Category sq_findMemberCategory(SquirrelContext * sqContext, const char * memberName, Member * parent);
 /** ************************ DECLARAÇÃO DE SÍMBOLOS *****************************/
