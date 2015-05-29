@@ -61,6 +61,28 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName){
     return row->value.variableValue.typeName;
 }
 
+TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeName){
+   TableRow * typeRow = sq_findTypeRow(sqContext, typeName);
+   if(typeRow != NULL){
+       switch(typeRow->category){
+        case categ_primitiveType:
+            return typeRow->value.primitiveValue.typeCategory;
+        case categ_arrayType:
+            return type_array;
+        case categ_structType:
+            return type_struct;
+        case categ_functionType:
+        case categ_function://Funções tbm podem ser utilizadas como valores
+            return type_function;
+        case categ_enumType:
+            return type_enum;
+        default:
+            return type_invalid;
+        }
+   }
+   
+   return type_invalid;
+}
 
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
     return sq_findRow(sqContext, symbol) != NULL;

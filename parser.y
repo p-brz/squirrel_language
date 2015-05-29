@@ -293,8 +293,11 @@ lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   char * listS
                                                                     char * translationExpr = concat4(sq_exprToStr($1), "(", listStr, ")");
                                                                     $$ = sq_Expression("error", translationExpr, type_invalid); };
 
-io_command       : PRINT LPAREN expr_list RPAREN              {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
-                                                                  $$ = sq_Expression("void", concat3("print(", listStr, ")"), type_void);}
+io_command       : PRINT LPAREN expr_list RPAREN              {   //char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                  //$$ = sq_Expression("void", concat3("print(", listStr, ")"), type_void);
+                                                                  char * translationExpr = sq_genPrint(sqContext, $3) ;   
+                                                                  $$ = sq_Expression("void", translationExpr, type_void);
+                                                              }
                     | READ LPAREN expr RPAREN                 {   
                                                                 checkCategoryEquals(sqContext, $3->typeCategory, type_integer);
                                                                 $$ = sq_Expression("string",concat3("read(", sq_exprToStr($3), ")"), type_string); 
@@ -374,12 +377,14 @@ rvalue_term     :   LPAREN expr RPAREN              {   $$ = sq_Expression("erro
 
 call_expr       :   function_call                               {   $$ = sq_exprToStr($1); }
                         /* Casts*/
-                    | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
-                                                                char *temp = concat_n(4, values);
-                                                                Expression *expr = sq_Expression($1,temp, type_invalid); 
-                                                                $$ = sq_exprToStr(expr);}
-                    | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
-                                                                $$ = concat_n(4, values); };
+                    | primitive_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
+                                                                    char *temp = concat_n(4, values);
+                                                                    Expression *expr = sq_Expression($1,temp, type_invalid); 
+                                                                    $$ = sq_exprToStr(expr);
+                                                                }
+                    | array_type LPAREN expr RPAREN             {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
+                                                                    $$ = concat_n(4, values); 
+                                                                };
 
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", sq_exprToStr($3), ")"};
                                                                     $$ = concat_n(4, values); };
@@ -390,20 +395,33 @@ length_expr     :  member DOT LENGTH                            {   //member dev
                                                                         sq_putError (sqContext,"Invalid member length");
                                                                     }
                                                                     char * translationExpr = memberLengthStr != NULL ? memberLengthStr : concat(sq_memberToString($1),".length");
-                                                                    $$ = sq_Expression("int",translationExpr, type_integer);};
+                                                                    $$ = sq_Expression("int",translationExpr, type_integer);
+                                                                };
 
 slice_expr      : term 
                     LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {sq_exprToStr($1), "[ ", $3, " : ", $5, " ]"};
                                                                     $$ = concat_n(6, values);};
-opt_expr        : /*Vazio*/   { $$ = "";}
-                    | expr  { $$ = sq_exprToStr($1);};
+                                                                    
+opt_expr        : /*Vazio*/                         {   $$ = "";}
+                    | expr                          {   $$ = sq_exprToStr($1);};
                                                                                        
-lvalue_term     :  member                           { //TODO: member pode não ser apenas uma variável
-                                                        char * memberStr = sq_memberToString($1);
-                                                        const char * typeName = sq_getVarType(sqContext, memberStr);
-                                                        printf("%s : %s\n", memberStr, typeName);
+lvalue_term     :  member                           {  //FIXME: obter tipo de literal de enum
+                                                        const char * typeName = sq_getMemberType(sqContext, $1);
+                                                        const char * exprType = typeName == NULL ? "unknown" : typeName;
                                                         
-                                                        $$ = sq_Expression("error", memberStr, type_invalid);}
+                                                        TypeCategory typeCategory = typeName != NULL 
+                                                                                                ? sq_findTypeCategory(sqContext, typeName) 
+                                                                                                : type_invalid;
+                                                                                                
+                                                        char * memberStr = sq_memberToString($1);
+                                                        if(typeCategory == type_invalid){
+                                                            char * errMsg = concat4("Membro '", memberStr, "' tem tipo inválido ", exprType);
+                                                            sq_putError(sqContext, errMsg);
+                                                            free(errMsg);
+                                                        }
+                                                                                                
+                                                        $$ = sq_Expression(exprType, memberStr, typeCategory);
+                                                    }
                     | index_access                  { $$ = sq_Expression("error", $1, type_invalid);}
                     | rvalue_term DOT member        { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);}
                     | index_access DOT member       { $$ = sq_Expression("error", concat3($1, ".", sq_memberToString($3)), type_invalid);};
@@ -412,9 +430,9 @@ index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo d
                                                         const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
                                                         $$ = concat_n(4, values);};
 
-value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal", $1, type_integer);} 
-                    | REAL_LITERAL                  {   $$ = sq_Expression("real_literal", $1, type_real);}
-                    | STRING_LITERAL                {   $$ = sq_Expression("string_literal", $1, type_string); }
+value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal" , $1, type_integer);} 
+                    | REAL_LITERAL                  {   $$ = sq_Expression("real_literal"   , $1, type_real);}
+                    | STRING_LITERAL                {   $$ = sq_Expression("string_literal" , $1, type_string); }
                     | BOOLEAN_LITERAL               {   $$ = sq_Expression("boolean_literal", $1, type_boolean); }
                     | array_literal                 {   $$ = sq_Expression("error", $1, type_invalid); }
                     | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value", type_invalid);};

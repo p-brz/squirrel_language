@@ -37,7 +37,7 @@ int program_main() {
     //Variáveis não podem ser convertidas diretamente para cstring
     printf("%s%s\n","Boolean var: ", boolean_toCString(bValue));
     printf("%s%s\n","Long var: "   , long_toCString(longNumber));
-    printf("%s%s\n","float var: "  , float_toCString(floatNumber));
+    printf("%s%s\n","float var: "  , real_toCString(floatNumber));
     printf("%s%s\n","string var: ", string_toCString(stringVar));
     printf("%s%s\n","enum var: ", Naipes_toCString(naipesVar));
     

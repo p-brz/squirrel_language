@@ -55,7 +55,7 @@ const char * long_toCString(long longValue){
     putMemory(cstring);
     return cstring;
 }
-const char * float_toCString(float floatValue){
+const char * real_toCString(double floatValue){
     char * cstring = realToString(floatValue);
     putMemory(cstring);
     return cstring;

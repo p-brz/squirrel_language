@@ -32,6 +32,8 @@ char * sq_genScopeDecrementVariables(SquirrelContext * sqContext);
 char * sq_genIfBlockStart(
         const char * ifId, const char * conditional_test, const char * block_body);
 char * sq_genElseBlock(const char * ifId, const char * elseStmts);
+//----------------------------------------------------------------------------//
+char * sq_genCString(Expression * expr);
 /******************************************************************************/
 
 char * gen_program(SquirrelContext * ctx, const char * declarationsList){
@@ -280,4 +282,62 @@ char * sq_genLenghtExpr(SquirrelContext * ctx ,  Member * member){
        return NULL; 
     }
     
+}
+
+char * printStrConverter(void * value){
+    return sq_genCString((Expression *) value);
+}
+
+char * sq_genPrint(SquirrelContext * sqContext, ExpressionList *list)
+{
+    char *print = cpyString("printf(\"");
+    int i = 0;
+    for ( i = 0; i < list->size; i++ ) {
+        appendStr(&print, "%s");
+    }
+    appendStr(&print, "\\n\"");
+    
+    char * printExprList = joinList(list, ",", printStrConverter);
+    if(list->size > 0){
+        char * tmp = concat3(print, ",", printExprList);
+        free(print);
+        print = tmp;
+    }
+    appendStr(&print, ")");
+    
+    
+    return print;
+}
+
+char * sq_genCString(Expression * expr){
+    if(strEquals(expr->type, "string_literal")){
+        return cpyString(expr->expr);  
+    }
+    else if(strEquals(expr->type, "number_literal") || strEquals(expr->type, "real_literal")){
+        return concat3("\"", expr->expr, "\"");   
+    }
+    
+    char *result = cpyString("");
+    switch (expr->typeCategory) {
+        case type_string:
+            result = concat3("string_toCString(", expr->expr, ")");
+            break;
+        case type_boolean:
+            result = concat3("boolean_toCString(", expr->expr, ")");
+            break;
+        case type_integer:
+            result = concat3("long_toCString(", expr->expr, ")");
+            break;
+        case type_real:
+            result = concat3("real_toCString(", expr->expr, ")");
+            break;
+        case type_type:
+            result = concat3("typename(", expr->expr, ").cstr");
+            break;
+        case type_enum:
+            result = concat4(expr->type, "_toCString(", expr->expr, ")");
+            break;
+    }
+    
+    return result;
 }

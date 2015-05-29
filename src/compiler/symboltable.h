@@ -31,6 +31,8 @@ TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * typeName);
     Caso não encontre, retorna NULL.*/
 const char * sq_getVarType(SquirrelContext * sqContext, const char * varName);
 
+TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeName); 
+
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
 
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol);

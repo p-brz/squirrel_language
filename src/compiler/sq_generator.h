@@ -10,6 +10,8 @@ char * sq_genIfElseBlock(IfStruct * ifStruct, const char * elseStmts);
 char * sq_genWhile(SquirrelContext * sqContext, const char * conditional_test, const char * block_stmts);
 char * sq_genDoWhile(SquirrelContext * sqContext, const char * block_stmts, const char * conditional_test);
 char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, const char * block_stmts);
-char * sq_genLenghtExpr(SquirrelContext * ctx ,  Member * member);
+char * sq_genLenghtExpr(SquirrelContext * sqContext ,  Member * member);
+
+char * sq_genPrint(SquirrelContext * sqContext, ExpressionList *list);
 
 #endif
