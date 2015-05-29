@@ -405,7 +405,7 @@ slice_expr      : term
 opt_expr        : /*Vazio*/                         {   $$ = "";}
                     | expr                          {   $$ = sq_exprToStr($1);};
                                                                                        
-lvalue_term     :  member                           {  //FIXME: obter tipo de literal de enum
+lvalue_term     :  member                           { 
                                                         const char * typeName = sq_getMemberType(sqContext, $1);
                                                         const char * exprType = typeName == NULL ? "unknown" : typeName;
                                                         

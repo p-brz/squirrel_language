@@ -145,7 +145,10 @@ char * sq_getMemberType (SquirrelContext * ctx ,  Member * member){
         return row -> value.variableValue.typeName ;
     }
     else if(row->category == categ_structField){
-        return row-> value.structFieldValue.type ;
+        return row->value.structFieldValue.type ;
+    }
+    else if(row->category == categ_enumFieldValue){//Member pode ser um valor de enum
+        return row->value.enumFieldValue.type;
     }
     else{
         return NULL;
