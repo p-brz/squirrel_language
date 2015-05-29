@@ -262,34 +262,6 @@ char * getTypeCategoryStr(TableRow * tableRow){
 }
 
 
-
-char * sq_getMemberType (SquirrelContext * ctx ,  Member * member){
-    TableRow * row = sq_findRow(ctx,member->tableKey);
-    if(row== NULL){
-        return NULL;
-    }
-    if(row -> category == categ_variable){
-        return row -> value.variableValue.typeName ;
-    }
-    else if(row->category == categ_structField){
-        return row-> value.structFieldValue.type ;
-    }
-    else{
-        return NULL;
-    }
-}
-
-
-/**
-Array a;
-
-a.length
-
-string b;
-
-strlen(b.cstr)
-
-*/
 char * sq_genLenghtExpr(SquirrelContext * ctx ,  Member * member){
     char * type =  sq_getMemberType (ctx, member);
     if (type == NULL){

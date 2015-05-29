@@ -4,5 +4,7 @@
 #include "sq_types.h"
 
 string readline();
+string readchar();
+string read( long n );
 
 #endif

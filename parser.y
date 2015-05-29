@@ -30,6 +30,7 @@ void printStatus(SquirrelContext * sqContext){
 %union {
     char             * sValue;  /* string value */
     Expression       * eValue;
+    ExpressionList   * ExpressionListValue;
     NameDeclList     * NameDeclList_Value;
     NameDeclItem     * nameDeclValue;
     NameList         * NameList_Value; 
@@ -81,21 +82,22 @@ void printStatus(SquirrelContext * sqContext){
 
 %type <NameList_Value> for_header
 
-%type <sValue> function_call lvalue_call io_command
+%type <eValue> function_call
+%type <eValue> lvalue_call io_command
 
 %type <sValue> function
 %type <ParamListValue> func_params param_decl_list
 %type <ParamValue> param_decl
 
 //%type <eValue> expr_list
-%type <sValue> expr_list
+%type <ExpressionListValue> expr_list
 
-%type <sValue> expr
-%type <sValue> binary_expr
-%type <sValue> unary_pre_expr unary_pos_expr
-%type <sValue> term rvalue_term 
-
-%type <eValue> value
+%type <eValue> expr
+%type <eValue> binary_expr
+%type <eValue> unary_pre_expr unary_pos_expr
+%type <eValue> term
+%type <eValue> rvalue_term 
+%type <eValue> value length_expr
 
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
@@ -117,10 +119,13 @@ void printStatus(SquirrelContext * sqContext){
 %type <sValue> if else_block
 %type <ifValue> if_block
 
-%type <sValue> inc_stmt lvalue_term clone_expr length_expr slice_expr opt_expr
+
+%type <eValue> lvalue_term
+%type <sValue> inc_stmt clone_expr  slice_expr opt_expr
 %type <sValue> call_expr
 %type <sValue> array_literal index_access 
-%type <sValue> type_or_expr type_expr
+%type <sValue> type_or_expr 
+%type <eValue> type_expr
 
 %type <NameDeclList_Value> name_decl_list
 %type <nameDeclValue> name_decl
@@ -252,7 +257,7 @@ member_init_list    :   /*vazio*/                               {   $$ = "";}
                         | member_init                           {   $$ = $1;} 
                         | member_init_list COMMA member_init    {   $$ = concat3($1, ", ", $3);};
 
-member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", $3);};
+member_init         : ID COLON expr                             {   $$ = concat3($1, " : ", sq_exprToStr($3));};
 
 /* *********************************** STATEMENTS ******************************************** */
 block_body       : LBRACE block_stmt_list RBRACE                {   $$ = $2;} //"{} vão ser inclusas em regras que usem block_body, quando necessario"
@@ -271,31 +276,39 @@ inline_statement : std_statement                                {   $$ = $1;}
                     | THROW                                     {   $$ = strdup("throw"); }
                     | BREAK                                     {   $$ = strdup("break"); };
 
-std_statement    : function_call                                {   $$ = $1; }
+std_statement    : function_call                                {   $$ = sq_exprToStr($1); }
                     | variables_decl                            {   $$ = $1; }
                     | assignment                                {   $$ = $1; }
                     | inc_stmt                                  {   $$ = $1; };
 
-inc_stmt         : lvalue_term inc_op                           { $$ = concat($1, $2);}
-                    | inc_op lvalue_term                        { $$ = concat($1, $2);};
+inc_stmt         : lvalue_term inc_op                           { $$ = concat(sq_exprToStr($1), $2);}
+                    | inc_op lvalue_term                        { $$ = concat($1, sq_exprToStr($2));};
 
 function_call    : lvalue_call                                  {   $$ = $1;}
                     |io_command                                 {   $$ = $1;}
-                    | rvalue_term LPAREN expr_list RPAREN       {   $$ = concat4($1, "(", $3, ")");};
+                    | rvalue_term LPAREN expr_list RPAREN       {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                    $$ = sq_Expression("void", concat4(sq_exprToStr($1), "(",listStr, ")"), type_invalid);};
                     
-lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   $$ = concat4($1, "(", $3, ")"); };
+lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                    char * translationExpr = concat4(sq_exprToStr($1), "(", listStr, ")");
+                                                                    $$ = sq_Expression("error", translationExpr, type_invalid); };
 
-io_command       : PRINT LPAREN expr_list RPAREN              {   $$ = concat3("print(", $3, ")");}
-                    | READ LPAREN expr RPAREN                 {   $$ = concat(concat("read(", $3), ")"); }
-                    | READCHAR LPAREN RPAREN                  {   $$ = strdup("readchar()"); }
-                    | READLINE LPAREN RPAREN                  {   $$ = strdup("readline()"); };
+io_command       : PRINT LPAREN expr_list RPAREN              {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                  $$ = sq_Expression("void", concat3("print(", listStr, ")"), type_void);}
+                    | READ LPAREN expr RPAREN                 {   
+                                                                checkCategoryEquals(sqContext, $3->typeCategory, type_integer);
+                                                                $$ = sq_Expression("string",concat3("read(", sq_exprToStr($3), ")"), type_string); 
+                                                              }
+                                                              
+                    | READCHAR LPAREN RPAREN                  {   $$ = sq_Expression("string", "readchar()", type_string); }
+                    | READLINE LPAREN RPAREN                  {   $$ = sq_Expression("string", "readline()", type_string); };
 
 
-return_statement : RETURN expr                                  {   $$ = concat("return ", $2); }
+return_statement : RETURN expr                                  {   $$ = concat("return ", sq_exprToStr($2)); }
                    | RETURN                                     {   $$ = strdup("return ");};
 
 assignment       : lvalue_term assignment_op expr               {  
-                                                                    const char *values[] = {$1, " ", $2, " ", $3};
+                                                                    const char *values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
                                                                     $$ = concat_n(5, values);
                                                                 };
 
@@ -318,96 +331,101 @@ name_decl_list   : name_decl                                    {   $$ = createL
                     | name_decl_list COMMA name_decl            {   $$ = appendList($1, $3);};
 
 name_decl         : ID                                          {   $$ = sq_NameDeclItem($1, NULL); }
-                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression("void", $3)); };
+                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression("error", sq_exprToStr($3), type_invalid)); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
-expr_list       : /* Vazio */                                   {   $$ = "";}
-                    | expr                           {   $$ = $1;}
-                    | expr_list COMMA expr            {   $$ = concat3($1, ",", $3);};
+expr_list       : /* Vazio */                                   {   $$ = createList(NULL);}
+                    | expr                                      {   $$ = createList($1);}
+                    | expr_list COMMA expr                      {   $$ = appendList($1, $3);};
 
 expr            : binary_expr                                 {   $$ = $1; }
                     | type_expr                               {   $$ = $1; };
 
 binary_expr     : unary_pos_expr                              {   $$ = $1;}
-                    | binary_expr operator unary_pos_expr     {   const char * values[] = {$1, " ", $2, " ", $3};
-                                                                  $$ = concat_n(5, values);};
+                    | binary_expr operator unary_pos_expr     {   const char * values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
+                                                                  $$ = sq_Expression("error", concat_n(5, values), type_invalid);};
                                                                   
-type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   $$ = concat3("typeof(", $3, ")");}
-                    | TYPENAME LPAREN type_or_expr RPAREN     {   $$ = concat3("typename(", $3, ")");}
+type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   $$ = sq_Expression("type", concat3("typeof(", $3, ")"), type_type);}
+                    | TYPENAME LPAREN type_or_expr RPAREN     {   $$ = sq_Expression("string", concat3("typename(", $3, ")"), type_string);}
                     | type_or_expr 
                         CASTSTO LPAREN type_or_expr RPAREN    {   const char * values[] = {$1, " caststo(", $4, ")"};
-                                                                  $$ = concat_n(4, values);};
+                                                                  $$ = sq_Expression("boolean", concat_n(4, values), type_boolean);};
 
-type_or_expr    :   expr                                      {   $$ = $1;}
+type_or_expr    :   expr                                      {   $$ = sq_exprToStr($1);}
                     | array_type                              {   $$ = $1;}
                     | primitive_type                          {   $$ = $1;};
 
 unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
-                    | unary_pre_expr inc_op         {   $$ = concat($1, $2);};
+                    | unary_pre_expr inc_op         {   $$ = sq_Expression("error",concat(sq_exprToStr($1), $2),type_invalid);};
 
 unary_pre_expr  : term                              {   $$ = $1; }
-                    | unary_pre_op term             {   $$ = concat($1, $2); };
+                    | unary_pre_op term             {   $$ = sq_Expression("error", concat($1, sq_exprToStr($2)), type_invalid); };
                    
 term            : rvalue_term                       {   $$ = $1;}
                     | lvalue_term                   {   $$ = $1;};
                    
-rvalue_term     :   LPAREN expr RPAREN              {   Expression *expr = sq_Expression("error", concat3("(",$2,")"));
-                                                        $$ = sq_exprToStr(expr);}
-                    | call_expr                     {   $$ = $1; }//sq_exprToStr($1);}
-                    | struct_constructor            {   $$ = $1;}
-                    | value                         {   $$ = sq_exprToStr($1);}
-                    | clone_expr                    {   $$ = $1;}
-                    | length_expr                   {   
-                                                        $$ = $1;}
-                    | slice_expr                    {   $$ = $1;};
+rvalue_term     :   LPAREN expr RPAREN              {   $$ = sq_Expression("error", concat3("(",sq_exprToStr($2),")"), type_invalid);}
+                    | call_expr                     {   $$ = sq_Expression("error", $1, type_invalid); }
+                    | struct_constructor            {   $$ = sq_Expression("error", $1, type_invalid); }
+                    | value                         {   $$ = $1; }
+                    | clone_expr                    {   $$ = sq_Expression("error", $1, type_invalid); }
+                    | length_expr                   {   $$ = $1;}
+                    | slice_expr                    {   $$ = sq_Expression("error", $1, type_invalid);};
 
-call_expr       :   function_call                               {   $$ = $1; }
+call_expr       :   function_call                               {   $$ = sq_exprToStr($1); }
                         /* Casts*/
-                    | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", $3, ")"};
-                                                                 char *temp = concat_n(4, values);
-                                                                Expression *expr = sq_Expression($1,temp); $$ = sq_exprToStr(expr);}
-                    | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", $3, ")"};
-                                                                    $$ = concat_n(4, values); };
+                    | primitive_type LPAREN expr RPAREN     {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
+                                                                char *temp = concat_n(4, values);
+                                                                Expression *expr = sq_Expression($1,temp, type_invalid); 
+                                                                $$ = sq_exprToStr(expr);}
+                    | array_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
+                                                                $$ = concat_n(4, values); };
 
-clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", $3, ")"};
+clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", sq_exprToStr($3), ")"};
                                                                     $$ = concat_n(4, values); };
 
 length_expr     :  member DOT LENGTH                            {   //member deve ser um array ou string
                                                                     char * memberLengthStr = sq_genLenghtExpr (sqContext,$1);
-                                                                    $$ = memberLengthStr != NULL ? memberLengthStr : strdup("blah2");
-};
+                                                                    if (memberLengthStr== NULL){
+                                                                        sq_putError (sqContext,"Invalid member length");
+                                                                    }
+                                                                    char * translationExpr = memberLengthStr != NULL ? memberLengthStr : concat(sq_memberToString($1),".length");
+                                                                    $$ = sq_Expression("int",translationExpr, type_integer);};
 
 slice_expr      : term 
-                    LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {$1, "[ ", $3, " : ", $5, " ]"};
+                    LBRACKET opt_expr COLON opt_expr RBRACKET   {   const char * values[] = {sq_exprToStr($1), "[ ", $3, " : ", $5, " ]"};
                                                                     $$ = concat_n(6, values);};
 opt_expr        : /*Vazio*/   { $$ = "";}
-                    | expr  { $$ = $1;};
+                    | expr  { $$ = sq_exprToStr($1);};
                                                                                        
 lvalue_term     :  member                           { //TODO: member pode não ser apenas uma variável
                                                         char * memberStr = sq_memberToString($1);
                                                         const char * typeName = sq_getVarType(sqContext, memberStr);
                                                         printf("%s : %s\n", memberStr, typeName);
-                                                        $$ = memberStr;}
-                    | index_access                  { $$ = $1;}
-                    | rvalue_term DOT member        { $$ = concat3($1, ".", sq_memberToString($3));}
-                    | index_access DOT member       { $$ = concat3($1, ".", sq_memberToString($3));};
+                                                        
+                                                        $$ = sq_Expression("error", memberStr, type_invalid);}
+                    | index_access                  { $$ = sq_Expression("error", $1, type_invalid);}
+                    | rvalue_term DOT member        { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);}
+                    | index_access DOT member       { $$ = sq_Expression("error", concat3($1, ".", sq_memberToString($3)), type_invalid);};
 
 index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo de term é array e tipo de expr é inteiro
-                                                        const char * values[] = {$1, "[", $3, "]"};
+                                                        const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
                                                         $$ = concat_n(4, values);};
 
-value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal", $1);} 
-                    | REAL_LITERAL                  {   $$ = sq_Expression("real_literal", $1);}
-                    | STRING_LITERAL                {   $$ = sq_Expression("string_literal", $1); }
-                    | BOOLEAN_LITERAL               {   $$ = sq_Expression("boolean_literal", $1); }
-                    | array_literal                 {   $$ = sq_Expression("error", $1); }
-                    | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value");};
+value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal", $1, type_integer);} 
+                    | REAL_LITERAL                  {   $$ = sq_Expression("real_literal", $1, type_real);}
+                    | STRING_LITERAL                {   $$ = sq_Expression("string_literal", $1, type_string); }
+                    | BOOLEAN_LITERAL               {   $$ = sq_Expression("boolean_literal", $1, type_boolean); }
+                    | array_literal                 {   $$ = sq_Expression("error", $1, type_invalid); }
+                    | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value", type_invalid);};
                     
 array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
-                    | LBRACKET expr_list RBRACKET   {   $$ = concat3("[", $2, "]");}
+                    | LBRACKET expr_list RBRACKET   {   char *listStr = joinList($2, ", ", sq_ExpressionStringConverter);
+                                                        $$ = concat3("[", listStr, "]");
+                                                    }
                     | NEW type 
                         LBRACKET expr RBRACKET      {   
-                                                        const char * values[] = {"new ", $2, "[", $4, "]"};
+                                                        const char * values[] = {"new ", $2, "[", sq_exprToStr($4), "]"};
                                                         $$ = concat_n(5, values);};
 
 member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
@@ -489,7 +507,7 @@ for_statement   : /*Vazio*/                     {$$ = "";}
 			        | std_statement             {$$ = $1;};
 
 for_expr        : /*Vazio*/                     {$$ = "";}
-			        | binary_expr               {$$ = $1;};
+			        | binary_expr               {$$ = sq_exprToStr($1);};
 
 if 		        : if_block				                    {   $$ = sq_genIfBlock($1);}
     		        | if_block else_block	                {   $$ = sq_genIfElseBlock($1, $2);};
@@ -539,7 +557,7 @@ default_block   : DEFAULT { startScope("default"); }
                     block_body                              {   $$ = concat("default", $3);
                                                                 finishScope();};
 
-conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", $2, ")");};
+conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", sq_exprToStr($2), ")");};
 %%
 
 int main (void) {

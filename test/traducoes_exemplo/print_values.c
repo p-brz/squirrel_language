@@ -15,7 +15,7 @@ const char * Naipes_toCString(Naipes value){
     return "";
 }
 
-int program_main(){
+int program_main() {
     //Obs.: literais (númericos e string) podem ser convertidos diretamente para cstring
     //isso vai depender se o tipo do literal for diferenciado do tipo da variável
     printf("%s%s\n","Number: " , "10");

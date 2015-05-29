@@ -58,3 +58,27 @@ string readline(){
     }
     return line;
 }
+
+string readchar()
+{
+    int c = getchar();
+    
+    if ( c == EOF ) {
+        return empty_String();
+    }
+    
+    char char_array[2] = {c, '\0'};
+    
+    return create_String(char_array);
+}
+
+string read( long n )
+{
+    char array[n+1];
+    char * scanfStr = concat3("%", intToString(n), "s");
+    
+    scanf(scanfStr, array);
+    free(scanfStr);
+    
+    return create_String(array);
+}

@@ -114,6 +114,21 @@ Category sq_findMemberCategory(SquirrelContext * sqContext, const char * memberN
     char * memberSymbolKey = sq_makeMemberTableKey(sqContext, memberName, parent);
     return sq_findSymbolCategory(sqContext, memberName);
 }
+char * sq_getMemberType (SquirrelContext * ctx ,  Member * member){
+    TableRow * row = sq_findRow(ctx,member->tableKey);
+    if(row== NULL){
+        return NULL;
+    }
+    if(row -> category == categ_variable){
+        return row -> value.variableValue.typeName ;
+    }
+    else if(row->category == categ_structField){
+        return row-> value.structFieldValue.type ;
+    }
+    else{
+        return NULL;
+    }
+}
 /*********************************************************************************************************/
 
 void sq_declareVariables(SquirrelContext * sqContext, const char * typeName, arraylist * nameDeclList){

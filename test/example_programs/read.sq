@@ -1,0 +1,11 @@
+int main ()
+{
+    int a;
+    float b;
+    string str;
+    
+    str = read(a);
+    str = read(b);
+    
+	return 0;
+}

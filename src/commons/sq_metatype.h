@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef enum {type_void, type_type, type_integer, type_real, type_boolean
+typedef enum {type_invalid, type_void, type_type, type_integer, type_real, type_boolean
                 , type_string, type_object, type_enum, type_array, type_function
                 , type_struct} TypeCategory;
 

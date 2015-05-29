@@ -6,13 +6,6 @@
 
 #include "cast_rules.h"
 
-/* Forward-declaration de TableRow
-    - como TableRow inclui os campos <Categoria>Row, ele não pode ser declarado antes dos campos
-    - por sua vez, alguns campos (como VariableRow) usam ponteiros para TableRow
-    - uma "Forward-declaration" permite resolver isto 
-*/
-typedef struct TableRow TableRow;
-
 typedef struct{
     arraylist * fields; //Cada item da lista é um FieldValue
 } StructTypeRow;

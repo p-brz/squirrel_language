@@ -34,12 +34,12 @@ const char * sq_categoryCString(Category category){
     
 }
 
-Expression *sq_Expression( const char *type, const char *exprParam )
+Expression *sq_Expression( const char *type, const char *exprParam, TypeCategory typeCategory)
 {
 	Expression *expr = (Expression*)malloc(sizeof(Expression));
 	expr->type = cpyString(type);
 	expr->expr = cpyString(exprParam);
-
+    expr->typeCategory = typeCategory;
 	return expr;
 }
 
@@ -147,6 +147,9 @@ char *sq_exprToStr( Expression *expr )
     }*/
     return cpyString(expr->expr);
 }
+char * sq_ExpressionStringConverter(void * value){
+    return sq_exprToStr((Expression *)value);
+}
 
 char * AttributeDeclStringConverter(void * value){
     if(value == NULL){
@@ -165,4 +168,3 @@ char * attributeListToString(AttributeList * attributeList){
     free(listStr);
     return result;
 }
-

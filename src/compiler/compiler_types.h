@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "arraylist.h"
+#include "sq_metatype.h"
 
 /** ***************************************************************************************
  compiler_types.h
@@ -26,6 +27,7 @@ typedef enum {
 typedef arraylist NameDeclList;
 typedef arraylist ParamList;
 typedef arraylist AttributeList;
+typedef arraylist ExpressionList;
 
 
 /** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
@@ -41,6 +43,7 @@ typedef struct Member{
 typedef struct {
     char *type;
     char *expr;
+    TypeCategory typeCategory;
 } Expression;
 
 
@@ -81,8 +84,9 @@ char * sq_NameDeclToString(void * item);
 AttributeDecl * sq_AttributeDecl(const char * typeName, NameList * namesList);
 char * attributeListToString(AttributeList * attributeList);
 
-Expression *sq_Expression( const char *type, const char *expr );
+Expression *sq_Expression( const char *type, const char *expr, TypeCategory typeCategory);
 char *sq_exprToStr( Expression *expr );
+char * sq_ExpressionStringConverter(void *);
 
 IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts);
 

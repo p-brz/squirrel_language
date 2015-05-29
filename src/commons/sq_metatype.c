@@ -27,6 +27,8 @@ const char * sq_typeCategoryCString(TypeCategory typeCategory){
             return "type_string";
         case type_struct:
             return "type_struct";
+        case type_invalid:
+            return "type_invalid";
     }   
     return "";
 }
