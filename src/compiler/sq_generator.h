@@ -14,4 +14,8 @@ char * sq_genLenghtExpr(SquirrelContext * sqContext ,  Member * member);
 
 char * sq_genPrint(SquirrelContext * sqContext, ExpressionList *list);
 
+//OBS.: gerando código parcialmente
+char * sq_genFunction(SquirrelContext * ctx, const char * returnType
+, const char * functionName, ParamList * paramList, const char * functionBody);
+
 #endif

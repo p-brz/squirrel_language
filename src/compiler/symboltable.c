@@ -84,6 +84,13 @@ TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeN
    return type_invalid;
 }
 
+const char * sq_findFullName(SquirrelContext * sqContext, const char * symbolName){
+    if(symbolName == NULL){
+        return NULL;
+    }
+    TableRow * row = sq_findRow(sqContext, symbolName);
+    return row == NULL ? NULL : row->name;
+}
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
     return sq_findRow(sqContext, symbol) != NULL;
 }

@@ -165,10 +165,8 @@ namespace        : NAMESPACE ID {sq_declareNamespace(sqContext, $2); startScope(
 
 function        : type ID func_params               {   //Declare function and start scope
                                                         sq_startFunction(sqContext, $1, $2, $3);}
-                                    block_body      {   char * funcParams = joinList($3, ", ", sq_ParameterToString);
-                                                        const char * values[] = {$1, " ", $2, "(", funcParams, ") {\n", $5, "}\n"};
-                                                        $$ = concat_n(8, values); 
-                                                        free(funcParams);
+                                    block_body      {   //NOTE: gerando parcialmente código em função
+                                                        $$ = sq_genFunction(sqContext, $1, $2, $3, $5);
                                                         //TODO: destruir Parameter list
                                                         
                                                         finishScope(); //scope created in function

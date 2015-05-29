@@ -33,6 +33,8 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName);
 
 TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeName); 
 
+const char * sq_findFullName(SquirrelContext * sqContext, const char * symbolName);
+
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
 
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol);

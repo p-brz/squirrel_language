@@ -341,3 +341,29 @@ char * sq_genCString(Expression * expr){
     
     return result;
 }
+
+static 
+char * sq_genFunctionHeader(SquirrelContext * ctx, const char * returnType, const char * functionName, ParamList * paramList){
+    const char * fullFunctionName = sq_findFullName(ctx, functionName);   
+    
+    if(fullFunctionName != NULL && strEquals(fullFunctionName, "main")){
+        //Talvez seja necessario tratar colisões de nomes (ex.: se existir um namespace program, com uma função "main") ou 
+        //uma outra função de nome "program_main"
+        fullFunctionName = "program_main";
+    }
+    fullFunctionName = fullFunctionName != NULL ? fullFunctionName : functionName;
+    
+    char * funcParams = joinList(paramList, ", ", sq_ParameterToString);
+    char * functionHeaderStr = concat_n(6, (const char * []){returnType, " ", fullFunctionName, "(", funcParams, ")"});
+    free(funcParams);
+    return functionHeaderStr;
+}
+char * sq_genFunction(SquirrelContext * ctx, const char * returnType
+, const char * functionName, ParamList * paramList, const char * functionBody)
+{
+    
+    char * functionHeaderStr = sq_genFunctionHeader(ctx, returnType, functionName, paramList);
+    char * functionStr = concat4(functionHeaderStr, "{\n", functionBody, "}\n");
+    free(functionHeaderStr);
+    return functionStr;
+}
