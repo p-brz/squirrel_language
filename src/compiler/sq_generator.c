@@ -133,6 +133,16 @@ char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, con
     free(forEnd);
     free(decrement_var);
     return result;
+    
+}
+
+//typedef <type> (* <ID>)(<func_params>);
+char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id,ParamList * param ){
+    char * funcParams = joinList(param, ", ", sq_ParameterToString);  
+    char * typeFunc = concat3("typedef ",type,"(*"); 
+    char * typeFunc1 = concat3(typeFunc,id,")"); 
+    char * typeFunc2 = concat4( typeFunc1,"(",funcParams,");"); 
+    return typeFunc2;
 }
 /******************************************************************************************************/
 
@@ -366,4 +376,26 @@ char * sq_genFunction(SquirrelContext * ctx, const char * returnType
     char * functionStr = concat4(functionHeaderStr, "{\n", functionBody, "}\n");
     free(functionHeaderStr);
     return functionStr;
+}
+
+char * sq_genStructDefinition(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList)
+{
+    char *struct_generated = "typedef struct ";
+    int i;
+    appendStr(&struct_generated, structName);
+    appendStr(&struct_generated, " {\n");
+    
+    
+    for ( i = 0; i < attributeDeclList->size; i++ ) {
+        AttributeDecl *attributeDecl = arraylist_get(attributeDeclList, i);
+        appendStr(&struct_generated, attributeDecl->type);
+        
+        appendStr(&struct_generated, " ");
+        appendStr(&struct_generated, joinList(attributeDecl->namesList, ", ", NULL));
+        appendStr(&struct_generated,";\n");
+    }
+    
+    appendStr(&struct_generated, "}\n");
+    
+    return struct_generated;
 }

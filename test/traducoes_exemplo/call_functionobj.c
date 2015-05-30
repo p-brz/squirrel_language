@@ -1,6 +1,7 @@
 #include "sqlib.h"
 
 //Tipos de função são gerados utilizando ponteiros para função
+//typedef <type> (* <ID>)(<func_params>);
 typedef void (* PrintFunction)();
 
 typedef struct StructWithFunction{

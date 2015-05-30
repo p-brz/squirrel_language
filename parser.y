@@ -8,22 +8,17 @@
 #include "dump_table.h"
 
 SquirrelContext * sqContext;
+//Saída padrão é a.out
+char * output_file = "a.out";
 
 void startScope(const char * scopeName){
     sq_startScope(sqContext, scopeName);
 }
 
 void finishScope(){
+    printf("before finish scope");
     sq_finishScope(sqContext);
-}
-void printStatus(SquirrelContext * sqContext){
-    int errCount = sq_getErrorCount(sqContext);
-    if(errCount > 0){
-        printf("\n\nCompilação falhou! Foram encontrados %d erros:\n\n", errCount);
-        char * errListStr = joinList(sqContext->errorList, "\n", NULL);
-        printf("%s\n", errListStr);
-        free(errListStr);
-    }
+    printf("after finish scope");
 }
 %}
 
@@ -78,7 +73,6 @@ void printStatus(SquirrelContext * sqContext){
 
 %type <sValue> block_body block_stmt_list
 %type <sValue> for_statement for_expr
-%type <sValue> switch_header
 
 %type <NameList_Value> for_header
 
@@ -102,7 +96,7 @@ void printStatus(SquirrelContext * sqContext){
 %type <sValue> operator assignment_op inc_op unary_pre_op
 
 %type <sValue> variables_decl
-%type <sValue> type simple_type array_type primitive_type
+%type <sValue> type simple_type array_type primitive_type 
 
 %type <AttributeListValue> attribute_list struct_body
 %type <AttributeDeclValue> attribute
@@ -115,7 +109,7 @@ void printStatus(SquirrelContext * sqContext){
 %type <sValue> struct_constructor member_init member_init_list
 %type <memberValue> member
 
-%type <sValue> for while do_while try_catch switch switch_body when_list when_block default_block conditional_test
+%type <sValue> for while do_while try_catch conditional_test
 %type <sValue> if else_block
 %type <ifValue> if_block
 
@@ -133,9 +127,18 @@ void printStatus(SquirrelContext * sqContext){
 %start program
 
 %%
-program          : declaration_list                 { printf("------------------START PROGRAM----------------\n"); 
-                                                      printf("%s\n", gen_program(sqContext, $1)); dumpSymbolTable(sqContext->symbolTable);
-                                                      printStatus(sqContext);};
+program          : declaration_list                 { 
+                                                        char * programOut = gen_program(sqContext, $1);
+                                                        printf("------------------START PROGRAM----------------\n"); 
+                                                        printf("%s\n", programOut); 
+                                                        dumpSymbolTable(sqContext->symbolTable);
+                                                        if(sq_hasErrors(sqContext)){
+                                                            sq_printStatus(sqContext);
+                                                        }
+                                                        else{
+                                                            sq_writeFile(programOut, output_file);  
+                                                        }
+                                                    };
 
 /*OBS.: removida regra de declaration_list vazia, devido a conflito shift-reduce.
     Resolver isto quando modulos forem introduzidos (modulos podem ser vazios?)*/
@@ -227,23 +230,20 @@ struct_definition : STRUCT ID
                                                         $$ = concat_n(5, values);
                                                         free(attrListStr);};
                                                         
-struct_body       : /*Vazio*/                       {  $$ = createList(NULL);}
+struct_body       : /*Vazio*/                       {  $$ = createList(NULL); }
                         | attribute_list            {  $$ = $1;};
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   sq_declareFunctionType(sqContext, $2,$3,$4);
-                                                        char * funcParams = joinList($4, ", ", sq_ParameterToString);
-                                                        const char * values[] = {"function ", $2," ", $3, "(",funcParams,")"};
-                                                        $$ = concat_n(7, values);
-                                                        free(funcParams);};
+                                                        $$ = sq_genFuncionType(sqContext,$2,$3,$4);};
 
 id_list : ID                                        {   $$ = createList($1);}
             | id_list COMMA  ID                     {   $$ = appendList($1, $3);};
             
-attribute_list  :  attribute                        {   $$ = createList($1);}
+attribute_list  :  attribute                        {   $$ = createList($1); }
                     | attribute_list attribute      {   $$ = appendList($1, $2);};
                     
-attribute       : type id_list SEMICOLON            {   $$ = sq_AttributeDecl($1, $2);};
+attribute       : type id_list SEMICOLON            {  $$ = sq_AttributeDecl($1, $2);};
                     
 //attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
 //                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
@@ -446,14 +446,11 @@ array_literal   : ARRAY_SYMBOL                      {   $$ = strdup("[]");}
 
 member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
                                                         $$ = sq_Member($1,$1, category, NULL);
-                                                        printf("member '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
                                                         free($1);}
                     | member DOT ID                 {   
                                                         char * memberTableKey = sq_makeMemberTableKey(sqContext, $3, $1);
                                                         Category category = sq_findSymbolCategory(sqContext, memberTableKey);
                                                         $$ = sq_Member($3, memberTableKey, category, $1);
-                                                        
-                                                        printf("member '%s' is '%s'\n", sq_memberToString($$), sq_categoryCString(category));
                                                         
                                                         free(memberTableKey);
                                                         free($3); };
@@ -504,8 +501,7 @@ block_statement : for       		{$$ = $1;}
 			        | if       		{$$ = $1;}
 			        | while         {$$ = $1;}
 			        | do_while      {$$ = $1;} 
-			        | try_catch     {$$ = $1;}
-			        | switch        {$$ = $1;};
+			        | try_catch     {$$ = $1;};
 
 
 for             : FOR {startScope("for");}
@@ -553,30 +549,15 @@ try_catch 	    : TRY   { startScope("try");}
                             block_body
                         { finishScope();}                   {   $$ = concat4("try",$3,"catch", $7);};
 
-switch          : switch_header LBRACE switch_body RBRACE   {   $$ = concat4($1, "{\n", $3, "\n}");
-                                                                finishScope(); /*Escopo iniciado em switch_header*/ };
-
-switch_header   : SWITCH { startScope("switch"); }
-                    LPAREN opt_expr RPAREN                  {   $$ = concat3("switch(", $4, ")");};
-
-switch_body 	: when_list				                    {   $$ = $1;}
-		            | when_list default_block		        {   $$ = concat($1, $2);};
-
-when_list       : when_block				                {   $$ = $1;}
-	                | when_list when_block			        {   $$ = concat($1, $2);};
-
-when_block 	    : WHEN  { startScope("when");}
-                    conditional_test block_body             {   $$ = concat3("when", $3, $4);
-                                                                finishScope();};
-
-default_block   : DEFAULT { startScope("default"); }
-                    block_body                              {   $$ = concat("default", $3);
-                                                                finishScope();};
-
 conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", sq_exprToStr($2), ")");};
 %%
 
-int main (void) {
+int main (int argc, char ** argv) {
+    //CommandLineOptions * options = sq_receiveArgs(argc, argv);
+    //if(options != NULL && options->output != NULL){
+    //    printf("%s -o %s\n", argv[0], options->output);
+    //    output_file = options->output;
+    //}
     sqContext = sq_SquirrelContext();
     
     int exitCode =  yyparse ( );

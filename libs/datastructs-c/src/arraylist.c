@@ -79,6 +79,7 @@ extern inline unsigned int arraylist_size(arraylist*l) {
  */
 void arraylist_add(arraylist* l, void* item)
 {
+	assert(l->size + 1 > 0);
 	arraylist_allocate(l, l->size + 1);
 	l->body[l->size++] = item;
 }
@@ -115,6 +116,7 @@ void arraylist_set(arraylist* l, unsigned int index, void* value)
  */
 void arraylist_insert(arraylist* l, unsigned int index, void* value)
 {
+	assert(l->size + 1 > 0);
 	// Reallocate, if needed
 	arraylist_allocate(l, l->size + 1);
 	// Move data to create a spot for the new value
@@ -151,6 +153,7 @@ arraylist* arraylist_slice(arraylist* l, unsigned int index, unsigned int length
 {
 	assert(index + length <= l->size);
 	arraylist* new_list = arraylist_create();
+	assert(length > 0);
 	arraylist_allocate(new_list, length);
 	memmove(new_list->body, l->body + index, length * sizeof(void*));
 	new_list->size = length;

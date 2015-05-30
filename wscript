@@ -13,6 +13,7 @@ def options(opt):
     
 def configure(conf):
     conf.load('compiler_c flex bison')
+    conf.load('squirrel_tool', tooldir='.')
     #isto talvez só seja necessário no windows (?)
     conf.env.LIB_FLEX = ['fl']
     # muda o nome do arquivo ".h" para y.tab.h
@@ -63,7 +64,7 @@ def build(bld):
         includes        = path_language,
         export_includes = path_language,
         use             = ['datastructs-c', 'squirrel-commons'])
-            
+    
     bld.recurse('test');
         
 

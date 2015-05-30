@@ -13,6 +13,10 @@ char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, con
 char * sq_genLenghtExpr(SquirrelContext * sqContext ,  Member * member);
 
 char * sq_genPrint(SquirrelContext * sqContext, ExpressionList *list);
+char * sq_genStructDefinition(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList);
+
+char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id ,ParamList * param); 
+
 
 //OBS.: gerando código parcialmente
 char * sq_genFunction(SquirrelContext * ctx, const char * returnType

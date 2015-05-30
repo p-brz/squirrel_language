@@ -95,6 +95,8 @@ bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol){
     return sq_findRow(sqContext, symbol) != NULL;
 }
 
+#include <stdio.h>
+
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol){
     if(symbol == NULL){
         return categ_unknown;
@@ -252,7 +254,8 @@ char * makeTableKey(arraylist * scopeList, const char * name){
 }
 
 TableRow * sq_findRow(SquirrelContext * sqContext, const char * name){
-    arraylist * scopeList = arraylist_copy(sqContext->scopeList);
+    arraylist * scopeList = sqContext->scopeList->size > 0 ? 
+                                    arraylist_copy(sqContext->scopeList) : createList(NULL);
     int i;
     int listSize = arraylist_size(scopeList);
     for(i=listSize; i >=0; --i){

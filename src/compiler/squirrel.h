@@ -8,4 +8,6 @@
 #include "sq_generator.h"
 #include "scope.h"
 #include "symboltable.h"
+#include "sq_cli.h"
+
 #endif
