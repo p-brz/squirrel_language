@@ -136,12 +136,58 @@ char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, con
     
 }
 
+char * sq_translateTypeName(SquirrelContext * sqContext, const char * typeName){
+    TableRow * typeRow = sq_findTypeRow(sqContext, typeName);
+    
+    if(typeRow == NULL){
+        char * errMsg = concat3("trying to translate invalid type '", typeName, "'");
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+    }
+    else{
+        if(typeRow->category == categ_arrayType){
+            return cpyString(ARRAY_LITERAL_TYPE);
+        }
+        else if(typeRow->category = categ_primitiveType){
+            if(strEquals(typeRow->name, "number_literal")){
+                return cpyString("int");
+            } 
+            //else if(strEquals(typeRow->name, "real_literal")){
+            //    return cpyString("double");
+            //}
+        }
+        return cpyString(typeRow->name);
+    }
+    return cpyString(typeName);
+}
+void sq_translateParamListTypes(SquirrelContext * sqContext, ParamList * parameters){
+    int i;
+    void * value;
+    arraylist_iterate(parameters, i, value){
+        Parameter * param = (Parameter *)value;
+        if(param->type != NULL){
+            char * translateType = sq_translateTypeName(sqContext, param->type);
+            free(param->type);
+            param->type = translateType;
+        }
+    }
+}
+
 //typedef <type> (* <ID>)(<func_params>);
-char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id,ParamList * param ){
+char * sq_genFunctionType (SquirrelContext * sqContext, char * type ,char * id,ParamList * param ){
+    sq_translateParamListTypes(sqContext, param);
+    char * returnTypeStr = sq_translateTypeName(sqContext, type);
+    
     char * funcParams = joinList(param, ", ", sq_ParameterToString);  
-    char * typeFunc = concat3("typedef ",type,"(*"); 
+    char * typeFunc = concat3("typedef ", returnTypeStr,"(*"); 
     char * typeFunc1 = concat3(typeFunc,id,")"); 
-    char * typeFunc2 = concat4( typeFunc1,"(",funcParams,");"); 
+    char * typeFunc2 = concat4( typeFunc1,"(",funcParams,");");
+    
+    free(returnTypeStr);
+    free(funcParams);
+    free(typeFunc);
+    free(typeFunc1);
+    
     return typeFunc2;
 }
 
@@ -170,6 +216,41 @@ char * sq_genCaststTo(SquirrelContext * sqContext, Expression * typeOrExpr1, Exp
     free(typeOfStr1);
     free(typeOfStr2);
     return castsToExpr;
+}
+
+
+char * sq_genCreateEmptyArray(){
+    return cpyString("empty_Array()");
+}
+
+//create_Array(sizeof(<type>), <sizeExpr>, NULL)
+char * sq_genSizedArray(SquirrelContext * sqContext, const char * itemTypeName, Expression * sizeExpr){
+    char * typeName = sq_translateTypeName(sqContext, itemTypeName);  
+    char * result = concat5("create_Array(sizeof(", typeName, "), ", sizeExpr->expr, ", NULL)");
+    free(typeName);
+    return result;
+}
+//create_Array(sizeof(<type>), <number of itens>, (<typeItem>[]){<expression list>})
+char * sq_genArrayLiteralCreator(SquirrelContext * sqContext, type itemType, ExpressionList * exprList){
+    char * itemTypeName = sq_translateTypeName(sqContext, itemType.typename);
+    char * arrayCreateExpr_begin = concat3("create_Array(sizeof(", itemTypeName, "), ");
+    
+    char * numberOfItensStr = intToString(exprList->size);
+    
+    char *listStr = joinList(exprList, ", ", sq_ExpressionStringConverter);
+    char * arrayConstStr = concat3("{", listStr, "}");
+    char * constArrConversionStr = concat4(", (", itemTypeName, "[])", arrayConstStr);
+    
+    char * result = concat4(arrayCreateExpr_begin, numberOfItensStr, constArrConversionStr, ")");
+    
+    free(itemTypeName);
+    free(arrayCreateExpr_begin);
+    free(numberOfItensStr);
+    free(listStr);
+    free(arrayConstStr);
+    free(constArrConversionStr);
+    
+    return result;
 }
 /******************************************************************************************************/
 
@@ -398,10 +479,12 @@ char * sq_genFunctionHeader(SquirrelContext * ctx, const char * returnType, cons
 char * sq_genFunction(SquirrelContext * ctx, const char * returnType
 , const char * functionName, ParamList * paramList, const char * functionBody)
 {
-    
-    char * functionHeaderStr = sq_genFunctionHeader(ctx, returnType, functionName, paramList);
+    sq_translateParamListTypes(ctx, paramList);
+    char * returnTypeStr = sq_translateTypeName(ctx, returnType);
+    char * functionHeaderStr = sq_genFunctionHeader(ctx, returnTypeStr, functionName, paramList);
     char * functionStr = concat4(functionHeaderStr, "{\n", functionBody, "}\n");
     free(functionHeaderStr);
+    free(returnTypeStr);
     return functionStr;
 }
 
@@ -415,7 +498,10 @@ char * sq_genStructDefinition(SquirrelContext * sqContext, char *structName, Att
     
     for ( i = 0; i < attributeDeclList->size; i++ ) {
         AttributeDecl *attributeDecl = arraylist_get(attributeDeclList, i);
-        appendStr(&struct_generated, concat("\t", attributeDecl->type));
+        char * typeStr = sq_translateTypeName(sqContext, attributeDecl->type);
+        appendStr(&struct_generated, concat("\t", typeStr));
+        
+        free(typeStr);
         
         appendStr(&struct_generated, " ");
         appendStr(&struct_generated, joinList(attributeDecl->namesList, ", ", NULL));
@@ -444,7 +530,8 @@ char * sq_genStructConstruct (SquirrelContext * sqContext, char *structName, Att
 		
 		for ( j = 0; j < namesList->size; j++ ) {
 			char *name = arraylist_get(namesList, j);
-			appendStr(&struct_construct_head_generated, concat3(attributeDecl->type, " ", name));
+			char * typeStr  = sq_translateTypeName(sqContext, attributeDecl->type);
+			appendStr(&struct_construct_head_generated, concat3(typeStr, " ", name));
 			if ( !(i == attributeDeclList->size - 1 && j == namesList->size - 1) ) {
 				appendStr(&struct_construct_head_generated, ", ");
 			}
@@ -458,7 +545,6 @@ char * sq_genStructConstruct (SquirrelContext * sqContext, char *structName, Att
 
 }
 
-
 char * sq_genStruct(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList)
 {
     char * result = concat3( sq_genStructDefinition(sqContext, structName, attributeDeclList), 
@@ -466,18 +552,6 @@ char * sq_genStruct(SquirrelContext * sqContext, char *structName, AttributeList
                              sq_genStructConstruct(sqContext, structName, attributeDeclList) );
     return result; 
 }
-/*
-StructWithFunction * construct_StructWithFunction(PrintFunction f, int a, int b, int c){
-    StructWithFunction * structValue = (StructWithFunction *)malloc(sizeof(StructWithFunction));
-    structValue->e = e;
-    structValue->f = f;
-    structValue->g = g;
-    structValue->a = a;
-    structValue->b = b;
-    structValue->c = c;
-    return structValue;
-}
-*/
 
 
 /*
@@ -486,16 +560,38 @@ typedef enum {Naipes_Ouros, Naipes_Espadas, Naipes_Paus, Naipes_Copas} Naipes;
 
 */
 
-//Ei vou comentar aqui rapidão só pra testar
+char * joinListEnum(char * id, arraylist * namelist, const char * symbol, StringConverter itemConverter){
+     if(listIsEmpty(namelist)){
+        return cpyString("");
+    }
+    char * result = NULL;
+    int i;
+	void* value;
+	arraylist_iterate(namelist, i, value) {
+	    char * strItem = itemConverter == NULL ? cpyString((char *)value) : itemConverter(value);
+	    if(result == NULL){
+	        result = concat3(id, "_", strItem);
+	    }
+	    else{
+	        char * cat = concat5(result, symbol, id,"_", strItem);
+	        free(result);
+	        result = cat;
+	    }
+	}
+	return result;
+}
 
-char * sq_genEnum(SquirrelContext * sqContext, char * id ,char * id_list )
+char * sq_genEnum(SquirrelContext * sqContext, char * id , arraylist * id_list )
 {
-    /*
+    
+    char * listStr = joinListEnum(id, id_list, ", ", NULL);
+    
     char * result1 = "typedef enum {";
-    char * result2 = concat3(result1, id_list, "}");
-    char * result  = concat(result2, id, ";");
+    char * result2 = concat3(result1, listStr, "}");
+    char * result  = concat3(result2, id, ";");
     
     return result;
-    */
-    return "";
+    
+  
 }
+

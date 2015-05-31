@@ -17,21 +17,56 @@ níveis de dificuldade:
    
 ## Tradução (geração de código)
     * Gerar código para enum 
-      - (+) corrigir geração de nomes [joao]
+      OK(+) corrigir geração de nomes [joao]
       - (++) gerar função para converter em string
     * OK (+++) Gerar construtor de struct [Brunno]
-    * (+) Corrigir regra type_or_expr
-      - retornar ponteiro para Expression
-      - para tipos gerar uma Expression com type category "type_typeliteral" e 
-         nome do tipo igual ao próprio tipo
-      - Corrigir regra typeof em parser para receber Expression de type_or_expr
+    * OK (+) Corrigir regra type_or_expr
     * (++++) Gerar literal de array
-      - definir tipo de literal de array:
-          - percorrer expr_list recebida conferindo tipos para obter tipo resultante
-                    (usar função para obter tipo resultante - ver abaixo)
-      - traduzir array literal para expressão de array (ver call_functionobj.c)
-    * (+) Gerar tradução de index_access
+      - OK definir tipo de literal de array:
+          - OK (++) percorrer expr_list recebida conferindo tipos para obter tipo resultante
+                    (usar função sq_getResultantType)
+          - OK (+) gerar tipo de array literal a partir de tipo do item
+               OBS.: utilizar sq_getArrayItemType (em type_checker.h)
+               nome do tipo deve ser <nome do item>[]  (??)
+      - OK traduzir array literal para expressão de array (ver call_functionobj.c)
+    * (+) Traduzir nomes de tipo (para que tipos array virem Array) [Paulo]
+    * OK (?) Gerar expressão para criar array vazio (ver primeira regra em array_literal)
+    * OK (+) Gerar expressão para criar array de tamanho definido
+    * (+) Gerar tradução de index_access [joao]
         - ver exemplo em call_functionobj.c
+    * (?) Gerar Expression corretamente a partir de binary_expr
+        * (+) Em 'type_checker' gerar função 'OperatorCategory sq_getOperatorCategory(const char * operator)'
+            - (+) criar enum com categorias de operadores 
+                OBS.: sugestão: opcategory_arithmetic, opcategory_bitwise, 
+                                opcategory_relational, opcategory_logical
+            - (+) implementar sq_getOperatorCategory: 
+                OBS.: deve comparar string com cada nome de operador definido no parser
+                    e retornar categoria apropriada
+        * (++) Em 'type_checker' criar função que retorna a categoria da expressão 
+                de acordo com categoria do operador e categoria dos tipos recebidos
+                ...
+    * (++) Gerar expressões de cast
+        * (+) Criar funções para cast em 'language/cast.h' e 'language/cast.c'
+            - (+) criar arquivo cast.h e cast.c e referenciar cast.h a partir de sqlib.h
+            OBS: funções devem seguir formato: "cast_<tipo_de_origem>_to_<tipo_de_destino>"
+            - (+) cast de string para números:
+                OBS.: string da nossa linguagem e não 'char *'
+               - utilizar funções atof e atoi referenciando atributo cstr em string
+            - (+) cast de números ou boolean para string 
+                OBS.: se basear em funções em sq_types.h q convertem estes tipos para CString
+            - (+) cast de string para boolean:
+                OBS.: criar função que compara string com "true" e "false" e converte para boolean
+            - (+) cast entre números :
+                OBS.: utilizar cast de C para conversão
+            - (+) cast de type para string:
+                OBS.: utilizar função typename
+        * Gerar código para converter tipos 
+            - (+) cast entre tipos função:
+                OBS.: utilizar cast de C (tipos função são apenas ponteiros para função)
+            - (+) cast enum para string:
+                OBS.: gerar código para utilizar função gerada para enum <Nome_da_enum>_toCString(<valor enum>) 
+            - (+) para outros casos utilizar formato "cast_<tipo_de_origem>_to_<tipo_de_destino>"
+            
     * (++++) Gerar chamada de construtor de struct (regra struct_constructor)
         - (+) Modificar regra member_init_list para retornar uma lista com pares nome e valor
            Obs.: isso pode exigir criar um novo tipo em compiler_types (ver se há necessidade)
@@ -52,14 +87,7 @@ níveis de dificuldade:
                  member_init_list vazia
             - ...
 ## Checagem de tipos
-    * [Paulo] (+++) Criar função para obter "tipo resultante" com base em dois tipos
-        - (sugestão) utilizar como parâmetro de entrada o nome e TypeCategory de cada tipo
-                 ou encapsular estes parâmetros em um "type" (ver commons/sq_metatype.h)
-        - Receber tmb SquirrelContext * para poder analisar tabela de símbolos
-        - (sugestão) parâmetro de saída pode ser um "type"
-        Ex.: se função receber "number_literal" e "int" deve retornar "int", se receber
-              qualquer coisa e "object", deve retornar "object".
-              
+    * OK [Paulo] (+++) Criar função para obter "tipo resultante" com base em dois tipos
         
     * Durante declaração de símbolos, checar se não há duplicidade para:
       - variáveis e constantes

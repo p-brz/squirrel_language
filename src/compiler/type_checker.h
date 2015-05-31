@@ -16,6 +16,7 @@ bool sq_can_coerce_function_to(SquirrelContext * ctx,
 /** Aplica as regras de compatibilidade de tipos para obter o tipo resultante.*/
 type sq_getResultantType(SquirrelContext * ctx, type type1, type type2);
 
+type sq_getArrayType(SquirrelContext * ctx, ExpressionList * arrayItems);
 type sq_getArrayItemType(SquirrelContext * ctx, ExpressionList * arrayItems);
 
 #endif

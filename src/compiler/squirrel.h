@@ -9,5 +9,6 @@
 #include "scope.h"
 #include "symboltable.h"
 #include "sq_cli.h"
-
+#include "cast_rules.h"
+#include "type_checker.h"
 #endif

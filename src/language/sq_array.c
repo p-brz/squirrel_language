@@ -18,7 +18,12 @@ Array create_Array(size_t memberSize, size_t numberOfElements, const void * arrV
     arr.startPos = node->memory;
     
     //Copia valores em arrValues para o array
-    memcpy(arr.startPos, arrValues, memberSize * numberOfElements);
+    if(arrValues != NULL){
+        memcpy(arr.startPos, arrValues, memberSize * numberOfElements);
+    }
+    else{//Zera memória (talvez devesse realizar inicialização mais elaborada)
+        memset(arr.startPos, 0, memberSize * numberOfElements);
+    }
     
     return arr;
 }

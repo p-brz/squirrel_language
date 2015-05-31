@@ -215,11 +215,11 @@ type_modifier : CONST { $$ = strdup("const");}
 /* ********************************* TYPE DEFINITION ***************************************** */
 
 enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(sqContext, $2, $4);
-                                                     //   char * enumList = addEnumTolist($4, $2);
-                                                        char * listStr = joinList($4, ", ", NULL);
-                                                        $$ = sq_genEnum( sqContext, $2,listStr );
                                                         
-                                                        free(listStr);};
+                                                      //  char * listStr = joinList($4, ", ", NULL);
+                                                        $$ = sq_genEnum( sqContext, $2, $4);
+                                                        
+                                                       };
                                                         
 struct_definition : STRUCT ID 
                     LBRACE struct_body RBRACE       {   
@@ -232,7 +232,7 @@ struct_body       : /*Vazio*/                       {  $$ = createList(NULL); }
                                                         
 functiontype_definition: 
                     FUNCTION type ID func_params    {   sq_declareFunctionType(sqContext, $2,$3,$4);
-                                                        $$ = sq_genFuncionType(sqContext,$2,$3,$4);};
+                                                        $$ = sq_genFunctionType(sqContext,$2,$3,$4);};
 
 id_list : ID                                        {   $$ = createList($1);}
             | id_list COMMA  ID                     {   $$ = appendList($1, $3);};
@@ -311,8 +311,12 @@ assignment       : lvalue_term assignment_op expr               {
 
 variables_decl   : type name_decl_list                          {   
                                                                     sq_declareVariables(sqContext, $1, $2);
-                                                                    $$ = concat3($1, " ", joinList($2,", ", sq_NameDeclToString));
+                                                                    char * typeName = sq_translateTypeName(sqContext,$1);
+                                                                    printf("translated type %s to %s\n", $1, typeName);
+                                                                    
+                                                                    $$ = concat3(typeName, " ", joinList($2,", ", sq_NameDeclToString));
                                                                     destroyList($2);
+                                                                    free(typeName);
                                                                 }
                                                                 
                       /* Assumindo que variáveis podem ter apenas modificador CONST*/
@@ -427,22 +431,40 @@ value           : NUMBER_LITERAL                    {   $$ = sq_Expression("numb
                     | array_literal                 {   $$ = $1; }
                     | SWITCH_VALUE                  {   $$ = sq_Expression("error", "switch_value", type_invalid);};
                     
-array_literal   : ARRAY_SYMBOL                      {   $$ = sq_Expression("error", strdup("[]"), type_array);}
-                    | LBRACKET expr_list RBRACKET   {   char *listStr = joinList($2, ", ", sq_ExpressionStringConverter);
-                                                        char * result = concat3("[", listStr, "]");
-                                                        free(listStr);
-                                                        $$ = sq_Expression("error", result, type_array);
+array_literal   : ARRAY_SYMBOL                      {   
+                                                        char * exprStr = sq_genCreateEmptyArray();
+                                                        $$ = sq_Expression(ARRAY_LITERAL_TYPE, exprStr, type_array);
+                                                        free(exprStr);
+                                                    }
+                    | LBRACKET expr_list RBRACKET   {   
+                                                        type itemType = sq_getArrayItemType(sqContext, $2);
+                                                        if($2->size > 0 && itemType.category == type_invalid){
+                                                            char * expListStr = joinList($2, ", ", sq_ExpressionStringConverter);
+                                                            char * errMsg = concat4("Failed to create array for expressions: '", 
+                                                                                        expListStr, "' of type: ", itemType.typename);
+                                                            sq_putError(sqContext, errMsg);
+                                                            free(expListStr);
+                                                            free(errMsg);
+                                                        }
+                                                        else{//Garantir que tipo array existe na tabela (evitar erros)
+                                                            sq_declareArrayType(sqContext, itemType.typename);
+                                                        }
+                                                        type arrayType = sq_getArrayType(sqContext, $2);
+                                                        char * arrayExpr = sq_genArrayLiteralCreator(sqContext, itemType, $2);
+                                                        $$ = sq_Expression(arrayType.typename, arrayExpr, type_array);
                                                     }
                     | NEW type 
                         LBRACKET expr RBRACKET      {   
-                                                        const char * values[] = {"new ", $2, "[", sq_exprToStr($4), "]"};
-                                                        char * tmp = concat_n(5, values);
-                                                        $$ = sq_Expression("error", tmp, type_array);
+                                                        char * createArrayStr = sq_genSizedArray(sqContext, $2, $4);
+                                                        char * arrayType = concat($2, "[]");
+                                                        $$ = sq_Expression(arrayType,  createArrayStr, type_array);
                                                     };
 
-member          : ID                                {   Category category = sq_findSymbolCategory(sqContext, $1);
+member          : ID                                {   
+                                                        Category category = sq_findSymbolCategory(sqContext, $1);
                                                         $$ = sq_Member($1,$1, category, NULL);
-                                                        free($1);}
+                                                        free($1);
+                                                    }
                     | member DOT ID                 {   
                                                         char * memberTableKey = sq_makeMemberTableKey(sqContext, $3, $1);
                                                         Category category = sq_findSymbolCategory(sqContext, memberTableKey);
@@ -470,19 +492,23 @@ unary_pre_op : inc_op { $$ = $1; }
  	            |TIO		{ $$ = strdup("~");}
 	            |MINUS 		{ $$ = strdup("-");};
 
-operator        :   PLUS                            { $$ = strdup("+");}
+operator        :   //Aritméticos
+                    PLUS                            { $$ = strdup("+");}
                     | MINUS                         { $$ = strdup("-");}
                     | TIMES                         { $$ = strdup("*");}
                     | DIVIDE                        { $$ = strdup("/");}
                     | MOD                           { $$ = strdup("%");}
-                    | OU                            { $$ = strdup("||");}
-                    | OR                            { $$ = strdup("or");}
+                    //Binários
                     | BITOR                         { $$ = strdup("|");}
                     | BITAND                        { $$ = strdup("&");}
-                    | EE                            { $$ = strdup("&&");}
-                    | AND                           { $$ = strdup("and");}
                     | SHIFTL                        { $$ = strdup("<<");}
                     | SHIFTR                        { $$ = strdup(">>");}
+                    //Lógicos
+                    | OU                            { $$ = strdup("||");}
+                    | OR                            { $$ = strdup("or");}
+                    | EE                            { $$ = strdup("&&");}
+                    | AND                           { $$ = strdup("and");}
+                    //Relacionais
                     | EQUAL                         { $$ = strdup("==");}
                     | DIFERENT                      { $$ = strdup("!=");}
                     | MINOR                         { $$ = strdup("<");}

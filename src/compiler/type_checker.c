@@ -74,8 +74,24 @@ type sq_getResultantType(SquirrelContext * ctx, type type1, type type2){
     if(can_coerce_to(type2.typename, type2.category, type1.typename, type2.category)){
         return type1;
     }
-    else if(type1.category == type_function && type2.category == type_function){
-        
+    else //tipo2 pode ser convertido para tipo 1
+    if(type1.category == type_array && type2.category == type_array){
+        if(strEquals(type1.typename, ARRAY_LITERAL_TYPE)){
+            return type2;
+        }
+        else if(strEquals(type2.typename, ARRAY_LITERAL_TYPE)){
+            return type1;
+        }
+    }
+    else if((type1.category == type_function || type1.category == type_functionliteral) 
+            && (type2.category == type_function || type2.category == type_functionliteral))
+    {
+        if(sq_can_coerce_function_to(ctx, type1.typename, type2.typename)){
+            return type2;
+        }
+        else if(sq_can_coerce_function_to(ctx, type2.typename, type1.typename)){
+            return type1;
+        }
     }
     //falha
     return create_Type("", type_invalid, NULL);
@@ -97,8 +113,23 @@ type sq_getArrayItemType(SquirrelContext * ctx, ExpressionList * arrayItems){
                 break;
             }
         }
-        
         return resultantType;
+    }
+    return create_Type("", type_invalid, NULL);
+}
+
+
+type sq_getArrayType(SquirrelContext * ctx, ExpressionList * arrayItems){
+    if(arrayItems->size == 0){
+        //Se não há itens, usa array literal
+        return create_Type(ARRAY_LITERAL_TYPE, type_array, NULL);
+    }
+    type itemType = sq_getArrayItemType(ctx, arrayItems);
+    if(itemType.category != type_invalid){
+        char * typeName = concat(itemType.typename, "[]");
+        
+        type arrayType = create_Type(typeName, type_array, NULL);
+        return arrayType;
     }
     return create_Type("", type_invalid, NULL);
 }

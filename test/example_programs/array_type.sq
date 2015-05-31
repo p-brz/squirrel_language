@@ -10,7 +10,7 @@ int main(){
     
     Dado[] lancamentos = new Dado[4];
     
-    print("tamanho array1:", array.length);
+    print("tamanho array1:", array1.length);
     print("tamanho array2:", array2.length);
     print("tamanho array3:", array3.length);
     print("tamanho lancamentos: ", lancamentos.length);

@@ -15,16 +15,7 @@ arraylist * appendList(arraylist * list, void * value){
     return list;
 }
 
-arraylist * addEnumTolist(arraylist * list, char * enumId){
-    arraylist * enumlist;
-    int i;
-    for (i = 0; i< list->size; i++)
-    {
-        arraylist_add(enumlist,concat3(enumId,"_", arraylist_get(list, i)));
-    }
-    
-    return enumlist;
-}
+
 
 arraylist * copyList(arraylist * list, ValueDuplicator duplicator){
     arraylist * copyList = createList(NULL);
@@ -79,6 +70,8 @@ char * joinList(arraylist * namelist, const char * symbol, StringConverter itemC
 	}
 	return result;
 }
+
+
 
 void destroyList(arraylist * namelist){
     arraylist_destroy(namelist);

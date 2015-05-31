@@ -15,6 +15,10 @@ typedef struct{
 string create_String(const char * strValue);
 string empty_String();
 
+typedef int number_literal;
+typedef double real_literal;
+typedef const char * string_literal;
+
 typedef int boolean;
 
 #define true 1

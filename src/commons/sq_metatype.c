@@ -37,6 +37,7 @@ type create_Type(const char * typename, TypeCategory category, type * arrayOf){
     type t;
     t.typename = typename;
     t.arrayOf = arrayOf;
+    t.category = category;
     return t;
 }
 

@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define ARRAY_LITERAL_TYPE "Array"
+
 typedef enum {type_invalid 
                 , type_typeliteral //Isto é utilizado para encapsular um tipo em uma expressão
                 , type_functionliteral//Isto permite encapsular uma função em uma expressão
@@ -16,6 +18,7 @@ const char * sq_typeCategoryCString(TypeCategory typeCategory);
 typedef struct type{
     const char * typename;
     TypeCategory category;
+    //FIXME: remover isto
     struct type * arrayOf;//Tipos array terão um apontador para o tipo gerador
 } type;
 
