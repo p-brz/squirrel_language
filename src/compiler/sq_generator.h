@@ -15,7 +15,9 @@ char * sq_genLenghtExpr(SquirrelContext * sqContext ,  Member * member);
 char * sq_genPrint(SquirrelContext * sqContext, ExpressionList *list);
 char * sq_genStruct(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList);
 char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id ,ParamList * param); 
-char * sq_genTypeof(char *type);
+char * sq_genTypeof(const char *type);
+char * sq_genTypename(SquirrelContext * sqContext, Expression * typeOrExpr);
+char * sq_genCaststTo(SquirrelContext * sqContext, Expression * typeOrExpr1, Expression * typeOrExpr2);
 char * sq_genEnum(SquirrelContext * sqContext, char * id ,char * id_list );
 
 

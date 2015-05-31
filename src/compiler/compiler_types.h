@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "arraylist.h"
 #include "sq_metatype.h"
-
+#include "squirrel_context.h"
 /** ***************************************************************************************
  compiler_types.h
     - tipos utilizados nas regras do compilador yacc (e funções associadas a estes tipos)
@@ -73,7 +73,8 @@ const char * sq_categoryCString(Category category);
 
 Member * sq_Member(const char * name, const char * tableKey, Category category, Member * parent);
 void sq_destroyMember(Member * member);
-char * sq_memberToString(Member * member);
+char * sq_memberToString(const Member * member);
+Expression * sq_memberToExpression(SquirrelContext * context, const Member * member);
 
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList);
 char * sq_ParameterToString(void * parameter);

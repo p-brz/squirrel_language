@@ -72,7 +72,7 @@ typedef struct TableRow{
 
 bool isType(TableRow * row);
 bool isVariable(TableRow * row);
-
+bool sq_isCategoryType(Category symbolCategory);
 
 /* ---------------------------------- CONSTRUTORES -----------------------------------*/
 

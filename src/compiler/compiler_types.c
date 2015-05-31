@@ -1,6 +1,7 @@
 #include "compiler_types.h"
 #include "string_helpers.h"
 #include "list_helper.h"
+#include "symboltable.h"
 #include <stdlib.h>
 
 
@@ -57,7 +58,7 @@ void sq_destroyMember(Member * member){
         free(member);
     }
 }
-char * sq_memberToString(Member * member){
+char * sq_memberToString(const Member * member){
     if(member == NULL){
         return NULL;
     }
@@ -71,6 +72,43 @@ char * sq_memberToString(Member * member){
         return result;
     }
 }
+
+Expression * sq_memberToExpression(SquirrelContext * sqContext, const Member * member){
+    if(member == NULL){
+        return sq_Expression("unknown", "", type_invalid);
+    }
+    
+    const char *exprType;
+    TypeCategory typeCategory;
+    
+    if(sq_isCategoryType(member->category)){//member é um tipo
+        typeCategory = type_typeliteral;
+        TableRow * typeRow = sq_findTypeRow(sqContext, member->tableKey);
+        exprType = typeRow == NULL ? "unknown" : typeRow->name;
+    }
+    else if(member->category == categ_function){//member é uma função
+        typeCategory = type_functionliteral;
+        exprType = member->tableKey; //nome do tipo é o identificador da função
+    }
+    else{
+        const char * typeName = sq_getMemberType(sqContext, member);
+        exprType = typeName == NULL ? "unknown" : typeName;
+        
+        typeCategory = typeName != NULL 
+                                    ? sq_findTypeCategory(sqContext, typeName) 
+                                    : type_invalid;
+    }
+                                            
+    char * memberStr = sq_memberToString(member);
+    if(typeCategory == type_invalid){
+        char * errMsg = concat4("Membro '", memberStr, "' tem tipo inválido ", exprType);
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+    }
+                                                                                                
+    return sq_Expression(exprType, memberStr, typeCategory);
+}
+
 Parameter * sq_Parameter(const char * typeName, const char * name, arraylist * modifiersList){
 	Parameter * param = (Parameter*)malloc(sizeof(Parameter));
 	param->type = cpyString(typeName);

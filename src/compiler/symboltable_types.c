@@ -15,13 +15,16 @@ bool isVariable(TableRow * row){
 }
 bool isType(TableRow * row){
     if(row != NULL){
-        return row->category == categ_primitiveType
-                || row->category == categ_arrayType
-                || row->category == categ_structType
-                || row->category == categ_functionType
-                || row->category == categ_enumType;
+        return sq_isCategoryType(row->category);
     }
     return false;
+}
+bool sq_isCategoryType(Category category){
+    return category == categ_primitiveType
+            || category == categ_arrayType
+            || category == categ_structType
+            || category == categ_functionType
+            || category == categ_enumType;
 }
 
 /* *************************** CONSTRUTORES ***************************************/

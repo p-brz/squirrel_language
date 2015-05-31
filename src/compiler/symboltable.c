@@ -105,7 +105,7 @@ Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol)
     return row == NULL ? categ_unknown : row->category;
 }
 
-char * sq_makeMemberTableKey(SquirrelContext * sqContext, const char * memberName, Member * parent){
+char * sq_makeMemberTableKey(SquirrelContext * sqContext, const char * memberName, const Member * parent){
     if(parent == NULL){
         return cpyString(memberName);
     }
@@ -141,11 +141,11 @@ char * sq_makeMemberTableKey(SquirrelContext * sqContext, const char * memberNam
       - um campo de uma variável (ou de outro campo)
       - uma função
 */
-Category sq_findMemberCategory(SquirrelContext * sqContext, const char * memberName, Member * parent){
+Category sq_findMemberCategory(SquirrelContext * sqContext, const char * memberName, const Member * parent){
     char * memberSymbolKey = sq_makeMemberTableKey(sqContext, memberName, parent);
     return sq_findSymbolCategory(sqContext, memberName);
 }
-char * sq_getMemberType (SquirrelContext * ctx ,  Member * member){
+char * sq_getMemberType (SquirrelContext * ctx ,  const Member * member){
     TableRow * row = sq_findRow(ctx,member->tableKey);
     if(row== NULL){
         return NULL;

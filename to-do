@@ -19,6 +19,7 @@ níveis de dificuldade:
     * Gerar código para enum 
       - (+) corrigir geração de nomes [joao]
       - (++) gerar função para converter em string
+    * OK (+++) Gerar construtor de struct [Brunno]
     * (+) Corrigir regra type_or_expr
       - retornar ponteiro para Expression
       - para tipos gerar uma Expression com type category "type_typeliteral" e 
@@ -31,7 +32,25 @@ níveis de dificuldade:
       - traduzir array literal para expressão de array (ver call_functionobj.c)
     * (+) Gerar tradução de index_access
         - ver exemplo em call_functionobj.c
-          
+    * (++++) Gerar chamada de construtor de struct (regra struct_constructor)
+        - (+) Modificar regra member_init_list para retornar uma lista com pares nome e valor
+           Obs.: isso pode exigir criar um novo tipo em compiler_types (ver se há necessidade)
+        - (++++) Criar função sq_genStructConstructor:
+            - obter descritor da struct da tabela de símbolos
+            - gerar um valor no construtor para cada FieldValue 
+               na lista de fields (de StructTypeRow):
+               - se o nome deste field estiver na lista de member_init_list, obter
+                  valor de lá
+               - se não, inserir valor default (ver tarefa abaixo)
+        - (+++) Criar função sq_genDefaultValue(SquirrelContext * ctx, const char * typename, TypeCategory category):
+            Obs.: esta função deve receber um typename (pelo menos) e gerar um valor
+              default de acordo com este tipo
+            - para valores primitivos, gerar valor padrão.
+               Ex.: numéricos, o valor será 0; boolean o valor será false
+            - para tipos struct, gerar chamada do construtor, 
+                 chamando método sq_genStructConstructor e passando uma lista de 
+                 member_init_list vazia
+            - ...
 ## Checagem de tipos
     * [Paulo] (+++) Criar função para obter "tipo resultante" com base em dois tipos
         - (sugestão) utilizar como parâmetro de entrada o nome e TypeCategory de cada tipo

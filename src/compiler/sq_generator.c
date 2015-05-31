@@ -145,12 +145,32 @@ char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id,Pa
     return typeFunc2;
 }
 
-char * sq_genTypeof(char * type){
+char * sq_genTypeof(const char * type){
     char * result = concat3("TYPE_TABLE[TYPE_",gen_TypeIdentifier(type),"]");
     return result;
     
 }
 
+char * typeOrExprToType(Expression * typeOrExpr){
+    if(typeOrExpr->typeCategory == type_type){
+        return cpyString(typeOrExpr->expr);
+    }
+    else{
+        return sq_genTypeof(typeOrExpr->type);
+    }
+}
+char * sq_genTypename(SquirrelContext * sqContext, Expression * typeOrExpr){
+    char * typeOrExprStr = typeOrExprToType(typeOrExpr);
+    return concat3("typename(", typeOrExprStr, ")");
+}
+char * sq_genCaststTo(SquirrelContext * sqContext, Expression * typeOrExpr1, Expression * typeOrExpr2){
+    char * typeOfStr1 = typeOrExprToType(typeOrExpr1);
+    char * typeOfStr2 = typeOrExprToType(typeOrExpr2);
+    char * castsToExpr = concat5("caststo(",typeOfStr1, ",", typeOfStr2, ")");
+    free(typeOfStr1);
+    free(typeOfStr2);
+    return castsToExpr;
+}
 /******************************************************************************************************/
 
 char * sq_genScopeDecrementVariables(SquirrelContext * sqContext){

@@ -88,9 +88,17 @@ type sq_getArrayItemType(SquirrelContext * ctx, ExpressionList * arrayItems){
         type resultantType = create_Type(expr1->type, expr1->typeCategory, NULL);
         
         unsigned i;
-        for(i=0; i< arrayItems->size; ++i){
-            //continua
+        for(i=1; i< arrayItems->size; ++i){
+            Expression * exprTmp = (Expression *)arraylist_get(arrayItems, i);
+            type otherType = create_Type(exprTmp->type, exprTmp->typeCategory, NULL);
+            
+            resultantType = sq_getResultantType(ctx, resultantType, otherType);
+            if(resultantType.category == type_invalid){
+                break;
+            }
         }
+        
+        return resultantType;
     }
     return create_Type("", type_invalid, NULL);
 }
