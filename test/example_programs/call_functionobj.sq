@@ -1,7 +1,8 @@
 function void PrintFunction()
 
 struct StructWithFunction{
-    PrintFunction f;
+    PrintFunction e, f, g;
+    int a, b, c;
 }
 
 void printA(){
@@ -28,7 +29,7 @@ PrintFunction functionFactory(){
 int main(){
     PrintFunction[] functionArray = [printA, printB, printC];
 
-    StructWithFunction printable = StructWithFunction{f : printD};
+    StructWithFunction printable = StructWithFunction{f : printD,a : 10};
 
     (functionArray[2])();
     functionArray[0]();

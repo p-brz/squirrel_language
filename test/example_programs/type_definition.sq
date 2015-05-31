@@ -8,6 +8,8 @@ struct Data{
     int dia, mes, ano;
     FunctionType a;
 }
+struct EmptyStruct{
+}
 
 int main(){
     return 0;

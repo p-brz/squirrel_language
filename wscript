@@ -9,6 +9,8 @@ COMPILER_NAME = 'squirrel'
 def options(opt):
     opt.load('compiler_c')
     
+    opt.add_option('--sq', help='Informa o arquivo de entrada squirrel para ser compilado', dest='sq_input')
+    
     opt.recurse('test')
     
 def configure(conf):
@@ -66,7 +68,14 @@ def build(bld):
         use             = ['datastructs-c', 'squirrel-commons'])
     
     bld.recurse('test');
-        
+    
+    bld.add_group();
+    if(bld.options.sq_input):
+        bld.program(
+            target='a.out',
+            source=bld.options.sq_input, 
+            use =['squirrel-language']
+        )
 
 from waflib.Build import BuildContext
 

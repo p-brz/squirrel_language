@@ -9,16 +9,14 @@
 
 SquirrelContext * sqContext;
 //Saída padrão é a.out
-char * output_file = "a.out";
+char * output_file = "out.c";
 
 void startScope(const char * scopeName){
     sq_startScope(sqContext, scopeName);
 }
 
 void finishScope(){
-    printf("before finish scope");
     sq_finishScope(sqContext);
-    printf("after finish scope");
 }
 %}
 
@@ -218,17 +216,17 @@ type_modifier : CONST { $$ = strdup("const");}
 enum_definition   : ENUM ID LBRACE id_list RBRACE   {   sq_declareEnum(sqContext, $2, $4);
 
                                                         char * listStr = joinList($4, ", ", NULL);
-                                                        const char * values[] = {"enum ", $2, "{", listStr, "}"};
-                                                        $$ = concat_n(5, values);
+                                                        $$ = sq_genEnum( sqContext, $2,listStr );
+                                                        
+                                                       /* const char * values[] = {"enum ", $2, "{", listStr, "}"};
+                                                        $$ = concat_n(5, values);*/
                                                         free(listStr);};
                                                         
 struct_definition : STRUCT ID 
-                    LBRACE struct_body RBRACE       {   sq_declareStruct(sqContext, $2, $4);
-                    
-                                                        char * attrListStr = attributeListToString($4);
-                                                        const char * values[] = {"struct ", $2, "{\n", attrListStr , "\n}"};
-                                                        $$ = concat_n(5, values);
-                                                        free(attrListStr);};
+                    LBRACE struct_body RBRACE       {   
+                                                        sq_declareStruct(sqContext, $2, $4);
+                                                        $$ = sq_genStruct(sqContext, $2, $4);/*sq_genStructDefinition(sqContext, $2, $4)*/
+                                                    }
                                                         
 struct_body       : /*Vazio*/                       {  $$ = createList(NULL); }
                         | attribute_list            {  $$ = $1;};
@@ -245,9 +243,6 @@ attribute_list  :  attribute                        {   $$ = createList($1); }
                     
 attribute       : type id_list SEMICOLON            {  $$ = sq_AttributeDecl($1, $2);};
                     
-//attribute_list  :  variables_decl SEMICOLON                     {   $$ = concat($1,";"); }
-//                    | attribute_list variables_decl SEMICOLON   {   $$ = concat4($1, "\n", $2, ";");};
-
 struct_constructor  : member LBRACE member_init_list RBRACE     {   const char * valores[] = {sq_memberToString($1), "{", $3, "}"};
                                                                     $$ = concat_n(4, valores);};
 
@@ -279,8 +274,10 @@ std_statement    : function_call                                {   $$ = sq_expr
                     | assignment                                {   $$ = $1; }
                     | inc_stmt                                  {   $$ = $1; };
 
-inc_stmt         : lvalue_term inc_op                           { $$ = concat(sq_exprToStr($1), $2);}
-                    | inc_op lvalue_term                        { $$ = concat($1, sq_exprToStr($2));};
+inc_stmt         : lvalue_term inc_op                           { //TODO: Testar se lvalue_term é numérico e não é constante
+                                                                    $$ = concat(sq_exprToStr($1), $2);}
+                    | inc_op lvalue_term                        { //TODO: Testar se lvalue_term é numérico e não é constante
+                                                                    $$ = concat($1, sq_exprToStr($2));};
 
 function_call    : lvalue_call                                  {   $$ = $1;}
                     |io_command                                 {   $$ = $1;}
@@ -346,7 +343,7 @@ binary_expr     : unary_pos_expr                              {   $$ = $1;}
                     | binary_expr operator unary_pos_expr     {   const char * values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
                                                                   $$ = sq_Expression("error", concat_n(5, values), type_invalid);};
                                                                   
-type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   $$ = sq_Expression("type", concat3("typeof(", $3, ")"), type_type);}
+type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   $$ = sq_Expression("type", sq_genTypeof($3), type_type);}
                     | TYPENAME LPAREN type_or_expr RPAREN     {   $$ = sq_Expression("string", concat3("typename(", $3, ")"), type_string);}
                     | type_or_expr 
                         CASTSTO LPAREN type_or_expr RPAREN    {   const char * values[] = {$1, " caststo(", $4, ")"};

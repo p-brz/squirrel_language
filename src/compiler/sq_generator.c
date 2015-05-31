@@ -144,6 +144,13 @@ char * sq_genFuncionType (SquirrelContext * sqContext, char * type ,char * id,Pa
     char * typeFunc2 = concat4( typeFunc1,"(",funcParams,");"); 
     return typeFunc2;
 }
+
+char * sq_genTypeof(char * type){
+    char * result = concat3("TYPE_TABLE[TYPE_",gen_TypeIdentifier(type),"]");
+    return result;
+    
+}
+
 /******************************************************************************************************/
 
 char * sq_genScopeDecrementVariables(SquirrelContext * sqContext){
@@ -380,7 +387,7 @@ char * sq_genFunction(SquirrelContext * ctx, const char * returnType
 
 char * sq_genStructDefinition(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList)
 {
-    char *struct_generated = "typedef struct ";
+    char *struct_generated = strdup("typedef struct ");
     int i;
     appendStr(&struct_generated, structName);
     appendStr(&struct_generated, " {\n");
@@ -388,14 +395,87 @@ char * sq_genStructDefinition(SquirrelContext * sqContext, char *structName, Att
     
     for ( i = 0; i < attributeDeclList->size; i++ ) {
         AttributeDecl *attributeDecl = arraylist_get(attributeDeclList, i);
-        appendStr(&struct_generated, attributeDecl->type);
+        appendStr(&struct_generated, concat("\t", attributeDecl->type));
         
         appendStr(&struct_generated, " ");
         appendStr(&struct_generated, joinList(attributeDecl->namesList, ", ", NULL));
         appendStr(&struct_generated,";\n");
     }
     
-    appendStr(&struct_generated, "}\n");
+    appendStr(&struct_generated, "} ");
+    appendStr(&struct_generated, structName);
+    appendStr(&struct_generated, ";\n");
     
     return struct_generated;
+}
+
+char * sq_genStructConstruct (SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList)
+{
+    char * struct_construct_head_generated = concat4(structName, " * construct_", structName, "(");
+    char * struct_construct_body_generated = concat5("\t", structName, " *structValue = (", structName, " *)malloc(sizeof(");
+    int i, j;
+	
+	appendStr(&struct_construct_body_generated, structName);
+	appendStr(&struct_construct_body_generated, "));\n");
+	
+	for ( i = 0; i < attributeDeclList->size; i++ ) {
+		AttributeDecl *attributeDecl = arraylist_get(attributeDeclList, i);
+        NameList * namesList = attributeDecl->namesList;
+		
+		for ( j = 0; j < namesList->size; j++ ) {
+			char *name = arraylist_get(namesList, j);
+			appendStr(&struct_construct_head_generated, concat3(attributeDecl->type, " ", name));
+			if ( !(i == attributeDeclList->size - 1 && j == namesList->size - 1) ) {
+				appendStr(&struct_construct_head_generated, ", ");
+			}
+			appendStr(&struct_construct_body_generated, concat5("\tstructValue->", name, " = ", name, ";\n"));
+		}
+	}
+	appendStr(&struct_construct_head_generated, ")");
+	appendStr(&struct_construct_body_generated, "\treturn structValue;\n");
+	
+	return concat4(struct_construct_head_generated, " {\n",  struct_construct_body_generated, "}\n");
+
+}
+
+
+char * sq_genStruct(SquirrelContext * sqContext, char *structName, AttributeList * attributeDeclList)
+{
+    char * result = concat3( sq_genStructDefinition(sqContext, structName, attributeDeclList), 
+                             "\n\n",
+                             sq_genStructConstruct(sqContext, structName, attributeDeclList) );
+    return result; 
+}
+/*
+StructWithFunction * construct_StructWithFunction(PrintFunction f, int a, int b, int c){
+    StructWithFunction * structValue = (StructWithFunction *)malloc(sizeof(StructWithFunction));
+    structValue->e = e;
+    structValue->f = f;
+    structValue->g = g;
+    structValue->a = a;
+    structValue->b = b;
+    structValue->c = c;
+    return structValue;
+}
+*/
+
+
+/*
+
+typedef enum {Naipes_Ouros, Naipes_Espadas, Naipes_Paus, Naipes_Copas} Naipes;
+
+*/
+
+//Ei vou comentar aqui rapidão só pra testar
+
+char * sq_genEnum(SquirrelContext * sqContext, char * id ,char * id_list )
+{
+    /*
+    char * result1 = "typedef enum {";
+    char * result2 = concat3(result1, id_list, "}");
+    char * result  = concat(result2, id, ";");
+    
+    return result;
+    */
+    return "";
 }

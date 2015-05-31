@@ -1,6 +1,6 @@
 #include "cast_rules.h"
 
-
+#include <stdlib.h> //NULL
 /**Para cada tipo numérico, retorna um inteiro indicando sua "largura". 
     Tipos com "largura" menor podem ser convertidos em tipos com "largura" maior.
 */
@@ -27,6 +27,7 @@ int getTypeNumberWidth(const char * typename){
 bool isNumber(TypeCategory category){
     return category == type_integer || category == type_real;
 }
+
 bool can_coerce_to(const char * typename1, TypeCategory category1
                         ,const char * typename2, TypeCategory category2){
     if(category2 == type_object){

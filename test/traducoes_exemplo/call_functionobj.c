@@ -6,13 +6,19 @@ typedef void (* PrintFunction)();
 
 typedef struct StructWithFunction{
     PrintFunction f;
+    int a, b, c;
 } StructWithFunction;
 
 //OBS.: para cada struct será gerado um construtor que recebe como parâmetro 
 //todos os membros da struct
-StructWithFunction * construct_StructWithFunction(PrintFunction f){
+StructWithFunction * construct_StructWithFunction(PrintFunction f, int a, int b, int c){
     StructWithFunction * structValue = (StructWithFunction *)malloc(sizeof(StructWithFunction));
+    structValue->e = e;
     structValue->f = f;
+    structValue->g = g;
+    structValue->a = a;
+    structValue->b = b;
+    structValue->c = c;
     return structValue;
 }
 
@@ -65,7 +71,7 @@ int program_main(){
     Array functionArray = create_Array(sizeof(PrintFunction), 3, (PrintFunction[]){printA,printB,printC});
     incrRefCount_Array(functionArray, NULL);
     
-    StructVar printable = create_Struct(construct_StructWithFunction(printD));
+    StructVar printable = create_Struct(construct_StructWithFunction(printD, 10, DEFAULT));
     incrRefCount_StructWithFunction(&printable);
 
     (getArrayItem(PrintFunction, functionArray, 2))();
