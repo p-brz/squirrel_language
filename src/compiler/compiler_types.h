@@ -28,10 +28,15 @@ typedef arraylist NameDeclList;
 typedef arraylist ParamList;
 typedef arraylist AttributeList;
 typedef arraylist ExpressionList;
-
-
 /** NameList é apenas uma abstração para um arraylist que contém nomes (char *) */
 typedef arraylist NameList;
+
+typedef enum {
+                opcategory_invalid, 
+                opcategory_arithmetic, 
+                opcategory_bitwise, 
+                opcategory_relational, 
+                opcategory_logical} OperatorCategory;
 
 typedef struct Member{
     Category category;
@@ -92,4 +97,6 @@ char * sq_ExpressionStringConverter(void *);
 IfStruct * sq_IfStruct(char * ifId, char * conditional_test, char * block_stmts);
 
 NameList * sq_ForHeader(char * initStmt, char * testConditional, char * incrStmt);
+
+OperatorCategory sq_getOperatorCategory(const char * operatorStr);
 #endif

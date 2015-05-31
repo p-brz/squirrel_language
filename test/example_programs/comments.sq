@@ -1,0 +1,9 @@
+/*
+ * É possível incluir comentários multi-linha e nada disso entrará no programa
+ * final. Muahhaaha.
+*/
+int main(/* Até dentro de regras é possível. Muahahaha! */){ //Posso incluir comentários após algum código
+//Inclusive em linhas vazias
+//  string a = "Posso excluir conteudo da linguagem";
+    return 0;
+}

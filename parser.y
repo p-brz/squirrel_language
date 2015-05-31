@@ -115,7 +115,7 @@ void finishScope(){
 %type <eValue> lvalue_term
 %type <sValue> inc_stmt clone_expr  slice_expr opt_expr
 %type <sValue> call_expr
-%type <sValue> index_access 
+%type <eValue> index_access 
 %type <eValue> array_literal 
 %type <eValue> type_or_expr 
 %type <eValue> type_expr
@@ -367,7 +367,11 @@ type_or_expr    :   expr                                      { $$ = $1; }
                     | primitive_type                          { $$ = sq_Expression($1, $1, type_typeliteral); };
 
 unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
-                    | unary_pre_expr inc_op         {   $$ = sq_Expression("error",concat(sq_exprToStr($1), $2),type_invalid);};
+                    | unary_pre_expr inc_op         {   
+                                                        //TODO: checar se unary_pre_expr é algo que pode receber valor
+                                                        char * exprTranslate = concat(sq_exprToStr($1), $2);
+                                                        $$ = sq_Expression($1->type, exprTranslate, $1->typeCategory);
+                                                    };
 
 unary_pre_expr  : term                              {   $$ = $1; }
                     | unary_pre_op term             {   $$ = sq_Expression("error", concat($1, sq_exprToStr($2)), type_invalid); };
@@ -416,13 +420,15 @@ opt_expr        : /*Vazio*/                         {   $$ = "";}
 lvalue_term     :  member                           { 
                                                         $$ = sq_memberToExpression(sqContext, $1);
                                                     }
-                    | index_access                  { $$ = sq_Expression("error", $1, type_invalid);}
+                    | index_access                  { $$ = $1;}
                     | rvalue_term DOT member        { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);}
-                    | index_access DOT member       { $$ = sq_Expression("error", concat3($1, ".", sq_memberToString($3)), type_invalid);};
+                    | index_access DOT member       { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);};
 
 index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo de term é array e tipo de expr é inteiro
                                                         const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
-                                                        $$ = concat_n(4, values);};
+                                                        char * indexAccessStr = concat_n(4, values);
+                                                        $$ = sq_Expression("error", indexAccessStr, type_invalid);
+                                                    };
 
 value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal" , $1, type_integer);} 
                     | REAL_LITERAL                  {   $$ = sq_Expression("real_literal"   , $1, type_real);}

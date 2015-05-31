@@ -206,3 +206,46 @@ char * attributeListToString(AttributeList * attributeList){
     free(listStr);
     return result;
 }
+
+OperatorCategory sq_getOperatorCategory(const char * op){
+    if(strEquals(op, "!") 
+        || strEquals(op, "not") 
+        || strEquals(op, "||") 
+        || strEquals(op, "or") 
+        || strEquals(op, "&&") 
+        || strEquals(op, "and"))
+    {
+        return opcategory_logical;
+    }
+    else 
+    if(strEquals(op, "+") 
+        || strEquals(op, "-") 
+        || strEquals(op, "*") 
+        || strEquals(op, "/") 
+        || strEquals(op, "%") 
+        || strEquals(op, "++") 
+        || strEquals(op, "--"))
+    {
+        return opcategory_arithmetic;
+    }
+    else 
+    if(strEquals(op, "~") 
+        || strEquals(op, "|") 
+        || strEquals(op, "&") 
+        || strEquals(op, ">>") 
+        || strEquals(op, "<<"))
+    {
+        return opcategory_bitwise;
+    }
+    else 
+    if(strEquals(op, "==") 
+        || strEquals(op, "!=")
+        || strEquals(op, "<")
+        || strEquals(op, ">")
+        || strEquals(op, "<=")
+        || strEquals(op, ">="))
+    {
+        return opcategory_relational;
+    }
+    return opcategory_invalid;
+}

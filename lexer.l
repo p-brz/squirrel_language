@@ -5,6 +5,8 @@
 
 %%
 
+"//"[^\n]*$                 ;
+"/*"([^*]|\*+[^*/])*\*+"/"          ;
 \[(\ |\t)*\]                        {return ARRAY_SYMBOL;}
 [ \t\n]                             ;
 0\.[0-9]+                           {yylval.sValue = yytext; return REAL_LITERAL;}
