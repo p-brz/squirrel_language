@@ -12,7 +12,7 @@ string empty_String(){
     return str;
 }
 string create_String(const char * strValue){
-    MemoryNode * memory = allocaMemory(sizeof(char), strlen(strValue));
+    MemoryNode * memory = allocaMemory(sizeof(char), strlen(strValue) +1);
     
     string str;
     str.memory = memory;
@@ -51,6 +51,9 @@ const char * int_toCString(int value){
 }
 
 const char * long_toCString(long longValue){
+    return integer_toCString(longValue);
+}
+const char * integer_toCString(long longValue){
     char * cstring = longToString(longValue);
     putMemory(cstring);
     return cstring;

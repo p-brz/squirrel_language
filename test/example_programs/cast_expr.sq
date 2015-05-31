@@ -1,0 +1,49 @@
+int main(){
+    byte   b = 10;
+    short  s = 100;
+    int    i = 1000;
+    long   l = 12345678911; 
+    float  f = 0.5;
+    double d = -0.100; 
+    //Conversões de numeros para string:
+    string bStr = string(b);
+    string sStr = string(s);
+    string iStr = string(i);
+    string lStr = string(l);
+    string fStr = string(f);
+    string dStr = string(d);
+    string numlit_str  = string(-100);
+    string reallit_str = string(100.01);
+    string stringlit_str = string("abc");
+    //Conversões de string para números
+    b = byte(bStr)   + 1;
+    s = short(sStr)  + 1;
+    i = int(iStr)    + 1;
+    l = long(lStr)   + 1;
+    f = float(fStr)  + 1;
+    d = double(dStr) + 1;
+    
+    int failedInt = int("i am a string. muahahaha");
+    float failedFloat = float("i am another string. ihihihihihi");
+    
+    print("bStr: ", bStr);
+    print("sStr: ", sStr);
+    print("iStr: ", iStr);
+    print("lStr: ", lStr);
+    print("fStr: ", fStr);
+    print("dStr: ", dStr);
+    print("numlit_str: ", numlit_str);
+    print("reallit_str: ", reallit_str);
+    print("stringlit_str: ", stringlit_str);
+    
+    print(b);
+    print(s);
+    print(i);
+    print(l);
+    print(f);
+    print(d);
+    print(failedInt);
+    print(failedFloat);
+    
+    return 0;
+}

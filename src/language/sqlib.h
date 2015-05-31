@@ -6,6 +6,7 @@
 #include "sq_control.h"
 #include "sq_input.h"
 #include "sq_metatype.h"
+#include "sq_cast.h"
 #include <stdio.h> //printf
 
 void squirrel_setup(){

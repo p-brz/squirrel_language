@@ -61,8 +61,8 @@ níveis de dificuldade:
                         1. aplicar sq_getOperatorCategory (definida em compiler_types.h) em operator 
                         2. aplicar categoria resultante na função auxiliar criada
     * (++) Gerar expressões de cast
-        * (+) Criar funções para cast em 'language/cast.h' e 'language/cast.c'
-            - (+) criar arquivo cast.h e cast.c e referenciar cast.h a partir de sqlib.h
+        * [Paulo] (+) Criar funções para cast em 'language/sq_cast.h' e 'language/sq_cast.c'
+            - (+) criar arquivo cast.h e cast.c e referenciar sq_cast.h a partir de sqlib.h
             OBS: funções devem seguir formato: "cast_<tipo_de_origem>_to_<tipo_de_destino>"
             - (+) cast de string para números:
                 OBS.: string da nossa linguagem e não 'char *'

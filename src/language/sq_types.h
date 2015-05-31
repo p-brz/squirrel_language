@@ -19,6 +19,8 @@ typedef int number_literal;
 typedef double real_literal;
 typedef const char * string_literal;
 
+typedef char byte;
+
 typedef int boolean;
 
 #define true 1
@@ -37,6 +39,7 @@ const char * string_toCString(string stringValue);
 const char * boolean_toCString(boolean booleanValue);
 const char * int_toCString(int value);
 const char * long_toCString(long longValue);
+const char * integer_toCString(long longValue);
 const char * real_toCString(double floatValue);
 
 #endif
