@@ -13,6 +13,7 @@ int main(){
     string fStr = string(f);
     string dStr = string(d);
     string numlit_str  = string(-100);
+    string numlit2_str  = string(1023);
     string reallit_str = string(100.01);
     string stringlit_str = string("abc");
     //Conversões de string para números
@@ -33,6 +34,7 @@ int main(){
     print("fStr: ", fStr);
     print("dStr: ", dStr);
     print("numlit_str: ", numlit_str);
+    print("numlit2_str: ", numlit2_str);
     print("reallit_str: ", reallit_str);
     print("stringlit_str: ", stringlit_str);
     
@@ -44,6 +46,26 @@ int main(){
     print(d);
     print(failedInt);
     print(failedFloat);
+    
+    //Conversão entre boolean e string
+    boolean bl = true;
+    string blStr = string(bl);
+    string booleanlit_str = string(false);
+    bl = boolean(booleanlit_str);
+    
+    print("blStr:", blStr);
+    print("booleanlit_str:", booleanlit_str);
+    print("boolean(booleanlit_str):", bl);
+    
+    //Conversão de type para string
+    //Não deve ser possível converter de string para typename
+    string typeStr = string(typeof(int));
+    type t = typeof(true);
+    string typeStr2 = string(t);
+    
+    print("typeStr1: ", typeStr);
+    print("typeStr2: ", typeStr);
+    print("t: ", t);
     
     return 0;
 }

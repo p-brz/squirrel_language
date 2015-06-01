@@ -27,6 +27,8 @@ char * sq_genEnum(SquirrelContext * sqContext, char * id , arraylist * id_list )
 char * sq_genCreateEmptyArray();
 char * sq_genSizedArray(SquirrelContext * sqContext, const char * itemTypeName, Expression * sizeExpr);
 char * sq_genArrayLiteralCreator(SquirrelContext * sqContext, type itemType, ExpressionList * exprList);
+char * sq_genIndexAccess(SquirrelContext * sqContext, Expression term, Expression expr);
+char * sq_genCastExpr(SquirrelContext * sqContext, const char * typeName, TypeCategory typeCategory, Expression * expr);
 
 //OBS.: gerando código parcialmente
 char * sq_genFunction(SquirrelContext * ctx, const char * returnType

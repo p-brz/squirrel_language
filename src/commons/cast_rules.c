@@ -48,6 +48,7 @@ bool can_force_cast_to_string(TypeCategory category){
 }
 
 bool can_force_coerce_to(TypeCategory cat1, TypeCategory cat2){
+    //FIXME: não considera tipo function
     if(cat1 == type_object){ //object pode ser forçado para qualquer tipo
         return true;
     }

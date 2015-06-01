@@ -114,7 +114,7 @@ void finishScope(){
 
 %type <eValue> lvalue_term
 %type <sValue> inc_stmt clone_expr  slice_expr opt_expr
-%type <sValue> call_expr
+%type <eValue> call_expr
 %type <eValue> index_access 
 %type <eValue> array_literal 
 %type <eValue> type_or_expr 
@@ -283,9 +283,30 @@ function_call    : lvalue_call                                  {   $$ = $1;}
                     | rvalue_term LPAREN expr_list RPAREN       {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
                                                                     $$ = sq_Expression("void", concat4(sq_exprToStr($1), "(",listStr, ")"), type_invalid);};
                     
-lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
-                                                                    char * translationExpr = concat4(sq_exprToStr($1), "(", listStr, ")");
-                                                                    $$ = sq_Expression("error", translationExpr, type_invalid); };
+lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   
+                                                                    
+                                                                    if($1->typeCategory == type_typeliteral){
+                                                                        if($3->size == 0){
+                                                                            sq_putError(sqContext, "Cast without expression.");
+                                                                            $$ = sq_Expression("", concat($1->expr, "()"), type_invalid);
+                                                                        }
+                                                                        else{
+                                                                            if($3->size > 1){
+                                                                                sq_putError(sqContext, "Trying to cast more than one expression.");
+                                                                            } 
+                                                                            
+                                                                            Expression * expr = (Expression *)arraylist_get($3, 0);
+                                                                            checkCastRule(sqContext, $1->type, $1->typeCategory, expr);
+                                                                            char * castExpr = sq_genCastExpr(sqContext, $1->type, $1->typeCategory, expr);
+                                                                            $$ = sq_Expression($1->type, castExpr, $1->typeCategory);
+                                                                        }
+                                                                    }
+                                                                    else{
+                                                                        char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                        char * translationExpr = concat4(sq_exprToStr($1), "(", listStr, ")");
+                                                                        $$ = sq_Expression("error", translationExpr, type_invalid); 
+                                                                    }
+                                                                };
 
 io_command       : PRINT LPAREN expr_list RPAREN              {   //char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
                                                                   //$$ = sq_Expression("void", concat3("print(", listStr, ")"), type_void);
@@ -380,22 +401,28 @@ term            : rvalue_term                       {   $$ = $1;}
                     | lvalue_term                   {   $$ = $1;};
                    
 rvalue_term     :   LPAREN expr RPAREN              {   $$ = sq_Expression("error", concat3("(",sq_exprToStr($2),")"), type_invalid);}
-                    | call_expr                     {   $$ = sq_Expression("error", $1, type_invalid); }
+                    | call_expr                     {   $$ = $1; }
                     | struct_constructor            {   $$ = sq_Expression("error", $1, type_invalid); }
                     | value                         {   $$ = $1; }
                     | clone_expr                    {   $$ = sq_Expression("error", $1, type_invalid); }
                     | length_expr                   {   $$ = $1;}
                     | slice_expr                    {   $$ = sq_Expression("error", $1, type_invalid);};
 
-call_expr       :   function_call                               {   $$ = sq_exprToStr($1); }
-                        /* Casts*/
-                    | primitive_type LPAREN expr RPAREN         {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
-                                                                    char *temp = concat_n(4, values);
-                                                                    Expression *expr = sq_Expression($1,temp, type_invalid); 
-                                                                    $$ = sq_exprToStr(expr);
+call_expr       :   function_call                               {   
+                                                                    $$ = $1; 
                                                                 }
-                    | array_type LPAREN expr RPAREN             {   const char * values[] = {$1, "(", sq_exprToStr($3), ")"};
-                                                                    $$ = concat_n(4, values); 
+                        /* Casts*/
+                    | primitive_type LPAREN expr RPAREN         {   
+                                                                    TypeCategory typeCategory = sq_findTypeCategory(sqContext, $1);
+                                                                    checkCastRule(sqContext, $1, typeCategory, $3);
+                                                                    char * translationExpr =  sq_genCastExpr(sqContext, $1, typeCategory, $3);
+                                                                    $$ = sq_Expression($1, translationExpr, typeCategory); 
+                                                                }
+                    | array_type LPAREN expr RPAREN             {   
+                                                                    TypeCategory typeCategory = sq_findTypeCategory(sqContext, $1);
+                                                                    checkCastRule(sqContext, $1, typeCategory, $3);
+                                                                    char * translationExpr =  sq_genCastExpr(sqContext, $1, typeCategory, $3);
+                                                                    $$ = sq_Expression($1, translationExpr, typeCategory); 
                                                                 };
 
 clone_expr      : CLONE LPAREN expr RPAREN                      {   const char * values[] = {"clone", "(", sq_exprToStr($3), ")"};
@@ -428,6 +455,12 @@ index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo d
                                                         const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
                                                         char * indexAccessStr = concat_n(4, values);
                                                         $$ = sq_Expression("error", indexAccessStr, type_invalid);
+                                                        
+                                                        /*
+                                                        
+                                      char * indexAccessStr = sq_genIndexAccess(sqContext, Expression $1, Expression s3);
+                                       $$ = sq_Expression("error", indexAccessStr, type_invalid);
+                                                        */
                                                     };
 
 value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal" , $1, type_integer);} 

@@ -8,6 +8,10 @@
 
 bool checkCategoryEquals(SquirrelContext * sqContext, TypeCategory current, TypeCategory expected);
 
+/** Checa se cast de expr para typeName pode ser feito.*/
+bool checkCastRule(SquirrelContext * sqContext
+    , const char * typeName, TypeCategory typeCategory, Expression * expr);
+
 /** Testa se a função de nome 'functionName' pode ser convertida
     para o tipo de função 'functionTypename'*/
 bool sq_can_coerce_function_to(SquirrelContext * ctx, 

@@ -133,3 +133,32 @@ type sq_getArrayType(SquirrelContext * ctx, ExpressionList * arrayItems){
     }
     return create_Type("", type_invalid, NULL);
 }
+
+bool sq_can_cast_function_to(SquirrelContext * ctx, 
+    const char * functionName, const char * functionNameTarget)
+{
+    TableRow * functionRow = sq_findRow(ctx, functionName);
+    TableRow * functionTarget = sq_findRow(ctx, functionNameTarget);
+    if(functionRow != NULL && functionTarget != NULL){
+        if(functionRow->category == categ_function
+            && functionTarget->category == categ_function)
+        {
+            return functionTypesEquals(
+                functionRow->value.functionValue, functionTarget->value.functionValue);
+        }
+    }
+    return false;
+}
+
+bool checkCastRule(SquirrelContext * sqContext
+    , const char * typeName, TypeCategory typeCategory, Expression * expr)
+{
+    type t1 = create_Type(expr->type, expr->typeCategory, NULL);
+    type t2 = create_Type(typeName, typeCategory, NULL);
+    if(!caststo(t1, t2) && !sq_can_cast_function_to(sqContext,expr->type, typeName)){
+        char * errMsg = concat5("Invalid cast from type '", expr->type, "' to type '", typeName, "'");
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+    }
+    return true;
+}

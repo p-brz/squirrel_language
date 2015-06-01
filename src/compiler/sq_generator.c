@@ -595,3 +595,87 @@ char * sq_genEnum(SquirrelContext * sqContext, char * id , arraylist * id_list )
   
 }
 
+char * sq_genIndexAccess(SquirrelContext * sqContext, Expression term, Expression expr)
+{
+    /*
+    
+     const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
+      char * indexAccessStr = concat_n(4, values);
+      //int v1 = arrayFunction()[0];
+    int v1 = getArrayItem(int, arrayFunction(), 0);
+    
+    
+    */
+    
+    /*
+    
+    */
+    return "";
+}
+
+static
+char * sq_genStringCreator(const char * exprStr){
+    return concat3("create_String(", exprStr, ")");
+}
+static
+char * sq_genCastToString(SquirrelContext * ctx, Expression * expr){
+    switch(expr->typeCategory){
+        case type_type:
+            return sq_genTypename(ctx, expr);
+        case type_string:
+            return strEquals(expr->type, "string_literal")  
+                        ?  sq_genStringCreator(expr->expr): expr->expr;
+        case type_real:
+            return concat3("real_to_string(", expr->expr, ")");
+        case type_integer:
+            return concat3("integer_to_string(", expr->expr, ")");
+        case type_enum:
+            return sq_genStringCreator(concat4(expr->type, "_toCString(", expr->expr, ")"));
+        case type_object:
+        case type_boolean:
+            return concat4(expr->type, "_to_string(", expr->expr, ")");
+        default:
+            break;
+    }
+    char * errMsg = concat3("Invalid cast of type '", expr->type, "' to string;");
+    sq_putError(ctx, errMsg);
+    free(errMsg);
+    return concat4(expr->type, "_to_string(", expr->expr, ")");
+}
+
+char * sq_genCastToObject(SquirrelContext * sqContext, Expression * expr){
+    //not implemented yet
+    return cpyString(expr->expr);
+}
+char * sq_genCastFromObject(SquirrelContext * sqContext, Expression * expr){
+    //not implemented yet
+    return cpyString(expr->expr);   
+}
+char * sq_genCastExpr(SquirrelContext * sqContext, const char * typeName
+    , TypeCategory typeCategory, Expression * expr)
+{
+    if(typeCategory == type_string){//cast para string
+        return sq_genCastToString(sqContext, expr);
+    }
+    else if(strEquals(typeName, expr->type)){
+       return cpyString(expr->expr); 
+    }
+    else 
+    if((typeCategory == type_function && expr->typeCategory == type_function)
+        || (isNumber(typeCategory) && isNumber(expr->typeCategory)))
+    {//C cast
+        return concat5("((", typeName, ")", expr->expr, ")");
+    }
+    else if(typeCategory == type_object){
+        return sq_genCastToObject(sqContext, expr);
+    }
+    else if(expr->typeCategory == type_object){
+        return sq_genCastFromObject(sqContext, expr);
+    }
+    else{//OBS.: não faz checagem de tipo a este nível
+        char * cast_name = concat3( expr->type,"_to_",typeName);
+        char * result = concat4(cast_name, "(",expr->expr, ")");
+        free(cast_name);
+        return result;
+    }
+}
