@@ -64,6 +64,17 @@ void finishScope(){
 %token FOR IF ELSE WHILE DO WHEN TRY CATCH SWITCH SWITCH_VALUE DEFAULT 
 %token RETURN BREAK THROW
 
+%left OR OU
+%left AND EE
+%left BITOR
+%left BITAND
+%left EQUAL DIFERENT
+%left MINOR MINOREQUAL BIGGER BIGGEREQUAL
+%left SHIFTL SHIFTR
+%left PLUS MINUS
+%left TIMES DIVIDE MOD
+
+
 %type <sValue> declaration declaration_list
 %type <sValue> namespace type_definition enum_definition struct_definition functiontype_definition
 %type <sValue> statement_list statement inline_statement std_statement block_statement 
@@ -333,7 +344,7 @@ return_statement : RETURN expr                                  {   $$ = concat(
 
 assignment       : lvalue_term assignment_op expr               {  
                                                                     sq_checkExpressionCoercion(sqContext, $3, $1);
-                                                                    const char *values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
+                                                                    const char *values[] = {sq_exprToStr($1), " ", $2, " ", sq_genCoercion(sqContext, $3, $1->type)};
                                                                     $$ = concat_n(5, values);
                                                                 };
 
@@ -342,7 +353,13 @@ variables_decl   : type name_decl_list                          {
                                                                     sq_declareVariables(sqContext, $1, $2);
                                                                     char * typeName = sq_translateTypeName(sqContext,$1);
                                                                     //printf("translated type %s to %s\n", $1, typeName);
-                                                                    
+                                                                    int i =0;
+                                                                    for(i=0; i < $2->size; ++i){
+                                                                        NameDeclItem * item = (NameDeclItem *)arraylist_get($2, i);
+                                                                        if(item->expr != NULL){
+                                                                            item->expr->expr = sq_genCoercion(sqContext, item->expr, $1);
+                                                                        }
+                                                                    }
                                                                     $$ = concat3(typeName, " ", joinList($2,", ", sq_NameDeclToString));
                                                                     destroyList($2);
                                                                     free(typeName);

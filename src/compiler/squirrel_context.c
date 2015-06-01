@@ -7,10 +7,12 @@
 
 SquirrelContext * sq_SquirrelContext(){
     SquirrelContext * context = (SquirrelContext *)malloc(sizeof(SquirrelContext));
-    context->symbolTable = sq_createSymbolTable();
+    context->symbolTable = hashtable_create();
     context->scopeList = createList(NULL);
     context->scopeIdCounter = 0;
     context->errorList = createList(NULL);
+    
+    sq_populateSymbolTable(context);
     
     return context;
 }

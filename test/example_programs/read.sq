@@ -1,11 +1,11 @@
 int main ()
 {
-    int a;
-    float b;
+    int a = 10;
     string str;
     
-    str = read(a);
-    str = read(b);
-    
+    print("Informe um inteiro");
+    string line = readline();
+    a = int(line);
+    print(a);
 	return 0;
 }

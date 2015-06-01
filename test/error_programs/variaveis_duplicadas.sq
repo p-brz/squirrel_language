@@ -11,8 +11,10 @@ int main(){
         print(i);
     }
     
-    //Erro - conflito com função 's'
+    //Ok - omite função 's'
     short s = 100;
+    //Não ok
+    string s = "abc";
     
     return 0;
 }

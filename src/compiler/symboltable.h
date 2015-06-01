@@ -107,8 +107,7 @@ void sq_declareNamespace(
 
 /* ******************************************************************************/
 
-/** Cria tabela de símbolos com valores iniciais (ex.: tipos primitivos)*/
-hashtable * sq_createSymbolTable();
+void sq_populateSymbolTable(SquirrelContext * sqContext);
 /** Destroi tabela de símbolos e todos os valores armazenados.*/
 void sq_destroySymbolTable(hashtable * symbolTable);
 

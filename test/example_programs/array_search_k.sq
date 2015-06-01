@@ -21,8 +21,8 @@ boolean isOnArray(int array[], int value)
 
 
 int main( ){
-    int A1 = arrayFunction1();
-    int A2 = arrayFunction2();
+    int[] A1 = [10,11,12,20,44,42,88];
+    int[] A2 = arrayFunction2();
     int n = 42;
     
     if(isOnArray(A1,n))

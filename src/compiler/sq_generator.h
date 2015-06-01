@@ -11,6 +11,7 @@ char * sq_genWhile(SquirrelContext * sqContext, const char * conditional_test, c
 char * sq_genDoWhile(SquirrelContext * sqContext, const char * block_stmts, const char * conditional_test);
 char * sq_genForBlock(SquirrelContext * sqContext, NameList * forStatements, const char * block_stmts);
 
+char * sq_genCoercion(SquirrelContext * sqContext, Expression * expr, const char * typename);
 /** Gera string a ser inclusa no código fonte substituindo typeName.
     Isto permite traduzir tipos array e alguns literais.
 */

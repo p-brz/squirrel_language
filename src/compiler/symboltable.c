@@ -11,33 +11,29 @@
 
 
 void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value);
-void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value);
+void putRowBase(SquirrelContext * sqContext, arraylist * scopeList, const char * name, Category category, const TableRowValue value);
 void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclItem * item, bool isConst);
 void declareVariables(SquirrelContext * sqContext, const char * typename, arraylist * nameDeclList, bool isConst);
-void putPrimitive(hashtable * symbolTable, const char * typeName, TypeCategory typeCategory);
+void putPrimitive(SquirrelContext * sqContext, const char * typeName, TypeCategory typeCategory);
 void declareParamVariables(SquirrelContext * sqContext, ParamList * parameters);
 
 char * makeTableKey(arraylist * scopeList, const char * name);
 
 /* **********************************************************************************************************************/
-hashtable * sq_createSymbolTable(){
-    hashtable * symbolTable = hashtable_create();
-    
-    putPrimitive(symbolTable, "void"            , type_void);
-    putPrimitive(symbolTable, "byte"            , type_integer);
-    putPrimitive(symbolTable, "short"           , type_integer);
-    putPrimitive(symbolTable, "int"             , type_integer);
-    putPrimitive(symbolTable, "long"            , type_integer);
-    putPrimitive(symbolTable, "float"           , type_real);
-    putPrimitive(symbolTable, "double"          , type_real);
-    putPrimitive(symbolTable, "boolean"         , type_boolean);
-    putPrimitive(symbolTable, "type"            , type_type);
-    putPrimitive(symbolTable, "string"          , type_string);
-    putPrimitive(symbolTable, "object"          , type_object);
-    putPrimitive(symbolTable, "number_literal"  , type_integer);
-    putPrimitive(symbolTable, "real_literal"    , type_real);
-    
-    return symbolTable;
+void sq_populateSymbolTable(SquirrelContext * sqContext){
+    putPrimitive(sqContext, "void"            , type_void);
+    putPrimitive(sqContext, "byte"            , type_integer);
+    putPrimitive(sqContext, "short"           , type_integer);
+    putPrimitive(sqContext, "int"             , type_integer);
+    putPrimitive(sqContext, "long"            , type_integer);
+    putPrimitive(sqContext, "float"           , type_real);
+    putPrimitive(sqContext, "double"          , type_real);
+    putPrimitive(sqContext, "boolean"         , type_boolean);
+    putPrimitive(sqContext, "type"            , type_type);
+    putPrimitive(sqContext, "string"          , type_string);
+    putPrimitive(sqContext, "object"          , type_object);
+    putPrimitive(sqContext, "number_literal"  , type_integer);
+    putPrimitive(sqContext, "real_literal"    , type_real);
 }
 void sq_destroySymbolTable(hashtable * symbolTable){
     if(symbolTable == NULL){
@@ -246,7 +242,7 @@ void sq_declareArrayType(SquirrelContext * sqContext, const char * originTypeNam
     TableRowValue value = sq_ArrayTypeValue(originTypeKey);
     char * arrayType = concat(originTypeKey, "[]");
 
-    putRowBase(sqContext->symbolTable, NULL, arrayType, categ_arrayType, value);
+    putRowBase(sqContext, NULL, arrayType, categ_arrayType, value);
     free(arrayType);
 }
 
@@ -328,7 +324,7 @@ TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * name){
         printf("Could not find type '%s'\n", name);
         return NULL;
     }
-    else if(!isType(row)){
+    else if(!isType(row) && row->category != categ_function){//permitindo retornar função como tipo
         printf("Found symbol '%s', but is not a type.\n", name);
         return NULL;
     }
@@ -336,12 +332,18 @@ TableRow * sq_findTypeRow(SquirrelContext * sqContext, const char * name){
     return row;
 }
 void putRow(SquirrelContext * sqContext, const char * name, Category category, const TableRowValue value){
-    putRowBase(sqContext->symbolTable, sqContext->scopeList, name, category, value);
+    putRowBase(sqContext, sqContext->scopeList, name, category, value);
 }
-void putRowBase(hashtable * symbolTable, arraylist * scopeList, const char * name, Category category, const TableRowValue value){
+void putRowBase(SquirrelContext * sqContext, arraylist * scopeList, const char * name, Category category, const TableRowValue value){
+    hashtable * symbolTable = sqContext->symbolTable;
     char * key = makeTableKey(scopeList, name);
     
-    printf("put row for name '%s' with key '%s'\n", name, key);
+    TableRow * existRow = hashtable_get(symbolTable, key);
+    if(existRow != NULL){
+        char * errMsg = concat3("Trying to declare existent symbol '", key, "'");
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+    }
     
     TableRow * row = sq_TableRow(key, category, value);
     hashtable_set(symbolTable, key, row);
@@ -375,8 +377,8 @@ void putVariable(SquirrelContext * sqContext, const char * typename, NameDeclIte
     TableRowValue value = VariableRowValue(sqContext->symbolTable, typename, isConst);
     putRow(sqContext, item->name, categ_variable, value);
 }
-void putPrimitive(hashtable * symbolTable, const char * typeName, TypeCategory typeCategory){
-    putRowBase(symbolTable, NULL, typeName, categ_primitiveType, sq_PrimitiveTypeValue(typeCategory));
+void putPrimitive(SquirrelContext * sqContext, const char * typeName, TypeCategory typeCategory){
+    putRowBase(sqContext, NULL, typeName, categ_primitiveType, sq_PrimitiveTypeValue(typeCategory));
 }
 
 

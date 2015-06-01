@@ -1,5 +1,7 @@
-int fatorial(int n)
+int fatorial(float n)
 {
+    int x=1;
+    print("local x: ",x);
     if(n==1) {
         return n;
     }
@@ -9,10 +11,16 @@ int fatorial(int n)
     }
 }
 
+int x=10;
 
 int main ()
 {
-    int fat = fatorial(5);
-    print(fat);
+    print("global x: ", x);
+    //int n = int(readline());
+    boolean n = true;
+    int fat = fatorial(n);
+    print("Fatorial de ",n, "e: ", fat);
+    
+    print("global x: ", x);
 	return 0;
 }

@@ -36,6 +36,15 @@ bool can_coerce_to(const char * typename1, TypeCategory category1
     else if(isNumber(category1) && isNumber(category2)){
         return getTypeNumberWidth(typename2) >= getTypeNumberWidth(typename1);
     }
+    else if(category1 == type_boolean && category2 == type_boolean){
+        return true;
+    }
+    else if(category1 == type_string && category2 == type_string){
+        return true;
+    }
+    else if(category1 == type_type && category2 == type_type){
+        return true;
+    }
     return false;
 }
 
@@ -47,9 +56,17 @@ bool can_force_cast_to_string(TypeCategory category){
             || category == type_type;  //conversão de type para string é feita via typename 
 }
 
+static
+bool can_force_cast_from_string(TypeCategory category){
+    return isNumber(category)
+            || category == type_boolean;
+}
 bool can_force_coerce_to(TypeCategory cat1, TypeCategory cat2){
     //FIXME: não considera tipo function
-    if(cat1 == type_object){ //object pode ser forçado para qualquer tipo
+    if(cat1 == cat2){
+        return true;
+    }
+    else if(cat1 == type_object){ //object pode ser forçado para qualquer tipo
         return true;
     }
     else if(isNumber(cat1) && isNumber(cat2)){
@@ -57,6 +74,9 @@ bool can_force_coerce_to(TypeCategory cat1, TypeCategory cat2){
     }
     else if(cat2 == type_string){
         return can_force_cast_to_string(cat1);
+    }
+    else if(cat1 == type_string){
+        return can_force_cast_from_string(cat2);
     }
     return false;
 }

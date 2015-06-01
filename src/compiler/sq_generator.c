@@ -220,6 +220,13 @@ char * sq_genCaststTo(SquirrelContext * sqContext, Expression * typeOrExpr1, Exp
 }
 
 
+char * sq_genCoercion(SquirrelContext * sqContext, Expression * expr, const char * typename){
+    if(strEquals(expr->type, "string_literal")){
+        return concat3("create_String(", expr->expr, ")");
+    }
+    return expr->expr;
+}
+
 char * sq_genCreateEmptyArray(){
     return cpyString("empty_Array()");
 }
