@@ -28,6 +28,26 @@ níveis de dificuldade:
     * OK (++) Gerar expressões de cast
     * (+) Gerar tradução de index_access [joao]
         - ver exemplo em call_functionobj.c
+    * (++) Gerar instrução de atribuição
+        - aplicar regras de compatibilidade de tipos (coerção)
+    * (++) Gerar retorno de função
+        
+    * (+) Implementar programas para teste de erros [Paulo]
+        - OK (+) Testar variáveis e funções omitidas
+        - OK (+) Testar variáveis e funções duplicadas no mesmo escopo 
+        - OK (+) Testar acesso para variáveis com mesmo nome em escopos não aninhados
+        - OK (+) Testar acesso para variáveis com mesmo nome em escopos aninhados
+        - OK (+) Testar tipos incompatíveis em atribuição
+        - (+) Testar tipos incompatíveis em expressão
+        - (+) Testar coerções compatíveis
+        - (+) Testar erros de return (tipo e presença/ausência)
+    * (+) Implementar programas de exemplo
+        - (+) Leitura de valores (envolvendo tipos distintos), avaliação de expressões, atribuições e escrita em tela.
+        - (+) Busca de um elemento k em um vetor contendo n elementos.
+        - (+) Leitura de duas matrizes A e B, cálculo e impressão da matriz C = A * B.
+        - (+) Criação e uso de módulos para cálculo das operações aritméticas (binárias) elementares.
+        - (+) Fatorial. (recursivo)
+        - (+) Fibonacci (recursivo)
     * (++) Gerar Expression corretamente a partir de binary_expr
         * OK (+) Em 'compiler_types' gerar função 'OperatorCategory sq_getOperatorCategory(const char * operator)'
         * (++) Em 'type_checker' criar função que retorna o tipo da expressão 
@@ -58,9 +78,13 @@ níveis de dificuldade:
                         2. Se tipo for bitwise, categoria do tipo e tipo resultante deverá ser integer
                         3. Se tipo for aritmético, operandos poderão ser type_integer or type_real
                             a. tipo resultante será o mesmo
-                - (+) implementar sq_getBinaryExpressionType:
+                - (+) implementar sq_getUnaryExpressionType:
                         1. aplicar sq_getOperatorCategory (definida em compiler_types.h) em operator 
                         2. aplicar categoria resultante na função auxiliar criada
+                        
+                        
+                        
+                        
     * (++++) Gerar chamada de construtor de struct (regra struct_constructor)
         - (+) Modificar regra member_init_list para retornar uma lista com pares nome e valor
            Obs.: isso pode exigir criar um novo tipo em compiler_types (ver se há necessidade)

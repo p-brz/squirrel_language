@@ -395,7 +395,8 @@ unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
                                                     };
 
 unary_pre_expr  : term                              {   $$ = $1; }
-                    | unary_pre_op term             {   $$ = sq_Expression("error", concat($1, sq_exprToStr($2)), type_invalid); };
+                    | unary_pre_op term             {  type typ = sq_getUnaryExpressionType(sqContext, $1,$2);
+                                                        $$ = sq_Expression(typ.typename, concat($1, sq_exprToStr($2)),typ.category); };
                    
 term            : rvalue_term                       {   $$ = $1;}
                     | lvalue_term                   {   $$ = $1;};
@@ -451,16 +452,16 @@ lvalue_term     :  member                           {
                     | rvalue_term DOT member        { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);}
                     | index_access DOT member       { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);};
 
-index_access    : term LBRACKET expr RBRACKET       {   //TODO: checar se tipo de term é array e tipo de expr é inteiro
+index_access    : term LBRACKET expr RBRACKET       {  /* //TODO: checar se tipo de term é array e tipo de expr é inteiro
                                                         const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
                                                         char * indexAccessStr = concat_n(4, values);
                                                         $$ = sq_Expression("error", indexAccessStr, type_invalid);
-                                                        
-                                                        /*
-                                                        
-                                      char * indexAccessStr = sq_genIndexAccess(sqContext, Expression $1, Expression s3);
-                                       $$ = sq_Expression("error", indexAccessStr, type_invalid);
                                                         */
+                                                       
+                                                        
+                                                          char * indexAccessStr = sq_genIndexAccess(sqContext,$1, $3);
+                                                           $$ = sq_Expression("error", indexAccessStr, type_invalid);
+                                                        
                                                     };
 
 value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal" , $1, type_integer);} 
@@ -502,12 +503,17 @@ array_literal   : ARRAY_SYMBOL                      {
 member          : ID                                {   
                                                         Category category = sq_findSymbolCategory(sqContext, $1);
                                                         $$ = sq_Member($1,$1, category, NULL);
+                                                        
+                                                        sq_checkExistMember(sqContext, $$);
+                                                        
                                                         free($1);
                                                     }
                     | member DOT ID                 {   
                                                         char * memberTableKey = sq_makeMemberTableKey(sqContext, $3, $1);
                                                         Category category = sq_findSymbolCategory(sqContext, memberTableKey);
                                                         $$ = sq_Member($3, memberTableKey, category, $1);
+                                                        
+                                                        sq_checkExistMember(sqContext, $$);
                                                         
                                                         free(memberTableKey);
                                                         free($3); };

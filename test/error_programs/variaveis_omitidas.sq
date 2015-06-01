@@ -1,0 +1,13 @@
+int main(){
+    print(a);
+    if(true){
+        int b = 10;
+        print(b);
+    }
+    else{
+        //Erro
+        print(b);
+    }
+    
+    return 0;
+}

@@ -1,0 +1,18 @@
+int main(){
+    int i=0;
+    float dup = 0.5;
+    while(i < 5){
+        string dup = "muahaha";
+        if(i < 3){
+            boolean dup= false;
+            print(dup);
+        }
+        else{
+            short dup = 10;
+            print(dup);
+        }
+        ++i;
+    }
+    print(dup);
+    return 0;
+}

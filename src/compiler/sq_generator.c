@@ -5,6 +5,7 @@
 #include "hashtable.h"
 #include "list_helper.h"
 #include "scope.h"
+#include "stdio.h"
 
 #include <stdlib.h> //NULL
 
@@ -595,22 +596,37 @@ char * sq_genEnum(SquirrelContext * sqContext, char * id , arraylist * id_list )
   
 }
 
-char * sq_genIndexAccess(SquirrelContext * sqContext, Expression term, Expression expr)
+char * sq_genIndexAccess(SquirrelContext * sqContext, Expression *arrayExpr, Expression *IndexExpr)
 {
     /*
-    
-     const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
-      char * indexAccessStr = concat_n(4, values);
       //int v1 = arrayFunction()[0];
     int v1 = getArrayItem(int, arrayFunction(), 0);
-    
-    
     */
+    printf("%s\n", arrayExpr -> type);
+   TableRow * t =  sq_findTypeRow( sqContext, arrayExpr -> type);
+   
+   if( t == NULL )
+    {
+        return strdup("error");
+    }
+    else if( t -> category != categ_arrayType)
+    {
+        return strdup("erro2r");
+    }
     
-    /*
+    else{
+    printf("fsojeoj \n");
+    char * result1 = "getArrayItem(";
     
-    */
-    return "";
+    char * result2 = t -> value.arrayValue.baseTypename;
+    
+    char * result3 =concat5(", ", arrayExpr -> expr, ", ", IndexExpr -> expr, ")");
+    
+    char * result = concat3(result1, result2, result3);
+    free(result3);
+    printf("finmal\n");
+    return(result);
+    }
 }
 
 static

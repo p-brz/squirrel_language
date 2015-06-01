@@ -35,7 +35,7 @@ int main(){
     functionArray[0]();
     functionArray[1]();
     functionArray[2]();
-    printable.f();
+    //printable.f();
     functionFactory()();
 
     return 0;

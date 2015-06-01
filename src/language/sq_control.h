@@ -1,7 +1,16 @@
 #ifndef SQ_CONTROL_H
 #define SQ_CONTROL_H
 
-        
+     
+/***************************** FUNCTION MACROS ********************************/
+#define FUNCTION_START(type)\
+    type return_;
+#define FUNCTION_RETURN()\
+    return return_;
+#define RETURN()\
+    goto function_end;
+#define FUNCTION_END()\
+    function_end: ;   
 /***************************** DO-WHILE MACROS ********************************/
 #define DO_START(do_id) \
     do_start_##do_id :  \

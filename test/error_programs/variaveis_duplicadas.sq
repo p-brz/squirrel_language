@@ -1,0 +1,18 @@
+string s(){
+    return "abc";
+}
+
+int main(){
+    int i = 10;
+    //Isto está Ok (o escopo deste 'i' é diferente)
+    for(int i=0; i < 5; ++i){
+        //isto não está ok
+        boolean i = true;
+        print(i);
+    }
+    
+    //Erro - conflito com função 's'
+    short s = 100;
+    
+    return 0;
+}
