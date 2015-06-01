@@ -30,6 +30,7 @@ CommandLineOptions * sq_receiveArgs(int argc, char ** argv){
             exit(EXIT_FAILURE);
         }   
     } 
+    return options;
 }
 
 void sq_printStatus(SquirrelContext * sqContext){

@@ -60,26 +60,19 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName){
 TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeName){
    TableRow * typeRow = sq_findTypeRow(sqContext, typeName);
    if(typeRow != NULL){
-       printf("try find category of type %s: ", typeRow->name);
        switch(typeRow->category){
         case categ_primitiveType:
-            printf("primitive_type\n");
             return typeRow->value.primitiveValue.typeCategory;
         case categ_arrayType:
-            printf("array_type\n");
             return type_array;
         case categ_structType:
-            printf("struct_type\n");
             return type_struct;
         case categ_functionType:
         case categ_function://Funções tbm podem ser utilizadas como valores
-            printf("function_type\n");
             return type_function;
         case categ_enumType:
-            printf("enum_type\n");
             return type_enum;
         default:
-            printf("invalid_type\n");
             return type_invalid;
         }
    }

@@ -146,6 +146,7 @@ program          : declaration_list                 {
                                                             sq_printStatus(sqContext);
                                                         }
                                                         else{
+                                                            printf("write to file %s\n", output_file);
                                                             sq_writeFile(programOut, output_file);  
                                                         }
                                                     };
@@ -648,11 +649,10 @@ conditional_test: LPAREN expr RPAREN			            {   $$ = concat3("(", sq_expr
 %%
 
 int main (int argc, char ** argv) {
-    //CommandLineOptions * options = sq_receiveArgs(argc, argv);
-    //if(options != NULL && options->output != NULL){
-    //    printf("%s -o %s\n", argv[0], options->output);
-    //    output_file = options->output;
-    //}
+    CommandLineOptions * options = sq_receiveArgs(argc, argv);
+    if(options != NULL && options->output != NULL){
+        output_file = options->output;
+    }
     sqContext = sq_SquirrelContext();
     
     int exitCode =  yyparse ( );

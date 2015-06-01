@@ -10,6 +10,10 @@ def options(opt):
     opt.load('compiler_c')
     
     opt.add_option('--sq', help='Informa o arquivo de entrada squirrel para ser compilado', dest='sq_input')
+    opt.add_option('-o', '--output'
+                        , help='Informa o caminho para o arquivo de saida em que sera compilado o arquivo squirrel.'
+                        , default='a.out'
+                        , dest='sq_output')
     
     opt.recurse('test')
     
@@ -71,8 +75,10 @@ def build(bld):
     
     bld.add_group();
     if(bld.options.sq_input):
+        outNode = bld.path.get_src().make_node(bld.options.sq_output);
         bld.program(
-            target='a.out',
+            features = 'c cprogram',
+            target=outNode,
             source=bld.options.sq_input, 
             use =['squirrel-language']
         )
