@@ -33,9 +33,14 @@ const char * sq_getVarType(SquirrelContext * sqContext, const char * varName);
 
 TypeCategory sq_findTypeCategory(SquirrelContext * sqContext, const char * typeName); 
 
+type sq_getFunctionReturnType(SquirrelContext * sqContext, const char * typeName);
+
+type sq_findArrayItemType(SquirrelContext * sqContext, const char * typeName);
+
 const char * sq_findFullName(SquirrelContext * sqContext, const char * symbolName);
 
 bool sq_ExistSymbol(SquirrelContext * sqContext, const char * symbol);
+bool sq_ExistSymbolOnScope(SquirrelContext * sqContext, const char * symbol);
 
 Category sq_findSymbolCategory(SquirrelContext * sqContext, const char * symbol);
 

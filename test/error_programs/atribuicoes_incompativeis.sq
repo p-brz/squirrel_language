@@ -1,20 +1,30 @@
 enum Dias{segunda, terca, quarta, quinta, sexta, sabado, domingo}
 
-function void Command();
+function void Command()
 
 int foo(){
     return 0;
 }
 
 int main(){
-    //Todas atribuições abaixo são inválidas
-    int a = true;
+    //Inicializações inválidas
+    int i = true;
     string s = 10;
     string enumStr = Dias.terca;
     boolean b = s;
     Dias d = 0;
     Command fooCmd = foo; //tipo de retorno é invalido
     int[] array = [[10, 10, 10], [0]];
+    
+    //Atribuições inválidas
+    i = "abc";
+    s = foo;
+    enumStr = array;
+    b = 50;
+    d = [Dias.terca];
+    fooCmd = 0;
+    array = [true, false];
+    
     
     return 0;
 }

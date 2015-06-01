@@ -17,12 +17,12 @@ typedef enum {
     categ_arrayType,
     categ_structType, 
     categ_structField, 
-    categ_functionType, 
     categ_enumType, 
     categ_enumFieldValue,
     categ_function, 
+    categ_functionType, 
     categ_variable, 
-    categ_namespace}  Category;
+    categ_namespace }  Category;
     
 typedef arraylist NameDeclList;
 typedef arraylist ParamList;
@@ -32,11 +32,11 @@ typedef arraylist ExpressionList;
 typedef arraylist NameList;
 
 typedef enum {
-                opcategory_invalid, 
-                opcategory_arithmetic, 
-                opcategory_bitwise, 
-                opcategory_relational, 
-                opcategory_logical} OperatorCategory;
+        opcategory_invalid, 
+        opcategory_arithmetic, 
+        opcategory_bitwise, 
+        opcategory_relational, 
+        opcategory_logical } OperatorCategory;
 
 typedef struct Member{
     Category category;

@@ -79,7 +79,7 @@ TableRowValue sq_EnumFieldRowValue(const char * enumName, const char * fieldName
 TableRow * sq_TableRow(char * name, Category category, TableRowValue value){
     TableRow * row = (TableRow *)malloc(sizeof(TableRow));
     row->category = category;
-    row->name = name;
+    row->name = cpyString(name);
     row->value = value;
     
     return row;

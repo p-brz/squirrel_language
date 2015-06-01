@@ -1,0 +1,18 @@
+int fatorial(int n)
+{
+    if(n==1) {
+        return n;
+    }
+    else
+    {
+         return (fatorial(n-1) * n);     
+    }
+}
+
+
+int main ()
+{
+    int fat = fatorial(5);
+    print(fat);
+	return 0;
+}

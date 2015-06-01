@@ -4,6 +4,70 @@
 
 #include "symboltable.h"
 
+#include "stdio.h"
+
+bool sq_checkExpressionCoercion(SquirrelContext * sqContext, Expression * expr1, Expression * expr2){
+    if(!can_coerce_to(expr1->type, expr1->typeCategory, expr2->type, expr2->typeCategory)
+        && !sq_can_coerce_function_to(sqContext, expr1->type, expr2->type))
+    {
+        const char * values[] = {"Cannot coerce type '",expr1->type, "' of expression '",
+                                 expr1->expr, " to type '", expr2->type, "' of expression "
+                                 , expr2->expr};
+        char * errMsg = concat_n(8, values);
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+        return false;
+    }
+    return true;
+}
+
+bool sq_checkTypeCoercion(SquirrelContext * sqContext, type t1, type t2){
+    if(!can_coerce_to(t1.typename, t1.category, t2.typename, t2.category)
+        && !sq_can_coerce_function_to(sqContext, t1.typename, t2.typename)){
+        char * errMsg = concat5("Cannot coerce type '",t1.typename, 
+                                    "' to type '", t2.typename, "'");
+        sq_putError(sqContext, errMsg);
+        free(errMsg);
+        return false;
+    }
+    return true;
+}
+
+bool sq_checkExpressionIsCallable(SquirrelContext * sqContext, Expression * expr){
+    TableRow * row = sq_findRow(sqContext, expr->type);
+    if(row != NULL){
+        printf("found row '%s'. is function_type? %d", row->name, row->category == categ_functionType);
+    }
+    TypeCategory category = sq_findTypeCategory(sqContext, expr->type);
+    if(category != type_function && category != type_functionliteral){
+        char * errMsg = concat4("Expression '", expr->expr, " of type '", expr->type);
+        char * errMsg2 = concat4(errMsg, "' and category ", sq_typeCategoryCString(category)," is not callable");
+        sq_putError(sqContext, errMsg2);
+        free(errMsg);
+        free(errMsg2);
+        return false;
+    }
+    return true;
+}
+
+bool sq_checkVariablesDeclCoercion(SquirrelContext * sqContext, 
+    const char * typeName, NameDeclList * nameDeclList)
+{
+    TypeCategory typeCategory = sq_findTypeCategory(sqContext, typeName);
+    int i;
+    void * value;
+    
+    type declType = create_Type(typeName, typeCategory, NULL);
+    
+    arraylist_iterate(nameDeclList, i, value){
+        NameDeclItem * nameDecl = (NameDeclItem *)value;
+        if(nameDecl->expr != NULL){
+            type exprType = create_Type(nameDecl->expr->type, nameDecl->expr->typeCategory, NULL);
+            sq_checkTypeCoercion(sqContext, exprType, declType);
+        }
+    }
+    return false;    
+}
 static 
 bool sq_ExistMember(SquirrelContext * sqContext, Member * member){
     if(member == NULL || member->tableKey == NULL){
@@ -195,12 +259,12 @@ type sq_verifyTypeResultingArithmeticOperator(SquirrelContext * sqContext, Expre
         return sq_getResultantType(sqContext, typeExpr1, typeExpr2);
     }
     else {
-        sq_putError(sqContext, "Operando não é compativel com operador!\n");
+        sq_putError(sqContext, concat5("Expressão ", sq_exprToStr(expr1), "  ou  ", sq_exprToStr(expr2), " não é compativel com opererador aritmético!\n"));
         return create_Type( "error", type_invalid, NULL);
     }
 }
 
-type sq_verifyTypeResultingBitwiseOperator(SquirrelContext * sqContext, Expression * expr1, Expression * expr2)
+type sq_verifyTypeResultingBitwiseOperator(SquirrelContext * sqContext, const char * operator, Expression * expr1, Expression * expr2)
 {
     TypeCategory typeCategoryExpr1 = expr1->typeCategory;
     TypeCategory typeCategoryExpr2 = expr2->typeCategory;
@@ -209,10 +273,15 @@ type sq_verifyTypeResultingBitwiseOperator(SquirrelContext * sqContext, Expressi
     type typeExpr2 = create_Type(expr2->type, typeCategoryExpr2, NULL);
     
     if ( typeCategoryExpr1 == type_integer && typeCategoryExpr2 == type_integer ) {
-        return typeExpr1;
+        if ( strEquals(operator, "|") || strEquals(operator, "&") ) {
+            return sq_getResultantType(sqContext, typeExpr1, typeExpr2);
+        }
+        else {
+            return typeExpr1;
+        }
     }
     else {
-        sq_putError(sqContext, "Operando não é compativel com operador!\n");
+        sq_putError(sqContext, concat5("Expressão ", sq_exprToStr(expr1), "  ou  ", sq_exprToStr(expr2), " não é compativel com opererador bitwise!\n"));
         return create_Type( "error", type_invalid, NULL);
     }
 }
@@ -229,12 +298,12 @@ type sq_verifyTypeResultingRelationalOperator(SquirrelContext * sqContext, Expre
         return create_Type( "boolean", type_boolean, NULL);
     }
     else {
-        sq_putError(sqContext, "Operando não é compativel com operador!\n");
+        sq_putError(sqContext, concat5("Expressão ", sq_exprToStr(expr1), "  ou  ", sq_exprToStr(expr2), " não é compativel com opererador relacional!\n"));
         return create_Type( "error", type_invalid, NULL);
     }
 }
 
-type sq_verifyTypeResultingLogicalOperator(SquirrelContext * sqContext, OperatorCategory operatorCategory, Expression *expr1, Expression *expr2)
+type sq_verifyTypeResultingLogicalOperator(SquirrelContext * sqContext, Expression *expr1, Expression *expr2)
 {
     TypeCategory typeCategoryExpr1 = expr1->typeCategory;
     TypeCategory typeCategoryExpr2 = expr2->typeCategory;
@@ -246,36 +315,34 @@ type sq_verifyTypeResultingLogicalOperator(SquirrelContext * sqContext, Operator
         return create_Type( "boolean", type_boolean, NULL);
     }
     else {
-        sq_putError(sqContext, "Operando não é compativel com operador!\n");
+        sq_putError(sqContext, concat5("Expressão ", sq_exprToStr(expr1), "  ou  ", sq_exprToStr(expr2), " não é compativel com opererador lógico!\n"));
         return create_Type( "error", type_invalid, NULL);
     }
 }
 
-type sq_getResultingTypeBinary(SquirrelContext * sqContext, OperatorCategory operatorCategory, Expression *expr1, Expression *expr2)
+type sq_getResultingTypeBinary(SquirrelContext * sqContext, const char * operator, Expression *expr1, Expression *expr2)
 {
+    OperatorCategory operatorCategory = sq_getOperatorCategory(operator);
     switch ( operatorCategory ) {
         case opcategory_invalid:
+            return create_Type( "error", type_invalid, NULL);
             break;
         case opcategory_arithmetic:
             return sq_verifyTypeResultingArithmeticOperator(sqContext, expr1, expr2);
-            break;
         case opcategory_bitwise:
-            return sq_verifyTypeResultingBitwiseOperator(sqContext, expr1, expr2);
-            break;
+            return sq_verifyTypeResultingBitwiseOperator(sqContext, operator, expr1, expr2);
         case opcategory_relational:
             return sq_verifyTypeResultingRelationalOperator(sqContext, expr1, expr2);
-            break;
         case opcategory_logical:
-            //return sq_verifyTypeResultingLogicalOperator(sqContext, expr1, expr2);
-            break;
+            return sq_verifyTypeResultingLogicalOperator(sqContext, expr1, expr2);
     }
     
     return create_Type( "error", type_invalid, NULL);
 }
 
-type sq_getBinaryExpressionType(const char * operator, Expression * expr1, Expression * expr2)
+type sq_getBinaryExpressionType(SquirrelContext * sqContext, const char * operator, Expression * expr1, Expression * expr2)
 {
-    
+    return sq_getResultingTypeBinary(sqContext, operator, expr1, expr2);
 }
 
 type sq_getResultingTypeUnary(SquirrelContext * sqContext, OperatorCategory operatorCategory, Expression * expr){
@@ -284,7 +351,9 @@ type sq_getResultingTypeUnary(SquirrelContext * sqContext, OperatorCategory oper
             break;
         case opcategory_logical:
            if(expr-> typeCategory!= type_boolean){
-                sq_putError(sqContext, "operando com tipo invalido para expressao");
+               char * errorMsg=concat5 ("expressao ",sq_exprToStr(expr)," com tipo invalido ",expr->type , " para operador de tipo logico");
+                sq_putError(sqContext,errorMsg);
+                free(errorMsg);
                 break;
            }
            else{
@@ -293,7 +362,9 @@ type sq_getResultingTypeUnary(SquirrelContext * sqContext, OperatorCategory oper
            break;
         case opcategory_bitwise:
             if(expr->typeCategory != type_integer){
-                sq_putError(sqContext, "operando com tipo invalido para expressao"); 
+                char * errorMsg=concat5 ("expressao ",sq_exprToStr(expr)," com tipo invalido ",expr->type , " para operador de tipo bitwise");
+                sq_putError(sqContext, errorMsg); 
+                free (errorMsg);
                 break;
            }
            else{
@@ -302,7 +373,9 @@ type sq_getResultingTypeUnary(SquirrelContext * sqContext, OperatorCategory oper
             break;
         case opcategory_arithmetic:
             if(expr->typeCategory != type_integer && expr->typeCategory !=type_real){
-                sq_putError(sqContext, "operando com tipo invalido para expressao");
+                char * errorMsg=concat5 ("expressao ",sq_exprToStr(expr)," com tipo invalido ",expr->type , " para operador de tipo arithmetic");
+                sq_putError(sqContext, errorMsg);
+                free (errorMsg);
                 break;
            }
            else if(expr->typeCategory == type_integer){
@@ -317,6 +390,7 @@ type sq_getResultingTypeUnary(SquirrelContext * sqContext, OperatorCategory oper
     
     return create_Type("",type_invalid, NULL);
 }
+
 type sq_getUnaryExpressionType(SquirrelContext * sqContext, const char * operator , Expression * expr){
    OperatorCategory opCategory = sq_getOperatorCategory(operator);
    return sq_getResultingTypeUnary(sqContext,opCategory,expr);

@@ -15,6 +15,8 @@ const char * sq_typeCategoryCString(TypeCategory typeCategory){
             return "type_enum";
         case type_function:
             return "type_function";
+        case type_functionliteral:
+            return "type_functionliteral";
         case type_integer:
             return "type_integer";
         case type_object:
@@ -29,6 +31,8 @@ const char * sq_typeCategoryCString(TypeCategory typeCategory){
             return "type_struct";
         case type_invalid:
             return "type_invalid";
+        case type_typeliteral:
+            return "type_typeliteral";
     }   
     return "";
 }

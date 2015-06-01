@@ -1,0 +1,50 @@
+int[ ] arrayFunction1(){
+    return [10,11,12,20,44,42,88];
+}
+
+int[ ] arrayFunction1(){
+    return [555,77,132,0,4904,73];
+}
+
+boolean isOnArray(int array[], int value)
+{
+    int i = 0;
+    for (i=0; i<array.length; i++)
+    {
+        if (array[i] == value){
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+
+int main( ){
+    int A1 = arrayFunction1();
+    int A2 = arrayFunction2();
+    int n = 42;
+    
+    if(isOnArray(A1,n))
+    {
+        print(" o valor", n , "esta no array [10,11,12,20,44,42,88]");
+    }
+    
+    else
+    {
+        print(" o valor", n , "nao esta no array [10,11,12,20,44,42,88]");
+    }
+    
+    
+     if(isOnArray(A2,n))
+    {
+        print(" o valor", n , "esta no array [10,11,12,20,44,88]");
+    }
+    
+    else
+    {
+        print(" o valor", n , "nao esta no array [10,11,12,20,44,88]");
+    }
+    
+    return 0;
+}

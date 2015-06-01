@@ -231,7 +231,8 @@ struct_body       : /*Vazio*/                       {  $$ = createList(NULL); }
                         | attribute_list            {  $$ = $1;};
                                                         
 functiontype_definition: 
-                    FUNCTION type ID func_params    {   sq_declareFunctionType(sqContext, $2,$3,$4);
+                    FUNCTION type ID func_params    {   printf("declare function type %s", $3);
+                                                        sq_declareFunctionType(sqContext, $2,$3,$4);
                                                         $$ = sq_genFunctionType(sqContext,$2,$3,$4);};
 
 id_list : ID                                        {   $$ = createList($1);}
@@ -280,8 +281,11 @@ inc_stmt         : lvalue_term inc_op                           { //TODO: Testar
 
 function_call    : lvalue_call                                  {   $$ = $1;}
                     |io_command                                 {   $$ = $1;}
-                    | rvalue_term LPAREN expr_list RPAREN       {   char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
-                                                                    $$ = sq_Expression("void", concat4(sq_exprToStr($1), "(",listStr, ")"), type_invalid);};
+                    | rvalue_term LPAREN expr_list RPAREN       {   
+                                                                    sq_checkExpressionIsCallable(sqContext, $1);
+                                                                    type funcType = sq_getFunctionReturnType(sqContext, $1->type);
+                                                                    char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
+                                                                    $$ = sq_Expression(funcType.typename, concat4(sq_exprToStr($1), "(",listStr, ")"), funcType.category);};
                     
 lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {   
                                                                     
@@ -302,9 +306,11 @@ lvalue_call      : lvalue_term LPAREN expr_list RPAREN          {
                                                                         }
                                                                     }
                                                                     else{
+                                                                        sq_checkExpressionIsCallable(sqContext, $1);
+                                                                        type funcType = sq_getFunctionReturnType(sqContext, $1->type);
                                                                         char * listStr = joinList($3, ", ", sq_ExpressionStringConverter);
                                                                         char * translationExpr = concat4(sq_exprToStr($1), "(", listStr, ")");
-                                                                        $$ = sq_Expression("error", translationExpr, type_invalid); 
+                                                                        $$ = sq_Expression(funcType.typename, translationExpr, funcType.category); 
                                                                     }
                                                                 };
 
@@ -326,14 +332,16 @@ return_statement : RETURN expr                                  {   $$ = concat(
                    | RETURN                                     {   $$ = strdup("return ");};
 
 assignment       : lvalue_term assignment_op expr               {  
+                                                                    sq_checkExpressionCoercion(sqContext, $3, $1);
                                                                     const char *values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
                                                                     $$ = concat_n(5, values);
                                                                 };
 
 variables_decl   : type name_decl_list                          {   
+                                                                    sq_checkVariablesDeclCoercion(sqContext, $1, $2);
                                                                     sq_declareVariables(sqContext, $1, $2);
                                                                     char * typeName = sq_translateTypeName(sqContext,$1);
-                                                                    printf("translated type %s to %s\n", $1, typeName);
+                                                                    //printf("translated type %s to %s\n", $1, typeName);
                                                                     
                                                                     $$ = concat3(typeName, " ", joinList($2,", ", sq_NameDeclToString));
                                                                     destroyList($2);
@@ -353,7 +361,7 @@ name_decl_list   : name_decl                                    {   $$ = createL
                     | name_decl_list COMMA name_decl            {   $$ = appendList($1, $3);};
 
 name_decl         : ID                                          {   $$ = sq_NameDeclItem($1, NULL); }
-                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, sq_Expression("error", sq_exprToStr($3), type_invalid)); };
+                    | ID ASSIGN expr                            {   $$ = sq_NameDeclItem($1, $3); };
 
 /* ********************************* EXPRESSIONS ********************************************* */
 expr_list       : /* Vazio */                                   {   $$ = createList(NULL);}
@@ -364,8 +372,12 @@ expr            : binary_expr                                 {   $$ = $1; }
                     | type_expr                               {   $$ = $1; };
 
 binary_expr     : unary_pos_expr                              {   $$ = $1;}
-                    | binary_expr operator unary_pos_expr     {   const char * values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
-                                                                  $$ = sq_Expression("error", concat_n(5, values), type_invalid);};
+                    | binary_expr operator unary_pos_expr     {   
+                                                                    type t = sq_getBinaryExpressionType(sqContext, $2, $1, $3);
+                                                                    const char * values[] = {sq_exprToStr($1), " ", $2, " ", sq_exprToStr($3)};
+                                                                    
+                                                                    $$ = sq_Expression(t.typename, concat_n(5, values), t.category);
+                                                              };
                                                                   
 type_expr       : TYPEOF LPAREN type_or_expr RPAREN           {   
                                                                   const char * type_or_exprStr = $3->typeCategory == type_type ? $3->expr : $3->type;
@@ -389,19 +401,19 @@ type_or_expr    :   expr                                      { $$ = $1; }
 
 unary_pos_expr  : unary_pre_expr                    {   $$ = $1; }
                     | unary_pre_expr inc_op         {   
-                                                        //TODO: checar se unary_pre_expr é algo que pode receber valor
+                                                        type typ = sq_getUnaryExpressionType(sqContext, $2,$1);
                                                         char * exprTranslate = concat(sq_exprToStr($1), $2);
-                                                        $$ = sq_Expression($1->type, exprTranslate, $1->typeCategory);
+                                                        $$ = sq_Expression(typ.typename, exprTranslate, typ.category);
                                                     };
 
 unary_pre_expr  : term                              {   $$ = $1; }
-                    | unary_pre_op term             {  type typ = sq_getUnaryExpressionType(sqContext, $1,$2);
+                    | unary_pre_op term             {   type typ = sq_getUnaryExpressionType(sqContext, $1,$2);
                                                         $$ = sq_Expression(typ.typename, concat($1, sq_exprToStr($2)),typ.category); };
                    
 term            : rvalue_term                       {   $$ = $1;}
                     | lvalue_term                   {   $$ = $1;};
                    
-rvalue_term     :   LPAREN expr RPAREN              {   $$ = sq_Expression("error", concat3("(",sq_exprToStr($2),")"), type_invalid);}
+rvalue_term     :   LPAREN expr RPAREN              {   $$ = sq_Expression($2->type, concat3("(",sq_exprToStr($2),")"), $2->typeCategory);}
                     | call_expr                     {   $$ = $1; }
                     | struct_constructor            {   $$ = sq_Expression("error", $1, type_invalid); }
                     | value                         {   $$ = $1; }
@@ -452,16 +464,15 @@ lvalue_term     :  member                           {
                     | rvalue_term DOT member        { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);}
                     | index_access DOT member       { $$ = sq_Expression("error", concat3(sq_exprToStr($1), ".", sq_memberToString($3)), type_invalid);};
 
-index_access    : term LBRACKET expr RBRACKET       {  /* //TODO: checar se tipo de term é array e tipo de expr é inteiro
-                                                        const char * values[] = {sq_exprToStr($1), "[", sq_exprToStr($3), "]"};
-                                                        char * indexAccessStr = concat_n(4, values);
-                                                        $$ = sq_Expression("error", indexAccessStr, type_invalid);
-                                                        */
-                                                       
-                                                        
-                                                          char * indexAccessStr = sq_genIndexAccess(sqContext,$1, $3);
-                                                           $$ = sq_Expression("error", indexAccessStr, type_invalid);
-                                                        
+index_access    : term LBRACKET expr RBRACKET       { 
+                                                        type itemType = sq_findArrayItemType(sqContext, $1->type);
+                                                        if(itemType.category == type_invalid){
+                                                            char * errMsg = concat5("Trying to access item from expr '", $1->expr
+                                                                        ,"' with non array type '", $1->type, "'");
+                                                            sq_putError(sqContext, errMsg);
+                                                        }
+                                                        char * indexAccessStr = sq_genIndexAccess(sqContext,$1, $3);
+                                                        $$ = sq_Expression(itemType.typename, indexAccessStr, itemType.category);
                                                     };
 
 value           : NUMBER_LITERAL                    {   $$ = sq_Expression("number_literal" , $1, type_integer);} 

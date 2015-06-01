@@ -1,0 +1,24 @@
+int main(){
+    boolean x,y,z,w,v,t,o,p;
+    int a,b;
+    string s;
+    x=2;
+    y=3;
+    a=x++;
+    b=x+y;
+    z= not a;
+    w= ~ y;
+    s=z;
+    v= y--;
+    t= x++;
+    o= ++ y;
+    p= x && y; 
+    print(a);
+    print(b);
+    print(z);
+    print(w);
+    print(s);
+    print(t);
+    print(p);
+    print(o);
+}

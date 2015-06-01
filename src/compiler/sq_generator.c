@@ -149,7 +149,7 @@ char * sq_translateTypeName(SquirrelContext * sqContext, const char * typeName){
         if(typeRow->category == categ_arrayType){
             return cpyString(ARRAY_LITERAL_TYPE);
         }
-        else if(typeRow->category = categ_primitiveType){
+        else if(typeRow->category == categ_primitiveType){
             if(strEquals(typeRow->name, "number_literal")){
                 return cpyString("int");
             } 
@@ -611,11 +611,11 @@ char * sq_genIndexAccess(SquirrelContext * sqContext, Expression *arrayExpr, Exp
     }
     else if( t -> category != categ_arrayType)
     {
-        return strdup("erro2r");
+        return strdup("error");
     }
     
     else{
-    printf("fsojeoj \n");
+  //  printf("fsojeoj \n");
     char * result1 = "getArrayItem(";
     
     char * result2 = t -> value.arrayValue.baseTypename;
@@ -624,7 +624,7 @@ char * sq_genIndexAccess(SquirrelContext * sqContext, Expression *arrayExpr, Exp
     
     char * result = concat3(result1, result2, result3);
     free(result3);
-    printf("finmal\n");
+    //printf("finmal\n");
     return(result);
     }
 }
