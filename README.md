@@ -13,8 +13,9 @@ Para desenvolver Squirrel estamos utilizando o
 [Flex](http://flex.sourceforge.net/), implementações do YACC e Lex, respectivamente.
 
 ### Compilar "na mão"
-É possível utilizar o flex e bison (junto com algum compilador C) para gerar
-um executável do compilador.
+Para gerar um executável do compilador, é possível utilizar o flex e bison 
+(junto com algum compilador C) diretamente. O modo recomendável, no entanto, é 
+utilizando o waf (veja abaixo).
 
 0. Gerar o léxico:
 
@@ -27,9 +28,10 @@ um executável do compilador.
     
         bison --define=y.tab.h parser.y
 
-0. Gerar executável:
+0. Gerar o executável:
 
-        cc *.c -o squirrel
+        cc *.c src/commons/*.c libs/datastructs-c/src/*.c src/compiler/*.c 
+        -I src/commons -I libs/datastructs-c/src -I src/compiler -std=gnu99 -o squirrel
 
 ### Utilizando o *Waf*
 
@@ -37,6 +39,9 @@ Outra opção é utilizar o [waf](https://github.com/waf-project/waf).
 
     ./waf configure build
 
-Waf é um sistema de build que permite definir o script de construção do programa em python (ver o arquivo *wscript*).
+Waf é um sistema de build que permite definir o script de construção do programa 
+em python (ver o arquivo *wscript*).
 
 O *waf* em si é um programa em python e pode ser incluso junto ao projeto.
+
+O script irá criar o executável do compilador (squirrel) na pasta build.
